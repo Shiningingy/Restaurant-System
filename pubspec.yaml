@@ -1,0 +1,10 @@
+name: restaurant_system_workspace
+description: Pub workspace root for the Restaurant System monorepo.
+publish_to: none
+
+environment:
+  sdk: ^3.12.0
+
+workspace:
+  - packages/domain
+  - apps/merchant

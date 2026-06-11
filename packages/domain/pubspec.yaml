@@ -1,0 +1,17 @@
+name: restaurant_domain
+description: Pure Dart domain package shared by the merchant and customer apps. No Flutter imports allowed.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.6.0
+
+resolution: workspace
+
+dependencies:
+  intl: ^0.20.0
+  uuid: ^4.5.0
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.0
