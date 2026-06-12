@@ -1,0 +1,31 @@
+import 'package:drift/drift.dart';
+import 'package:drift_flutter/drift_flutter.dart';
+import 'package:restaurant_domain/restaurant_domain.dart' as domain;
+
+import 'tables.dart';
+
+part 'database.g.dart';
+
+@DriftDatabase(
+  tables: [
+    Categories,
+    MenuItems,
+    ModifierGroups,
+    Modifiers,
+    MenuItemModifierGroups,
+    DiningTables,
+    Orders,
+    OrderLines,
+    OrderLineModifiers,
+    Payments,
+  ],
+)
+class AppDatabase extends _$AppDatabase {
+  /// Tests pass `NativeDatabase.memory()`; production uses [AppDatabase.open].
+  AppDatabase(super.e);
+
+  AppDatabase.open() : super(driftDatabase(name: 'restaurant_pos'));
+
+  @override
+  int get schemaVersion => 1;
+}

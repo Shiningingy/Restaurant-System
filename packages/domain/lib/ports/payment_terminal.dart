@@ -1,10 +1,12 @@
 import '../src/money.dart';
 import '../src/result.dart';
 
-enum PaymentStatus { approved, declined, cancelled }
+/// Outcome of a single charge/refund attempt at the terminal.
+/// (Distinct from the persisted [PaymentStatus] on the Payment entity.)
+enum ChargeOutcome { approved, declined, cancelled }
 
 class PaymentResult {
-  final PaymentStatus status;
+  final ChargeOutcome status;
   final Money amount;
   final Money tip;
 

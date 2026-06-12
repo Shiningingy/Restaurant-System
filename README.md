@@ -37,7 +37,9 @@ Full text: [docs/PRINCIPLES.md](docs/PRINCIPLES.md)
 - **iOS** is the primary target, but iOS builds require a Mac or hosted macOS
   CI (GitHub macOS runners / Codemagic). Daily development works fine on the
   Windows desktop target or an Android emulator.
-- Windows desktop builds need Visual Studio with the C++ desktop workload.
+- Windows desktop builds need Visual Studio with the C++ desktop workload, plus
+  **Windows Developer Mode** enabled (`start ms-settings:developers`) — Flutter
+  plugins are wired up via symlinks.
 - Android builds need the Android SDK (install via Android Studio).
 
 ## License
