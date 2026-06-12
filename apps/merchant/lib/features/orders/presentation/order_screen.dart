@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../menu/application/providers.dart';
+import '../../printing/application/providers.dart';
+import '../../settings/application/providers.dart';
 import '../application/providers.dart';
 import 'modifier_picker_dialog.dart';
 
@@ -24,7 +26,10 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
     final order = ref.watch(orderProvider(widget.orderId)).value;
     final lines =
         ref.watch(orderLinesProvider(widget.orderId)).value ?? const [];
-    final isOpen = order?.status == domain.OrderStatus.open;
+    // `sent` orders (kitchen ticket printed) stay editable until paid.
+    final isOpen =
+        order?.status == domain.OrderStatus.open ||
+        order?.status == domain.OrderStatus.sent;
 
     return Scaffold(
       appBar: AppBar(
@@ -296,6 +301,21 @@ class _Ticket extends ConsumerWidget {
               const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: isOpen && visibleLines.isNotEmpty
+                      ? () => _sendToKitchen(context, ref)
+                      : null,
+                  icon: const Icon(Icons.print_outlined),
+                  label: Text(
+                    order.status == domain.OrderStatus.sent
+                        ? 'Reprint kitchen ticket'
+                        : 'Send to kitchen',
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
                 child: FilledButton(
                   onPressed: isOpen && visibleLines.isNotEmpty
                       ? () => _pay(context, ref)
@@ -333,6 +353,23 @@ class _Ticket extends ConsumerWidget {
     );
   }
 
+  Future<void> _sendToKitchen(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    if (!ref.read(printerSettingsProvider).isConfigured) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('No printer configured - set one up in Settings.'),
+        ),
+      );
+      return;
+    }
+    await ref.read(printServiceProvider).printKitchenTicket(order.id);
+    await ref.read(orderRepositoryProvider).markSent(order.id);
+    messenger.showSnackBar(
+      const SnackBar(content: Text('Kitchen ticket queued.')),
+    );
+  }
+
   Future<void> _pay(BuildContext context, WidgetRef ref) async {
     final method = await showDialog<domain.PaymentMethod>(
       context: context,
@@ -362,6 +399,9 @@ class _Ticket extends ConsumerWidget {
     await ref
         .read(orderRepositoryProvider)
         .closeOrder(orderId: order.id, method: method);
+    if (ref.read(printerSettingsProvider).isConfigured) {
+      await ref.read(printServiceProvider).printCustomerReceipt(order.id);
+    }
     if (context.mounted) context.go('/orders');
   }
 }

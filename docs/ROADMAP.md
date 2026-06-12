@@ -8,7 +8,7 @@ Monorepo (shared `packages/domain` + `apps/merchant`), port interfaces,
 principles/architecture docs, CI.
 **Exit:** CI green on the pushed repo.
 
-## Phase 1 — Core POS
+## Phase 1 — Core POS ✅
 Drift schema and migrations, menu/category/modifier CRUD, dine-in (tables) and
 takeout orders, edit/void lines, tax and totals.
 **Exit:** take and close an order fully offline.
@@ -18,6 +18,9 @@ PrintJob queue with retry, ESC/POS ticket builder, customer-receipt and
 kitchen-ticket templates. Network (LAN/TCP 9100) driver first — it works on all
 platforms and is easiest to test — then Bluetooth.
 **Exit:** an order prints a kitchen ticket and a customer receipt on real hardware.
+*Status: code complete (queue, templates, encoder, network driver, settings UI);
+awaiting a real LAN printer for the hardware exit check. Bluetooth driver follows
+once a mobile test device is available.*
 
 ## Phase 3 — Payment terminal
 `ManualEntryTerminal` first (staff keys the amount on a standalone terminal and

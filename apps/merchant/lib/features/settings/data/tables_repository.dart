@@ -24,6 +24,13 @@ class TablesRepository {
     );
   }
 
+  Future<String?> labelFor(String tableId) async {
+    final row = await (db.select(
+      db.diningTables,
+    )..where((t) => t.id.equals(tableId))).getSingleOrNull();
+    return row?.label;
+  }
+
   Future<void> upsertTable(domain.DiningTable table) {
     return db
         .into(db.diningTables)

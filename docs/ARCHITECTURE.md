@@ -56,8 +56,9 @@ OrderLineModifier  id, lineId→OrderLine, nameSnapshot, priceDeltaCentsSnapshot
 Payment         id, orderId→Order, method{terminal|manual|cash}, amountCents,
                 tipCents, status{pending|approved|declined|reversed},
                 terminalRef?, createdAt
-PrintJob        id, orderId?, kind{customerReceipt|kitchenTicket}, payload,
-                status{queued|printed|failed}, attempts, createdAt
+PrintJob        id, orderId?, kind{customerReceipt|kitchenTicket|testPage},
+                payload (rendered ESC/POS bytes), attempts, lastError?,
+                status{queued|printing|done|failed}, createdAt, updatedAt
 SyncLog         id, entity, entityId, op{insert|update|delete}, payload, syncedAt?
 ```
 

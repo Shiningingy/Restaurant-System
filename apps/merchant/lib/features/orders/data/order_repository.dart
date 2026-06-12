@@ -34,12 +34,30 @@ class OrderRepository {
     return id;
   }
 
+  /// Active orders for the board: `open` plus `sent` (sent to kitchen but
+  /// not yet paid — still editable).
   Stream<List<domain.Order>> watchOpenOrders() {
     final q = db.select(db.orders)
-      ..where((t) => t.status.equalsValue(domain.OrderStatus.open))
+      ..where(
+        (t) => t.status.isInValues([
+          domain.OrderStatus.open,
+          domain.OrderStatus.sent,
+        ]),
+      )
       ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]);
     return q.watch().map((rows) => rows.map(_orderFromRow).toList());
   }
+
+  Future<domain.Order?> getOrder(String orderId) async {
+    final row = await (db.select(
+      db.orders,
+    )..where((t) => t.id.equals(orderId))).getSingleOrNull();
+    return row == null ? null : _orderFromRow(row);
+  }
+
+  /// One-shot snapshot of [watchLines] — used when rendering tickets.
+  Future<List<domain.OrderLine>> getLines(String orderId) =>
+      watchLines(orderId).first;
 
   Stream<domain.Order?> watchOrder(String orderId) {
     final q = db.select(db.orders)..where((t) => t.id.equals(orderId));
@@ -163,6 +181,36 @@ class OrderRepository {
       );
       await _recomputeTotals(line.orderId);
     });
+  }
+
+  /// Marks an open order as sent to the kitchen (Phase 2 — printing the
+  /// kitchen ticket). Idempotent for already-sent orders.
+  Future<void> markSent(String orderId) {
+    return (db.update(db.orders)..where(
+          (t) =>
+              t.id.equals(orderId) &
+              t.status.equalsValue(domain.OrderStatus.open),
+        ))
+        .write(const OrdersCompanion(status: Value(domain.OrderStatus.sent)));
+  }
+
+  Future<domain.Payment?> latestPaymentForOrder(String orderId) async {
+    final q = db.select(db.payments)
+      ..where((t) => t.orderId.equals(orderId))
+      ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])
+      ..limit(1);
+    final r = await q.getSingleOrNull();
+    if (r == null) return null;
+    return domain.Payment(
+      id: r.id,
+      orderId: r.orderId,
+      method: r.method,
+      status: r.status,
+      amount: r.amount,
+      tip: r.tip,
+      terminalRef: r.terminalRef,
+      createdAt: r.createdAt,
+    );
   }
 
   // --- Closing ---

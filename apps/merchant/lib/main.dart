@@ -4,14 +4,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app.dart';
 import 'core/providers.dart';
+import 'features/printing/application/providers.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
+  final container = ProviderContainer(
+    overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+  );
+  // Resume any print jobs interrupted by the last shutdown.
+  await container.read(printServiceProvider).start();
   runApp(
-    ProviderScope(
-      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
-      child: const MerchantApp(),
-    ),
+    UncontrolledProviderScope(container: container, child: const MerchantApp()),
   );
 }

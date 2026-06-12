@@ -3979,6 +3979,579 @@ class PaymentsCompanion extends UpdateCompanion<PaymentRow> {
   }
 }
 
+class $PrintJobsTable extends PrintJobs
+    with TableInfo<$PrintJobsTable, PrintJobRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PrintJobsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<domain.PrintJobKind, String>
+  kind = GeneratedColumn<String>(
+    'kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  ).withConverter<domain.PrintJobKind>($PrintJobsTable.$converterkind);
+  @override
+  late final GeneratedColumnWithTypeConverter<domain.PrintJobStatus, String>
+  status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  ).withConverter<domain.PrintJobStatus>($PrintJobsTable.$converterstatus);
+  static const VerificationMeta _orderIdMeta = const VerificationMeta(
+    'orderId',
+  );
+  @override
+  late final GeneratedColumn<String> orderId = GeneratedColumn<String>(
+    'order_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _payloadMeta = const VerificationMeta(
+    'payload',
+  );
+  @override
+  late final GeneratedColumn<Uint8List> payload = GeneratedColumn<Uint8List>(
+    'payload',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _attemptsMeta = const VerificationMeta(
+    'attempts',
+  );
+  @override
+  late final GeneratedColumn<int> attempts = GeneratedColumn<int>(
+    'attempts',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _lastErrorMeta = const VerificationMeta(
+    'lastError',
+  );
+  @override
+  late final GeneratedColumn<String> lastError = GeneratedColumn<String>(
+    'last_error',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    kind,
+    status,
+    orderId,
+    payload,
+    attempts,
+    lastError,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'print_jobs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PrintJobRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('order_id')) {
+      context.handle(
+        _orderIdMeta,
+        orderId.isAcceptableOrUnknown(data['order_id']!, _orderIdMeta),
+      );
+    }
+    if (data.containsKey('payload')) {
+      context.handle(
+        _payloadMeta,
+        payload.isAcceptableOrUnknown(data['payload']!, _payloadMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_payloadMeta);
+    }
+    if (data.containsKey('attempts')) {
+      context.handle(
+        _attemptsMeta,
+        attempts.isAcceptableOrUnknown(data['attempts']!, _attemptsMeta),
+      );
+    }
+    if (data.containsKey('last_error')) {
+      context.handle(
+        _lastErrorMeta,
+        lastError.isAcceptableOrUnknown(data['last_error']!, _lastErrorMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PrintJobRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PrintJobRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      kind: $PrintJobsTable.$converterkind.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}kind'],
+        )!,
+      ),
+      status: $PrintJobsTable.$converterstatus.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}status'],
+        )!,
+      ),
+      orderId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}order_id'],
+      ),
+      payload: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}payload'],
+      )!,
+      attempts: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}attempts'],
+      )!,
+      lastError: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_error'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $PrintJobsTable createAlias(String alias) {
+    return $PrintJobsTable(attachedDatabase, alias);
+  }
+
+  static JsonTypeConverter2<domain.PrintJobKind, String, String>
+  $converterkind = const EnumNameConverter<domain.PrintJobKind>(
+    domain.PrintJobKind.values,
+  );
+  static JsonTypeConverter2<domain.PrintJobStatus, String, String>
+  $converterstatus = const EnumNameConverter<domain.PrintJobStatus>(
+    domain.PrintJobStatus.values,
+  );
+}
+
+class PrintJobRow extends DataClass implements Insertable<PrintJobRow> {
+  final String id;
+  final domain.PrintJobKind kind;
+  final domain.PrintJobStatus status;
+  final String? orderId;
+  final Uint8List payload;
+  final int attempts;
+  final String? lastError;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const PrintJobRow({
+    required this.id,
+    required this.kind,
+    required this.status,
+    this.orderId,
+    required this.payload,
+    required this.attempts,
+    this.lastError,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    {
+      map['kind'] = Variable<String>(
+        $PrintJobsTable.$converterkind.toSql(kind),
+      );
+    }
+    {
+      map['status'] = Variable<String>(
+        $PrintJobsTable.$converterstatus.toSql(status),
+      );
+    }
+    if (!nullToAbsent || orderId != null) {
+      map['order_id'] = Variable<String>(orderId);
+    }
+    map['payload'] = Variable<Uint8List>(payload);
+    map['attempts'] = Variable<int>(attempts);
+    if (!nullToAbsent || lastError != null) {
+      map['last_error'] = Variable<String>(lastError);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  PrintJobsCompanion toCompanion(bool nullToAbsent) {
+    return PrintJobsCompanion(
+      id: Value(id),
+      kind: Value(kind),
+      status: Value(status),
+      orderId: orderId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(orderId),
+      payload: Value(payload),
+      attempts: Value(attempts),
+      lastError: lastError == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastError),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory PrintJobRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PrintJobRow(
+      id: serializer.fromJson<String>(json['id']),
+      kind: $PrintJobsTable.$converterkind.fromJson(
+        serializer.fromJson<String>(json['kind']),
+      ),
+      status: $PrintJobsTable.$converterstatus.fromJson(
+        serializer.fromJson<String>(json['status']),
+      ),
+      orderId: serializer.fromJson<String?>(json['orderId']),
+      payload: serializer.fromJson<Uint8List>(json['payload']),
+      attempts: serializer.fromJson<int>(json['attempts']),
+      lastError: serializer.fromJson<String?>(json['lastError']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'kind': serializer.toJson<String>(
+        $PrintJobsTable.$converterkind.toJson(kind),
+      ),
+      'status': serializer.toJson<String>(
+        $PrintJobsTable.$converterstatus.toJson(status),
+      ),
+      'orderId': serializer.toJson<String?>(orderId),
+      'payload': serializer.toJson<Uint8List>(payload),
+      'attempts': serializer.toJson<int>(attempts),
+      'lastError': serializer.toJson<String?>(lastError),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  PrintJobRow copyWith({
+    String? id,
+    domain.PrintJobKind? kind,
+    domain.PrintJobStatus? status,
+    Value<String?> orderId = const Value.absent(),
+    Uint8List? payload,
+    int? attempts,
+    Value<String?> lastError = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => PrintJobRow(
+    id: id ?? this.id,
+    kind: kind ?? this.kind,
+    status: status ?? this.status,
+    orderId: orderId.present ? orderId.value : this.orderId,
+    payload: payload ?? this.payload,
+    attempts: attempts ?? this.attempts,
+    lastError: lastError.present ? lastError.value : this.lastError,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  PrintJobRow copyWithCompanion(PrintJobsCompanion data) {
+    return PrintJobRow(
+      id: data.id.present ? data.id.value : this.id,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      status: data.status.present ? data.status.value : this.status,
+      orderId: data.orderId.present ? data.orderId.value : this.orderId,
+      payload: data.payload.present ? data.payload.value : this.payload,
+      attempts: data.attempts.present ? data.attempts.value : this.attempts,
+      lastError: data.lastError.present ? data.lastError.value : this.lastError,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PrintJobRow(')
+          ..write('id: $id, ')
+          ..write('kind: $kind, ')
+          ..write('status: $status, ')
+          ..write('orderId: $orderId, ')
+          ..write('payload: $payload, ')
+          ..write('attempts: $attempts, ')
+          ..write('lastError: $lastError, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    kind,
+    status,
+    orderId,
+    $driftBlobEquality.hash(payload),
+    attempts,
+    lastError,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PrintJobRow &&
+          other.id == this.id &&
+          other.kind == this.kind &&
+          other.status == this.status &&
+          other.orderId == this.orderId &&
+          $driftBlobEquality.equals(other.payload, this.payload) &&
+          other.attempts == this.attempts &&
+          other.lastError == this.lastError &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class PrintJobsCompanion extends UpdateCompanion<PrintJobRow> {
+  final Value<String> id;
+  final Value<domain.PrintJobKind> kind;
+  final Value<domain.PrintJobStatus> status;
+  final Value<String?> orderId;
+  final Value<Uint8List> payload;
+  final Value<int> attempts;
+  final Value<String?> lastError;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const PrintJobsCompanion({
+    this.id = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.status = const Value.absent(),
+    this.orderId = const Value.absent(),
+    this.payload = const Value.absent(),
+    this.attempts = const Value.absent(),
+    this.lastError = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PrintJobsCompanion.insert({
+    required String id,
+    required domain.PrintJobKind kind,
+    required domain.PrintJobStatus status,
+    this.orderId = const Value.absent(),
+    required Uint8List payload,
+    this.attempts = const Value.absent(),
+    this.lastError = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       kind = Value(kind),
+       status = Value(status),
+       payload = Value(payload),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<PrintJobRow> custom({
+    Expression<String>? id,
+    Expression<String>? kind,
+    Expression<String>? status,
+    Expression<String>? orderId,
+    Expression<Uint8List>? payload,
+    Expression<int>? attempts,
+    Expression<String>? lastError,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (kind != null) 'kind': kind,
+      if (status != null) 'status': status,
+      if (orderId != null) 'order_id': orderId,
+      if (payload != null) 'payload': payload,
+      if (attempts != null) 'attempts': attempts,
+      if (lastError != null) 'last_error': lastError,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PrintJobsCompanion copyWith({
+    Value<String>? id,
+    Value<domain.PrintJobKind>? kind,
+    Value<domain.PrintJobStatus>? status,
+    Value<String?>? orderId,
+    Value<Uint8List>? payload,
+    Value<int>? attempts,
+    Value<String?>? lastError,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return PrintJobsCompanion(
+      id: id ?? this.id,
+      kind: kind ?? this.kind,
+      status: status ?? this.status,
+      orderId: orderId ?? this.orderId,
+      payload: payload ?? this.payload,
+      attempts: attempts ?? this.attempts,
+      lastError: lastError ?? this.lastError,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(
+        $PrintJobsTable.$converterkind.toSql(kind.value),
+      );
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(
+        $PrintJobsTable.$converterstatus.toSql(status.value),
+      );
+    }
+    if (orderId.present) {
+      map['order_id'] = Variable<String>(orderId.value);
+    }
+    if (payload.present) {
+      map['payload'] = Variable<Uint8List>(payload.value);
+    }
+    if (attempts.present) {
+      map['attempts'] = Variable<int>(attempts.value);
+    }
+    if (lastError.present) {
+      map['last_error'] = Variable<String>(lastError.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PrintJobsCompanion(')
+          ..write('id: $id, ')
+          ..write('kind: $kind, ')
+          ..write('status: $status, ')
+          ..write('orderId: $orderId, ')
+          ..write('payload: $payload, ')
+          ..write('attempts: $attempts, ')
+          ..write('lastError: $lastError, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3994,6 +4567,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $OrderLineModifiersTable orderLineModifiers =
       $OrderLineModifiersTable(this);
   late final $PaymentsTable payments = $PaymentsTable(this);
+  late final $PrintJobsTable printJobs = $PrintJobsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -4009,6 +4583,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     orderLines,
     orderLineModifiers,
     payments,
+    printJobs,
   ];
 }
 
@@ -7936,6 +8511,292 @@ typedef $$PaymentsTableProcessedTableManager =
       PaymentRow,
       PrefetchHooks Function({bool orderId})
     >;
+typedef $$PrintJobsTableCreateCompanionBuilder =
+    PrintJobsCompanion Function({
+      required String id,
+      required domain.PrintJobKind kind,
+      required domain.PrintJobStatus status,
+      Value<String?> orderId,
+      required Uint8List payload,
+      Value<int> attempts,
+      Value<String?> lastError,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$PrintJobsTableUpdateCompanionBuilder =
+    PrintJobsCompanion Function({
+      Value<String> id,
+      Value<domain.PrintJobKind> kind,
+      Value<domain.PrintJobStatus> status,
+      Value<String?> orderId,
+      Value<Uint8List> payload,
+      Value<int> attempts,
+      Value<String?> lastError,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$PrintJobsTableFilterComposer
+    extends Composer<_$AppDatabase, $PrintJobsTable> {
+  $$PrintJobsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<
+    domain.PrintJobKind,
+    domain.PrintJobKind,
+    String
+  >
+  get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<
+    domain.PrintJobStatus,
+    domain.PrintJobStatus,
+    String
+  >
+  get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get orderId => $composableBuilder(
+    column: $table.orderId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<Uint8List> get payload => $composableBuilder(
+    column: $table.payload,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get attempts => $composableBuilder(
+    column: $table.attempts,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastError => $composableBuilder(
+    column: $table.lastError,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PrintJobsTableOrderingComposer
+    extends Composer<_$AppDatabase, $PrintJobsTable> {
+  $$PrintJobsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get orderId => $composableBuilder(
+    column: $table.orderId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<Uint8List> get payload => $composableBuilder(
+    column: $table.payload,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get attempts => $composableBuilder(
+    column: $table.attempts,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastError => $composableBuilder(
+    column: $table.lastError,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PrintJobsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PrintJobsTable> {
+  $$PrintJobsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<domain.PrintJobKind, String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<domain.PrintJobStatus, String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get orderId =>
+      $composableBuilder(column: $table.orderId, builder: (column) => column);
+
+  GeneratedColumn<Uint8List> get payload =>
+      $composableBuilder(column: $table.payload, builder: (column) => column);
+
+  GeneratedColumn<int> get attempts =>
+      $composableBuilder(column: $table.attempts, builder: (column) => column);
+
+  GeneratedColumn<String> get lastError =>
+      $composableBuilder(column: $table.lastError, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$PrintJobsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PrintJobsTable,
+          PrintJobRow,
+          $$PrintJobsTableFilterComposer,
+          $$PrintJobsTableOrderingComposer,
+          $$PrintJobsTableAnnotationComposer,
+          $$PrintJobsTableCreateCompanionBuilder,
+          $$PrintJobsTableUpdateCompanionBuilder,
+          (
+            PrintJobRow,
+            BaseReferences<_$AppDatabase, $PrintJobsTable, PrintJobRow>,
+          ),
+          PrintJobRow,
+          PrefetchHooks Function()
+        > {
+  $$PrintJobsTableTableManager(_$AppDatabase db, $PrintJobsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PrintJobsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PrintJobsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PrintJobsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<domain.PrintJobKind> kind = const Value.absent(),
+                Value<domain.PrintJobStatus> status = const Value.absent(),
+                Value<String?> orderId = const Value.absent(),
+                Value<Uint8List> payload = const Value.absent(),
+                Value<int> attempts = const Value.absent(),
+                Value<String?> lastError = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PrintJobsCompanion(
+                id: id,
+                kind: kind,
+                status: status,
+                orderId: orderId,
+                payload: payload,
+                attempts: attempts,
+                lastError: lastError,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required domain.PrintJobKind kind,
+                required domain.PrintJobStatus status,
+                Value<String?> orderId = const Value.absent(),
+                required Uint8List payload,
+                Value<int> attempts = const Value.absent(),
+                Value<String?> lastError = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => PrintJobsCompanion.insert(
+                id: id,
+                kind: kind,
+                status: status,
+                orderId: orderId,
+                payload: payload,
+                attempts: attempts,
+                lastError: lastError,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PrintJobsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PrintJobsTable,
+      PrintJobRow,
+      $$PrintJobsTableFilterComposer,
+      $$PrintJobsTableOrderingComposer,
+      $$PrintJobsTableAnnotationComposer,
+      $$PrintJobsTableCreateCompanionBuilder,
+      $$PrintJobsTableUpdateCompanionBuilder,
+      (
+        PrintJobRow,
+        BaseReferences<_$AppDatabase, $PrintJobsTable, PrintJobRow>,
+      ),
+      PrintJobRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -7963,4 +8824,6 @@ class $AppDatabaseManager {
       $$OrderLineModifiersTableTableManager(_db, _db.orderLineModifiers);
   $$PaymentsTableTableManager get payments =>
       $$PaymentsTableTableManager(_db, _db.payments);
+  $$PrintJobsTableTableManager get printJobs =>
+      $$PrintJobsTableTableManager(_db, _db.printJobs);
 }

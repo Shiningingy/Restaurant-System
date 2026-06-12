@@ -17,6 +17,45 @@ final tablesProvider = StreamProvider<List<domain.DiningTable>>(
   (ref) => ref.watch(tablesRepositoryProvider).watchTables(),
 );
 
+class PrinterSettingsNotifier extends Notifier<PrinterSettings> {
+  @override
+  PrinterSettings build() => ref.watch(settingsRepositoryProvider).printer;
+
+  Future<void> save(PrinterSettings settings) async {
+    final repo = ref.read(settingsRepositoryProvider);
+    await repo.setPrinter(settings);
+    state = repo.printer;
+  }
+}
+
+final printerSettingsProvider =
+    NotifierProvider<PrinterSettingsNotifier, PrinterSettings>(
+      PrinterSettingsNotifier.new,
+    );
+
+class ReceiptConfigNotifier extends Notifier<domain.ReceiptConfig> {
+  @override
+  domain.ReceiptConfig build() =>
+      ref.watch(settingsRepositoryProvider).receiptConfig;
+
+  Future<void> setBusinessName(String name) async {
+    final repo = ref.read(settingsRepositoryProvider);
+    await repo.setBusinessName(name);
+    state = repo.receiptConfig;
+  }
+
+  Future<void> setFooter(String footer) async {
+    final repo = ref.read(settingsRepositoryProvider);
+    await repo.setReceiptFooter(footer);
+    state = repo.receiptConfig;
+  }
+}
+
+final receiptConfigProvider =
+    NotifierProvider<ReceiptConfigNotifier, domain.ReceiptConfig>(
+      ReceiptConfigNotifier.new,
+    );
+
 class TaxRateNotifier extends Notifier<int> {
   @override
   int build() => ref.watch(settingsRepositoryProvider).taxRateBp;

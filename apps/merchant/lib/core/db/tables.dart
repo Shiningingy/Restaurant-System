@@ -124,6 +124,25 @@ class OrderLineModifiers extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+/// Persisted print queue: jobs survive restarts, failed jobs can be
+/// retried from Settings. The payload is the fully rendered ESC/POS byte
+/// stream, so a retry reprints the exact original document.
+@DataClassName('PrintJobRow')
+class PrintJobs extends Table {
+  TextColumn get id => text()();
+  TextColumn get kind => textEnum<domain.PrintJobKind>()();
+  TextColumn get status => textEnum<domain.PrintJobStatus>()();
+  TextColumn get orderId => text().nullable()();
+  BlobColumn get payload => blob()();
+  IntColumn get attempts => integer().withDefault(const Constant(0))();
+  TextColumn get lastError => text().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
 @DataClassName('PaymentRow')
 class Payments extends Table {
   TextColumn get id => text()();

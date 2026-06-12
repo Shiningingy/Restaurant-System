@@ -1,7 +1,12 @@
 import '../src/result.dart';
 
 /// What kind of document a print job produces.
-enum PrintJobKind { customerReceipt, kitchenTicket }
+enum PrintJobKind { customerReceipt, kitchenTicket, testPage }
+
+/// Lifecycle of a queued print job (persisted in the merchant app's
+/// print_jobs table). `queued` and `failed` jobs survive restarts;
+/// failed jobs can be retried from the UI.
+enum PrintJobStatus { queued, printing, done, failed }
 
 /// A queued print job. The payload is the already-rendered ESC/POS byte
 /// stream; rendering (templates) is a separate concern from transport.

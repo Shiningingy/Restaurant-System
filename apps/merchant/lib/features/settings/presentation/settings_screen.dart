@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
+import '../../../core/db/database.dart';
+import '../../printing/application/providers.dart';
 import '../application/providers.dart';
+import '../data/settings_repository.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -11,6 +14,9 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final taxRateBp = ref.watch(taxRateBpProvider);
     final tables = ref.watch(tablesProvider).value ?? const [];
+    final printer = ref.watch(printerSettingsProvider);
+    final receiptConfig = ref.watch(receiptConfigProvider);
+    final printJobs = ref.watch(printJobsProvider).value ?? const [];
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
@@ -29,6 +35,74 @@ class SettingsScreen extends ConsumerWidget {
             ),
             onTap: () => _editTaxRate(context, ref, taxRateBp),
           ),
+          const Divider(height: 32),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Printing', style: Theme.of(context).textTheme.titleMedium),
+              if (printer.isConfigured)
+                TextButton.icon(
+                  onPressed: () => _testPrint(context, ref),
+                  icon: const Icon(Icons.print_outlined),
+                  label: const Text('Test print'),
+                ),
+            ],
+          ),
+          ListTile(
+            leading: const Icon(Icons.print_outlined),
+            title: const Text('Network printer'),
+            subtitle: Text(
+              printer.isConfigured
+                  ? '${printer.host}:${printer.port} - '
+                        '${printer.paperWidthChars == domain.EscPos.width58mm ? "58" : "80"}mm paper'
+                  : 'Not configured. ESC/POS over LAN (port 9100).',
+            ),
+            onTap: () => _editPrinter(context, ref, printer),
+          ),
+          ListTile(
+            leading: const Icon(Icons.storefront_outlined),
+            title: const Text('Business name on receipts'),
+            subtitle: Text(receiptConfig.businessName),
+            onTap: () async {
+              final name = await _editText(
+                context,
+                title: 'Business name',
+                current: receiptConfig.businessName,
+              );
+              if (name != null && name.isNotEmpty) {
+                await ref
+                    .read(receiptConfigProvider.notifier)
+                    .setBusinessName(name);
+              }
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.notes_outlined),
+            title: const Text('Receipt footer'),
+            subtitle: Text(receiptConfig.footer),
+            onTap: () async {
+              final footer = await _editText(
+                context,
+                title: 'Receipt footer',
+                current: receiptConfig.footer,
+              );
+              if (footer != null) {
+                await ref
+                    .read(receiptConfigProvider.notifier)
+                    .setFooter(footer);
+              }
+            },
+          ),
+          if (printJobs.isNotEmpty) ...[
+            Padding(
+              padding: const EdgeInsets.only(left: 16, top: 8),
+              child: Text(
+                'Print queue',
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
+            ),
+            for (final job in printJobs) _PrintJobTile(job: job),
+          ],
           const Divider(height: 32),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -94,6 +168,124 @@ class SettingsScreen extends ConsumerWidget {
     }
   }
 
+  Future<void> _testPrint(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final result = await ref.read(printServiceProvider).printTestPage();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          result.when(
+            ok: (_) => 'Test page sent to the printer.',
+            err: (e) => 'Test print failed: ${e.message}',
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _editPrinter(
+    BuildContext context,
+    WidgetRef ref,
+    PrinterSettings current,
+  ) async {
+    final hostController = TextEditingController(text: current.host ?? '');
+    final portController = TextEditingController(text: current.port.toString());
+    var widthChars = current.paperWidthChars;
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Network printer'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: hostController,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  labelText: 'Printer IP address',
+                  helperText: 'Leave empty to disable printing.',
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: portController,
+                decoration: const InputDecoration(labelText: 'Port'),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 16),
+              SegmentedButton<int>(
+                segments: const [
+                  ButtonSegment(
+                    value: domain.EscPos.width58mm,
+                    label: Text('58mm paper'),
+                  ),
+                  ButtonSegment(
+                    value: domain.EscPos.width80mm,
+                    label: Text('80mm paper'),
+                  ),
+                ],
+                selected: {widthChars},
+                onSelectionChanged: (s) => setState(() => widthChars = s.first),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (saved == true) {
+      await ref
+          .read(printerSettingsProvider.notifier)
+          .save(
+            PrinterSettings(
+              host: hostController.text.trim(),
+              port:
+                  int.tryParse(portController.text.trim()) ??
+                  SettingsRepository.defaultPrinterPort,
+              paperWidthChars: widthChars,
+            ),
+          );
+      // A reachable printer may now be configured: retry what's queued.
+      ref.read(printServiceProvider).kick();
+    }
+  }
+
+  Future<String?> _editText(
+    BuildContext context, {
+    required String title,
+    required String current,
+  }) async {
+    final controller = TextEditingController(text: current);
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: TextField(controller: controller, autofocus: true),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    return saved == true ? controller.text.trim() : null;
+  }
+
   Future<void> _editTable(
     BuildContext context,
     WidgetRef ref,
@@ -148,5 +340,59 @@ class SettingsScreen extends ConsumerWidget {
             ),
           );
     }
+  }
+}
+
+class _PrintJobTile extends ConsumerWidget {
+  final PrintJobRow job;
+
+  const _PrintJobTile({required this.job});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final kindLabel = switch (job.kind) {
+      domain.PrintJobKind.kitchenTicket => 'Kitchen ticket',
+      domain.PrintJobKind.customerReceipt => 'Customer receipt',
+      domain.PrintJobKind.testPage => 'Test page',
+    };
+    final (icon, statusLabel) = switch (job.status) {
+      domain.PrintJobStatus.queued => (Icons.schedule, 'Queued'),
+      domain.PrintJobStatus.printing => (Icons.print, 'Printing...'),
+      domain.PrintJobStatus.done => (Icons.check_circle_outline, 'Printed'),
+      domain.PrintJobStatus.failed => (Icons.error_outline, 'Failed'),
+    };
+    final failed = job.status == domain.PrintJobStatus.failed;
+    return ListTile(
+      dense: true,
+      leading: Icon(
+        icon,
+        color: failed ? Theme.of(context).colorScheme.error : null,
+      ),
+      title: Text(kindLabel),
+      subtitle: Text(
+        failed && job.lastError != null
+            ? '$statusLabel - ${job.lastError}'
+            : statusLabel,
+      ),
+      trailing: failed
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.refresh),
+                  tooltip: 'Retry',
+                  onPressed: () =>
+                      ref.read(printServiceProvider).retryJob(job.id),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  tooltip: 'Discard',
+                  onPressed: () =>
+                      ref.read(printJobRepositoryProvider).deleteJob(job.id),
+                ),
+              ],
+            )
+          : null,
+    );
   }
 }
