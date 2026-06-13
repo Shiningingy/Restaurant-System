@@ -6,7 +6,9 @@ import 'features/orders/presentation/order_screen.dart';
 import 'features/orders/presentation/orders_screen.dart';
 import 'features/settings/presentation/settings_screen.dart';
 
-final _router = GoRouter(
+// Built per MerchantApp instance so navigation state never leaks
+// between app instances (matters for widget tests).
+GoRouter _createRouter() => GoRouter(
   initialLocation: '/orders',
   routes: [
     StatefulShellRoute.indexedStack(
@@ -48,8 +50,21 @@ final _router = GoRouter(
   ],
 );
 
-class MerchantApp extends StatelessWidget {
+class MerchantApp extends StatefulWidget {
   const MerchantApp({super.key});
+
+  @override
+  State<MerchantApp> createState() => _MerchantAppState();
+}
+
+class _MerchantAppState extends State<MerchantApp> {
+  late final GoRouter _router = _createRouter();
+
+  @override
+  void dispose() {
+    _router.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -27,6 +27,13 @@ once a mobile test device is available.*
 records the result — zero vendor dependency), then `MonerisGoTerminal` via the
 Moneris Go semi-integrated API. Tips and partial payments.
 **Exit:** close an order by pushing the total to a terminal without re-keying.
+*Status: manual-entry flow complete — payment sheet with tips and split/partial
+payments, every outcome recorded (declines kept for audit), order auto-closes at
+zero balance, receipts list all payments. `MonerisGoTerminal` is blocked on the
+"Moneris Go Cloud 3.0 – API Specification": it is not public; Moneris' Client
+Consulting team provides it (with a QA terminal, test cards, and API token)
+once you register as an integrator — see the
+[integration guide](https://www.moneris.com/-/media/files/devices/moneris-go/moneris-go-integration-guide.ashx).*
 
 ## Phase 4 — Reports & history
 Daily sales summary (Z-report style), order history browser, item sales counts.

@@ -18,6 +18,7 @@ export 'src/escpos.dart';
 export 'src/ids.dart';
 export 'src/money.dart';
 export 'src/order_totals.dart';
+export 'src/payment_math.dart';
 export 'src/receipt_templates.dart';
 export 'src/result.dart';
 export 'src/ticket.dart';

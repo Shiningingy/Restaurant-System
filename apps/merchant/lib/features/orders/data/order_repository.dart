@@ -194,60 +194,8 @@ class OrderRepository {
         .write(const OrdersCompanion(status: Value(domain.OrderStatus.sent)));
   }
 
-  Future<domain.Payment?> latestPaymentForOrder(String orderId) async {
-    final q = db.select(db.payments)
-      ..where((t) => t.orderId.equals(orderId))
-      ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])
-      ..limit(1);
-    final r = await q.getSingleOrNull();
-    if (r == null) return null;
-    return domain.Payment(
-      id: r.id,
-      orderId: r.orderId,
-      method: r.method,
-      status: r.status,
-      amount: r.amount,
-      tip: r.tip,
-      terminalRef: r.terminalRef,
-      createdAt: r.createdAt,
-    );
-  }
-
-  // --- Closing ---
-
-  /// Records the payment and closes the order in one transaction.
-  /// Phase 1 supports cash/manual; the PaymentTerminal port takes over
-  /// the charge itself in Phase 3.
-  Future<void> closeOrder({
-    required String orderId,
-    required domain.PaymentMethod method,
-    domain.Money tip = domain.Money.zero,
-  }) {
-    return db.transaction(() async {
-      final order = await (db.select(
-        db.orders,
-      )..where((t) => t.id.equals(orderId))).getSingle();
-      await db
-          .into(db.payments)
-          .insert(
-            PaymentsCompanion.insert(
-              id: domain.newId(),
-              orderId: orderId,
-              method: method,
-              status: domain.PaymentStatus.approved,
-              amount: order.total,
-              tip: tip,
-              createdAt: DateTime.now(),
-            ),
-          );
-      await (db.update(db.orders)..where((t) => t.id.equals(orderId))).write(
-        OrdersCompanion(
-          status: const Value(domain.OrderStatus.paid),
-          closedAt: Value(DateTime.now()),
-        ),
-      );
-    });
-  }
+  // Closing an order now lives in PaymentRepository.recordApproved
+  // (Phase 3): the order closes when its payment balance reaches zero.
 
   Future<void> voidOrder(String orderId) {
     return (db.update(db.orders)..where((t) => t.id.equals(orderId))).write(

@@ -10,6 +10,26 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'helpers/test_db.dart';
 
+/// Pumps (letting real async DB work complete) until [finder] matches,
+/// failing after ~2.5s. Drift queries run on real async, so fixed pump
+/// durations race against them.
+Future<void> pumpUntilFound(WidgetTester tester, Finder finder) async {
+  for (var i = 0; i < 50; i++) {
+    if (finder.evaluate().isNotEmpty) {
+      // Finish route/dialog animations so the target is tappable at its
+      // final position.
+      await tester.pump(const Duration(milliseconds: 250));
+      await tester.pump(const Duration(milliseconds: 250));
+      return;
+    }
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 50)),
+    );
+    await tester.pump();
+  }
+  expect(finder, findsWidgets);
+}
+
 void main() {
   testWidgets('order screen shows Send to kitchen and Pay actions', (
     tester,
@@ -95,6 +115,78 @@ void main() {
       lessThanOrEqualTo(viewHeight),
       reason: 'Send button must be inside the viewport',
     );
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 1));
+  });
+
+  testWidgets('payment sheet: partial cash, then the rest closes the order', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final db = createTestDb();
+    addTearDown(db.close);
+    final orders = OrderRepository(db);
+    final orderId = await orders.createOrder(
+      type: domain.OrderType.takeout,
+      taxRateBp: 1300,
+    );
+    // $10.00 burger at 13% tax -> total $11.30.
+    await orders.addLine(
+      orderId: orderId,
+      item: const domain.MenuItem(
+        id: 'm1',
+        categoryId: 'c1',
+        name: 'Burger',
+        price: domain.Money(1000),
+      ),
+    );
+
+    tester.view.physicalSize = const Size(1280, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          databaseProvider.overrideWithValue(db),
+          sharedPreferencesProvider.overrideWithValue(prefs),
+        ],
+        child: const MerchantApp(),
+      ),
+    );
+    // Open the order and start a payment.
+    await pumpUntilFound(tester, find.text(r'$11.30'));
+    await tester.tap(find.text(r'$11.30'));
+    await pumpUntilFound(tester, find.text(r'Pay $11.30'));
+    await tester.tap(find.text(r'Pay $11.30'));
+    await pumpUntilFound(tester, find.text(r'Collect $11.30'));
+
+    // Pay $5.00 of it in cash - the order must stay open.
+    await tester.enterText(find.byType(TextField).first, '5.00');
+    await tester.pump();
+    await tester.tap(find.text('Cash'));
+    await pumpUntilFound(tester, find.text('Balance due'));
+    expect(find.text(r'Pay $6.30'), findsOneWidget);
+
+    // Let the "partial payment" snackbar leave the Pay button's way:
+    // fire its 4s timer, then pump its exit animation to completion.
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byType(SnackBar), findsNothing);
+
+    // Pay the remaining balance - the order closes and we return to
+    // the (now empty) orders board.
+    await tester.tap(find.text(r'Pay $6.30'));
+    await pumpUntilFound(tester, find.text(r'Collect $6.30'));
+    await tester.tap(find.text('Cash'));
+    await pumpUntilFound(
+      tester,
+      find.text('No open orders - start a dine-in or takeout order.'),
+    );
+    expect(find.text('Send to kitchen'), findsNothing);
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));

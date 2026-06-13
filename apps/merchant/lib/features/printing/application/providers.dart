@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/db/database.dart';
 import '../../../core/providers.dart';
 import '../../orders/application/providers.dart';
+import '../../payments/application/providers.dart';
 import '../../settings/application/providers.dart';
 import '../data/print_job_repository.dart';
 import '../drivers/escpos_network_driver.dart';
@@ -17,6 +18,7 @@ final printServiceProvider = Provider<PrintService>((ref) {
   return PrintService(
     jobs: ref.watch(printJobRepositoryProvider),
     orders: ref.watch(orderRepositoryProvider),
+    payments: ref.watch(paymentRepositoryProvider),
     tables: ref.watch(tablesRepositoryProvider),
     settings: settings,
     // Read settings at print time, so a config change applies immediately.

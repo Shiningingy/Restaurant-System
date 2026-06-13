@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:merchant/core/db/database.dart';
 import 'package:merchant/features/orders/data/order_repository.dart';
+import 'package:merchant/features/payments/data/payment_repository.dart';
 import 'package:merchant/features/printing/application/print_service.dart';
 import 'package:merchant/features/printing/data/print_job_repository.dart';
 import 'package:merchant/features/settings/data/settings_repository.dart';
@@ -54,12 +55,14 @@ const burger = domain.MenuItem(
 void main() {
   late AppDatabase db;
   late OrderRepository orders;
+  late PaymentRepository payments;
   late PrintJobRepository jobs;
   late SettingsRepository settings;
 
   setUp(() async {
     db = createTestDb();
     orders = OrderRepository(db);
+    payments = PaymentRepository(db);
     jobs = PrintJobRepository(db);
     SharedPreferences.setMockInitialValues({});
     settings = SettingsRepository(await SharedPreferences.getInstance());
@@ -71,6 +74,7 @@ void main() {
       PrintService(
         jobs: jobs,
         orders: orders,
+        payments: payments,
         tables: TablesRepository(db),
         settings: settings,
         buildDriver: buildDriver,
@@ -112,9 +116,10 @@ void main() {
     final driver = FakeDriver();
     final service = makeService(() => driver);
     final orderId = await openOrderWithBurger();
-    await orders.closeOrder(
+    await payments.recordApproved(
       orderId: orderId,
       method: domain.PaymentMethod.cash,
+      amount: const domain.Money(1130),
     );
 
     await service.printCustomerReceipt(orderId);

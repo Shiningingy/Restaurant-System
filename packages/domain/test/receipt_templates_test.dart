@@ -94,15 +94,17 @@ void main() {
           lines: lines,
           config: config,
           tableLabel: '5',
-          payment: Payment(
-            id: 'p1',
-            orderId: 'o1',
-            method: PaymentMethod.cash,
-            amount: const Money(2147),
-            tip: const Money(300),
-            status: PaymentStatus.approved,
-            createdAt: DateTime(2026, 6, 12, 13, 5),
-          ),
+          payments: [
+            Payment(
+              id: 'p1',
+              orderId: 'o1',
+              method: PaymentMethod.cash,
+              amount: const Money(2147),
+              tip: const Money(300),
+              status: PaymentStatus.approved,
+              createdAt: DateTime(2026, 6, 12, 13, 5),
+            ),
+          ],
         ),
       );
       expect(text, contains('Test Diner'));
@@ -151,6 +153,75 @@ void main() {
       expect(text, contains('No onions'));
       expect(text, isNot(contains(r'+$0.00')));
       expect(text, isNot(contains('Cash')));
+    });
+
+    test('split payments list each approved payment; declines excluded', () {
+      final text = render(
+        buildCustomerReceipt(
+          order: order, // total $21.47
+          lines: lines,
+          config: config,
+          payments: [
+            Payment(
+              id: 'p1',
+              orderId: 'o1',
+              method: PaymentMethod.manual,
+              amount: const Money(2147),
+              status: PaymentStatus.declined,
+              createdAt: DateTime(2026, 6, 12, 13, 0),
+            ),
+            Payment(
+              id: 'p2',
+              orderId: 'o1',
+              method: PaymentMethod.cash,
+              amount: const Money(1000),
+              status: PaymentStatus.approved,
+              createdAt: DateTime(2026, 6, 12, 13, 1),
+            ),
+            Payment(
+              id: 'p3',
+              orderId: 'o1',
+              method: PaymentMethod.manual,
+              amount: const Money(1147),
+              tip: const Money(200),
+              status: PaymentStatus.approved,
+              createdAt: DateTime(2026, 6, 12, 13, 2),
+            ),
+          ],
+        ),
+      );
+      expect(text, contains('Cash'));
+      expect(text, contains(r'$10.00'));
+      expect(text, contains('Card (keyed)'));
+      expect(text, contains(r'$11.47'));
+      expect(text, contains('Tip'));
+      expect(text, contains(r'$2.00'));
+      // Fully settled: no balance line, and only one card row (the
+      // declined attempt is audit data, not receipt data).
+      expect(text, isNot(contains('BALANCE DUE')));
+      expect('Card (keyed)'.allMatches(text), hasLength(1));
+    });
+
+    test('partial payment prints the remaining balance', () {
+      final text = render(
+        buildCustomerReceipt(
+          order: order, // total $21.47
+          lines: lines,
+          config: config,
+          payments: [
+            Payment(
+              id: 'p1',
+              orderId: 'o1',
+              method: PaymentMethod.cash,
+              amount: const Money(1000),
+              status: PaymentStatus.approved,
+              createdAt: DateTime(2026, 6, 12, 13, 0),
+            ),
+          ],
+        ),
+      );
+      expect(text, contains('BALANCE DUE'));
+      expect(text, contains(r'$11.47'));
     });
   });
 }

@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../menu/application/providers.dart';
+import '../../payments/application/payment_service.dart';
+import '../../payments/application/providers.dart';
+import '../../payments/presentation/payment_sheet.dart';
 import '../../printing/application/providers.dart';
 import '../../settings/application/providers.dart';
 import '../application/providers.dart';
@@ -234,6 +237,9 @@ class _Ticket extends ConsumerWidget {
     final visibleLines = lines
         .where((l) => l.status == domain.OrderLineStatus.active)
         .toList();
+    final payments = ref.watch(orderPaymentsProvider(order.id)).value ?? [];
+    final settled = domain.settledPayments(payments).toList();
+    final balance = domain.balanceDue(total: order.total, payments: payments);
 
     return Column(
       children: [
@@ -298,6 +304,17 @@ class _Ticket extends ConsumerWidget {
               ),
               const SizedBox(height: 4),
               _totalRow(context, 'Total', order.total, emphasized: true),
+              if (settled.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                for (final p in settled)
+                  _totalRow(
+                    context,
+                    'Paid - ${domain.paymentMethodLabel(p.method)}'
+                    '${p.tip.isZero ? '' : ' (tip ${p.tip.format()})'}',
+                    p.amount,
+                  ),
+                _totalRow(context, 'Balance due', balance, emphasized: true),
+              ],
               const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
@@ -318,14 +335,12 @@ class _Ticket extends ConsumerWidget {
                 width: double.infinity,
                 child: FilledButton(
                   onPressed: isOpen && visibleLines.isNotEmpty
-                      ? () => _pay(context, ref)
+                      ? () => _pay(context, ref, balance)
                       : null,
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.all(20),
                   ),
-                  child: Text(
-                    isOpen ? 'Pay ${order.total.format()}' : 'Closed',
-                  ),
+                  child: Text(isOpen ? 'Pay ${balance.format()}' : 'Closed'),
                 ),
               ),
             ],
@@ -370,38 +385,44 @@ class _Ticket extends ConsumerWidget {
     );
   }
 
-  Future<void> _pay(BuildContext context, WidgetRef ref) async {
-    final method = await showDialog<domain.PaymentMethod>(
-      context: context,
-      builder: (context) => SimpleDialog(
-        title: Text('Collect ${order.total.format()}'),
-        children: [
-          SimpleDialogOption(
-            onPressed: () => Navigator.pop(context, domain.PaymentMethod.cash),
-            child: const ListTile(
-              leading: Icon(Icons.payments_outlined),
-              title: Text('Cash'),
-            ),
-          ),
-          SimpleDialogOption(
-            onPressed: () =>
-                Navigator.pop(context, domain.PaymentMethod.manual),
-            child: const ListTile(
-              leading: Icon(Icons.credit_card_outlined),
-              title: Text('Card (keyed on terminal)'),
-              subtitle: Text('Semi-integrated terminal arrives in Phase 3'),
-            ),
-          ),
-        ],
-      ),
+  Future<void> _pay(
+    BuildContext context,
+    WidgetRef ref,
+    domain.Money balance,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final result = await showPaymentSheet(
+      context,
+      order: order,
+      balance: balance,
     );
-    if (method == null) return;
-    await ref
-        .read(orderRepositoryProvider)
-        .closeOrder(orderId: order.id, method: method);
-    if (ref.read(printerSettingsProvider).isConfigured) {
-      await ref.read(printServiceProvider).printCustomerReceipt(order.id);
+    if (result == null) return;
+    switch (result.status) {
+      case PaymentFlowStatus.approved:
+        if (result.orderClosed) {
+          if (ref.read(printerSettingsProvider).isConfigured) {
+            await ref.read(printServiceProvider).printCustomerReceipt(order.id);
+          }
+          if (context.mounted) context.go('/orders');
+        } else {
+          messenger.showSnackBar(
+            const SnackBar(
+              content: Text('Partial payment recorded - order stays open.'),
+            ),
+          );
+        }
+      case PaymentFlowStatus.declined:
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('Card declined - not recorded as paid.'),
+          ),
+        );
+      case PaymentFlowStatus.cancelled:
+        break;
+      case PaymentFlowStatus.failed:
+        messenger.showSnackBar(
+          SnackBar(content: Text('Payment failed: ${result.message}')),
+        );
     }
-    if (context.mounted) context.go('/orders');
   }
 }

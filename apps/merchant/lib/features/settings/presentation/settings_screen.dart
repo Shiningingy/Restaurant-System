@@ -36,6 +36,17 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => _editTaxRate(context, ref, taxRateBp),
           ),
           const Divider(height: 32),
+          Text('Payments', style: Theme.of(context).textTheme.titleMedium),
+          const ListTile(
+            leading: Icon(Icons.point_of_sale_outlined),
+            title: Text('Card terminal: manual entry'),
+            subtitle: Text(
+              'Staff key the amount on the standalone terminal and record '
+              'the outcome. Semi-integrated Moneris Go support arrives once '
+              'the Moneris Cloud API access is set up.',
+            ),
+          ),
+          const Divider(height: 32),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

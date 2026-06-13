@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:merchant/core/db/database.dart';
 import 'package:merchant/features/menu/data/menu_repository.dart';
 import 'package:merchant/features/orders/data/order_repository.dart';
+import 'package:merchant/features/payments/data/payment_repository.dart';
 import 'package:restaurant_domain/restaurant_domain.dart';
 
 import 'helpers/test_db.dart';
@@ -10,6 +11,7 @@ void main() {
   late AppDatabase db;
   late MenuRepository menu;
   late OrderRepository orders;
+  late PaymentRepository payments;
 
   late MenuItem burger; // $10.00, with Size group
   late MenuItem fries; //  $3.50, no modifiers
@@ -19,6 +21,7 @@ void main() {
     db = createTestDb();
     menu = MenuRepository(db);
     orders = OrderRepository(db);
+    payments = PaymentRepository(db);
 
     final cat = Category(id: newId(), name: 'Mains');
     await menu.upsertCategory(cat);
@@ -79,16 +82,21 @@ void main() {
       expect(order.tax, const Money(247));
       expect(order.total, const Money(2147));
 
-      await orders.closeOrder(orderId: orderId, method: PaymentMethod.cash);
+      final closed = await payments.recordApproved(
+        orderId: orderId,
+        method: PaymentMethod.cash,
+        amount: const Money(2147),
+      );
+      expect(closed, isTrue);
 
       order = (await orders.watchOrder(orderId).first)!;
       expect(order.status, OrderStatus.paid);
       expect(order.closedAt, isNotNull);
 
-      final payments = await db.select(db.payments).get();
-      expect(payments, hasLength(1));
-      expect(payments.single.amount, const Money(2147));
-      expect(payments.single.status, PaymentStatus.approved);
+      final rows = await db.select(db.payments).get();
+      expect(rows, hasLength(1));
+      expect(rows.single.amount, const Money(2147));
+      expect(rows.single.status, PaymentStatus.approved);
 
       // Closed order no longer shows as open.
       expect(await orders.watchOpenOrders().first, isEmpty);
@@ -166,7 +174,11 @@ void main() {
       taxRateBp: 0,
     );
     await orders.addLine(orderId: orderId, item: fries);
-    await orders.closeOrder(orderId: orderId, method: PaymentMethod.cash);
+    await payments.recordApproved(
+      orderId: orderId,
+      method: PaymentMethod.cash,
+      amount: const Money(350),
+    );
 
     // Double the menu price afterwards.
     await menu.upsertItem(fries.copyWith(price: const Money(700)));

@@ -1,6 +1,7 @@
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../orders/data/order_repository.dart';
+import '../../payments/data/payment_repository.dart';
 import '../../settings/data/settings_repository.dart';
 import '../../settings/data/tables_repository.dart';
 import '../data/print_job_repository.dart';
@@ -13,6 +14,7 @@ class PrintService {
 
   final PrintJobRepository jobs;
   final OrderRepository orders;
+  final PaymentRepository payments;
   final TablesRepository tables;
   final SettingsRepository settings;
 
@@ -28,6 +30,7 @@ class PrintService {
   PrintService({
     required this.jobs,
     required this.orders,
+    required this.payments,
     required this.tables,
     required this.settings,
     required this.buildDriver,
@@ -125,7 +128,7 @@ class PrintService {
       order: order,
       lines: lines,
       config: settings.receiptConfig,
-      payment: await orders.latestPaymentForOrder(orderId),
+      payments: await payments.paymentsForOrder(orderId),
       tableLabel: tableLabel,
     );
   }

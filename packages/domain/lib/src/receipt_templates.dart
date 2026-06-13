@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 
 import '../entities/order.dart';
 import '../entities/payment.dart';
+import 'payment_math.dart';
 import 'ticket.dart';
 
 /// Restaurant identity printed on customer receipts; configured in the
@@ -40,7 +41,8 @@ String _orderTypeLabel(Order order, String? tableLabel) => switch (order.type) {
       OrderType.online => 'ONLINE',
     };
 
-String _paymentMethodLabel(PaymentMethod method) => switch (method) {
+/// Human label for a payment method, shared by receipts and the POS UI.
+String paymentMethodLabel(PaymentMethod method) => switch (method) {
       PaymentMethod.cash => 'Cash',
       PaymentMethod.terminal => 'Card',
       PaymentMethod.manual => 'Card (keyed)',
@@ -85,11 +87,13 @@ TicketDoc buildCustomerReceipt({
   required Order order,
   required List<OrderLine> lines,
   required ReceiptConfig config,
-  Payment? payment,
+  List<Payment> payments = const [],
   String? tableLabel,
 }) {
   final active =
       lines.where((l) => l.status == OrderLineStatus.active).toList();
+  final settled = settledPayments(payments).toList();
+  final balance = balanceDue(total: order.total, payments: payments);
   final taxLabel = 'Tax (${(order.taxRateBp / 100).toStringAsFixed(2)}%)';
   final ops = <TicketOp>[
     TicketText(config.businessName, style: TicketStyle.title),
@@ -119,10 +123,15 @@ TicketDoc buildCustomerReceipt({
     TicketRow('Subtotal', order.subtotal.format()),
     TicketRow(taxLabel, order.tax.format()),
     TicketRow('TOTAL', order.total.format(), style: TicketStyle.emphasized),
-    if (payment != null) ...[
+    if (settled.isNotEmpty) ...[
       const TicketFeed(),
-      TicketRow(_paymentMethodLabel(payment.method), payment.amount.format()),
-      if (!payment.tip.isZero) TicketRow('Tip', payment.tip.format()),
+      for (final payment in settled) ...[
+        TicketRow(paymentMethodLabel(payment.method), payment.amount.format()),
+        if (!payment.tip.isZero) TicketRow('   Tip', payment.tip.format()),
+      ],
+      if (!balance.isZero)
+        TicketRow('BALANCE DUE', balance.format(),
+            style: TicketStyle.emphasized),
     ],
     if (config.footer.isNotEmpty) ...[
       const TicketFeed(),

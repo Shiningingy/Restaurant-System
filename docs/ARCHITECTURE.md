@@ -67,6 +67,11 @@ SyncLog         id, entity, entityId, op{insert|update|delete}, payload, syncedA
 - **Snapshots:** order lines copy item name and price at sale time. Editing the
   menu never rewrites history.
 - **Voids are status flips,** never row deletes — audit trail and sync safety.
+- **Orders may be settled by several payments** (split bill / partial card
+  then cash). Only `approved` payments count toward the balance; declined
+  attempts are kept for audit. The order closes when the balance hits zero
+  (`PaymentRepository.recordApproved`, one transaction). Tips never reduce
+  the balance.
 - **All money columns are integer cents** (`int`). See PRINCIPLES.md.
 - **IDs are UUIDv4 generated on-device,** never autoincrement — offline-first
   and sync-safe.
