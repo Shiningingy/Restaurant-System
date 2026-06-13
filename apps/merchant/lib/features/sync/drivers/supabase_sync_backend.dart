@@ -8,23 +8,14 @@ import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 ///
 /// This is the ONLY place that knows the Supabase wire format (the
 /// hardware/cloud-abstraction rule, docs/ARCHITECTURE.md). It talks to a
-/// single PostgREST table the restaurant creates once:
+/// single PostgREST table, `sync_changes`.
 ///
-/// ```sql
-/// create table sync_changes (
-///   id          uuid primary key,
-///   entity      text        not null,
-///   entity_id   text        not null,
-///   op          text        not null,
-///   payload     jsonb,
-///   occurred_at timestamptz not null,
-///   device_id   text        not null
-/// );
-/// create index sync_changes_occurred_at on sync_changes (occurred_at);
-/// alter table sync_changes enable row level security;
-/// create policy "own data" on sync_changes for all
-///   using (true) with check (true);  -- tighten per deployment
-/// ```
+/// `sync_changes` is the restaurant's **private** feed: the table's RLS
+/// must deny the customer-facing key entirely and allow only the
+/// authenticated restaurant. The exact table DDL and RLS policies live in
+/// docs/CLOUD_SECURITY.md (applied to the restaurant's project before any
+/// live rollout — a blocking gate in docs/ROADMAP.md). Do NOT ship an
+/// `using (true)` policy.
 ///
 /// The feed is append-only and upsert-by-id, so re-pushing the same
 /// change is idempotent. Pull skips this device's own rows by

@@ -135,6 +135,9 @@ The tablet remains the source of truth: an accepted preorder becomes a normal
 local `Order` (type=online) and flows through printing/payment/reports like any
 other. No Supabase configured → `NoopOnlineOrderChannel` → POS unaffected.
 
+Access control for all cloud tables (auth model + RLS policies) is specified in
+docs/CLOUD_SECURITY.md.
+
 Two PostgREST tables in the restaurant's Supabase carry it: `published_menu`
 (one row the merchant upserts via `MenuPublisher`, the customer reads) and
 `online_orders` (customer inserts `status=submitted`; the merchant polls,

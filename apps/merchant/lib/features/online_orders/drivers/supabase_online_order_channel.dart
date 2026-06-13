@@ -8,23 +8,11 @@ import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 /// the same project that carries cloud sync. The only place the merchant
 /// app knows the online-ordering wire format.
 ///
-/// Two PostgREST tables the restaurant creates once:
-///
-/// ```sql
-/// create table published_menu (
-///   id text primary key, menu jsonb not null,
-///   published_at timestamptz not null default now());
-///
-/// create table online_orders (
-///   id uuid primary key,
-///   customer_name text not null, customer_phone text,
-///   lines jsonb not null,
-///   requested_pickup_at timestamptz not null,
-///   submitted_at timestamptz not null default now(),
-///   status text not null default 'submitted',
-///   note text);
-/// create index online_orders_status on online_orders (status);
-/// ```
+/// Two PostgREST tables, `published_menu` and `online_orders`. Their DDL
+/// and — critically — the RLS policies that keep one customer from
+/// reading another's order (or the restaurant's private data) live in
+/// docs/CLOUD_SECURITY.md. Applying that RLS is a blocking pre-deployment
+/// gate (docs/ROADMAP.md).
 ///
 /// New preorders are found by polling `status = submitted` (Supabase
 /// Realtime would also work; polling keeps the dependency surface small

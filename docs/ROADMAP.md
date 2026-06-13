@@ -83,7 +83,8 @@ the customer-facing key could read/modify the restaurant's entire private data
 RLS; `published_menu` anon read-only; `online_orders` anon insert-only with
 own-status reads via anonymous auth or a `security definer` RPC; `sync_changes`
 denied to the customer key (merchant tablet authenticates instead of using the
-shared anon key). Pair with the live-Supabase smoke test.
+shared anon key). Pair with the live-Supabase smoke test. **The full model and
+exact SQL are in docs/CLOUD_SECURITY.md.**
 **Exit:** the customer key cannot reach `sync_changes` or other customers' orders.
 
 ## Phase 7 — Optional online payment
