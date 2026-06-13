@@ -74,6 +74,18 @@ end. Discovery is currently paste-the-URL+key; QR scanning is a follow-up. Like
 sync, a smoke test against a live Supabase project still needs the restaurant's
 real credentials.*
 
+## Pre-deployment gate (BLOCKING) — cloud security
+Before any real restaurant uses cloud sync or online ordering, harden the
+Supabase setup. Today both apps share one project + anon key with no real RLS
+(placeholder `using(true)` in the sync setup SQL; none for online orders), so
+the customer-facing key could read/modify the restaurant's entire private data
+(menu, sales, payments, other customers' details). Required: proper per-table
+RLS; `published_menu` anon read-only; `online_orders` anon insert-only with
+own-status reads via anonymous auth or a `security definer` RPC; `sync_changes`
+denied to the customer key (merchant tablet authenticates instead of using the
+shared anon key). Pair with the live-Supabase smoke test.
+**Exit:** the customer key cannot reach `sync_changes` or other customers' orders.
+
 ## Phase 7 — Optional online payment
 Processor-hosted checkout (Moneris Checkout preferred — aligns with the
 terminal) behind the existing payment abstraction. We never handle card data.
