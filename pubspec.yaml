@@ -8,3 +8,4 @@ environment:
 workspace:
   - packages/domain
   - apps/merchant
+  - apps/customer

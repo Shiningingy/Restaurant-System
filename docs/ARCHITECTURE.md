@@ -8,7 +8,8 @@ packages/domain      Pure Dart. Entities, Money, Result, and the four port
                      future tooling depend on it.
 apps/merchant        The POS (iOS first; Android/Windows capable). All
                      hardware drivers live here.
-apps/customer        Phase 6. Menu browsing + preorder for pickup.
+apps/customer        Menu browsing + preorder for pickup (Phase 6). Talks to
+                     the restaurant's Supabase storefront; depends on domain.
 ```
 
 Dependency resolution is a single pub workspace (root `pubspec.yaml`).
@@ -133,6 +134,16 @@ customer app ◀──order status──── restaurant's Supabase ◀──pu
 The tablet remains the source of truth: an accepted preorder becomes a normal
 local `Order` (type=online) and flows through printing/payment/reports like any
 other. No Supabase configured → `NoopOnlineOrderChannel` → POS unaffected.
+
+Two PostgREST tables in the restaurant's Supabase carry it: `published_menu`
+(one row the merchant upserts via `MenuPublisher`, the customer reads) and
+`online_orders` (customer inserts `status=submitted`; the merchant polls,
+accepts/rejects, and patches `status` accepted→ready→pickedUp; the customer
+polls its row). Wire shapes (`PublishedMenu`, `PreorderSubmission`) live in
+`packages/domain` so both apps serialize identically; the HTTP transport is a
+driver in each app (`SupabaseOnlineOrderChannel` merchant-side,
+`SupabaseStorefront` customer-side). Preorders are pay-at-pickup — no payment
+data crosses this channel.
 
 ## Platform caveats
 

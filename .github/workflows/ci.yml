@@ -32,3 +32,7 @@ jobs:
       - name: Merchant tests
         run: flutter test
         working-directory: apps/merchant
+
+      - name: Customer tests
+        run: flutter test
+        working-directory: apps/customer

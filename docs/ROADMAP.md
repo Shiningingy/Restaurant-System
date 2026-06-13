@@ -64,6 +64,15 @@ restaurant's Supabase), preorder for **pickup, pay at store** — no online
 payment. Merchant app gets an incoming-orders inbox (accept/reject, prep time)
 via `OnlineOrderChannel`. Restaurant discovery via QR code / restaurant code.
 **Exit:** a phone places a preorder; the tablet accepts it; the customer sees "ready."
+*Status: complete. Shared wire model in `packages/domain`
+(`PublishedMenu`/`PreorderSubmission`). Merchant: `SupabaseOnlineOrderChannel`
+(+ Noop), `MenuPublisher`, `InboxService` (accept → local `type=online` order),
+and an Inbox tab. Customer app: connect to a storefront, browse, cart with
+modifiers, place a preorder, live status. Both Supabase clients are tested over
+real HTTP against an emulated PostgREST, covering submit → accept → ready end to
+end. Discovery is currently paste-the-URL+key; QR scanning is a follow-up. Like
+sync, a smoke test against a live Supabase project still needs the restaurant's
+real credentials.*
 
 ## Phase 7 — Optional online payment
 Processor-hosted checkout (Moneris Checkout preferred — aligns with the
