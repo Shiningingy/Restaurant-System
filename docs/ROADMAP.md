@@ -91,6 +91,21 @@ Processor-hosted checkout (Moneris Checkout preferred — aligns with the
 terminal) behind the existing payment abstraction. We never handle card data.
 **Exit:** a preorder can be paid online; refunds work.
 
+**Security model (design before building):**
+- Card data goes straight from customer → processor (hosted checkout, or a
+  wallet like Google/Apple Pay that tokenizes the card). We only ever see a
+  token or a result, never the PAN. Wallets are payment *methods* — they still
+  need a processor/gateway behind them to charge.
+- **Never trust the client.** A "paid" status is only accepted when a trusted
+  backend confirms it with the processor — not when the customer app or merchant
+  tablet says so. Confirmation is via the processor's webhook or an API check.
+- Because we host no server, that trusted backend is a **Supabase Edge Function**
+  on the restaurant's own project: it holds the processor's *secret* key,
+  verifies the charge, recomputes the amount from the order (so nobody pays
+  $0.01 for a $50 order), and is the *only* writer of `paid` on an order. Secret
+  keys never ship in the customer or merchant app.
+- Depends on the cloud-security gate above (RLS + auth) being done first.
+
 ## Later / explicitly out of MVP
 - Android UX polish, Windows desktop target
 - Multi-device (two tablets, one source-of-truth)

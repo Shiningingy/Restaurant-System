@@ -1,6 +1,6 @@
 # Fundamental Principles
 
-These five rules are non-negotiable. Every feature, dependency, and code review
+These six rules are non-negotiable. Every feature, dependency, and code review
 is checked against them. If a change violates one, the change is wrong — not the principle.
 
 ## 1. Offline-first
@@ -41,3 +41,22 @@ Supabase. In-store payments are semi-integrated: we push the amount to the
 terminal and record the result. Any future online payment uses processor-hosted
 checkout only (the customer pays on the processor's page; we receive a result).
 This keeps us and the restaurant in the lowest PCI scope.
+
+A payment result is only trusted when a **trusted backend confirms it** — never
+the customer's device or the merchant tablet. Confirmation (and the amount being
+charged) is verified against the processor by the restaurant's own Supabase Edge
+Function, which holds the processor's secret key. Secret keys never ship in any
+client app; only that function may mark an order paid.
+
+## 6. Online is opt-in and trust-gated
+
+By default the app is a self-contained **offline internal restaurant system** —
+it needs no cloud and no account. Online capabilities (sync, online preorder,
+online payment) switch on only when the **merchant connects their own trusted
+backend** (their Supabase project, their payment processor). We host nothing.
+
+And we only *ship* an online capability once it has a security model that earns
+the trust of **both** sides — the merchant's private business data stays private,
+and customers' data and payments are protected. No online feature goes live to a
+real restaurant on a "we'll secure it later" basis; the trust model is part of
+the feature, not a follow-up. (See the cloud-security gate in ROADMAP.md.)
