@@ -16,21 +16,29 @@ class SupabaseStorefront {
   final http.Client _client;
   final Duration timeout;
 
+  /// The anonymous customer's access token; RLS scopes online_orders to
+  /// this device. Falls back to the anon key when null (tests).
+  final Future<String?> Function()? accessToken;
+
   static const _menuRowId = 'menu';
 
   SupabaseStorefront({
     required String url,
     required this.anonKey,
+    this.accessToken,
     http.Client? client,
     this.timeout = const Duration(seconds: 15),
   }) : baseUrl = Uri.parse(url.endsWith('/') ? url : '$url/'),
        _client = client ?? http.Client();
 
-  Map<String, String> get _headers => {
-    'apikey': anonKey,
-    'Authorization': 'Bearer $anonKey',
-    'Content-Type': 'application/json',
-  };
+  Future<Map<String, String>> _authHeaders() async {
+    final token = await accessToken?.call() ?? anonKey;
+    return {
+      'apikey': anonKey,
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    };
+  }
 
   Uri _rest(String table, [Map<String, dynamic>? query]) => baseUrl
       .resolve('rest/v1/$table')
@@ -44,7 +52,7 @@ class SupabaseStorefront {
             'select': 'menu',
             'id': 'eq.$_menuRowId',
           }),
-          headers: _headers,
+          headers: await _authHeaders(),
         )
         .timeout(timeout);
     if (resp.statusCode >= 300) {
@@ -58,15 +66,21 @@ class SupabaseStorefront {
   }
 
   /// Submits a preorder and returns its id (for status polling).
-  Future<String> submitPreorder(domain.PreorderSubmission sub) async {
+  /// [customerUid] ties the row to this device so RLS lets only this
+  /// customer read it back; when null the server fills it from the JWT.
+  Future<String> submitPreorder(
+    domain.PreorderSubmission sub, {
+    String? customerUid,
+  }) async {
     final id = domain.newId();
     final resp = await _client
         .post(
           _rest(domain.OnlineOrderingTables.onlineOrders),
-          headers: _headers,
+          headers: await _authHeaders(),
           body: jsonEncode([
             {
               'id': id,
+              'customer_uid': ?customerUid,
               'customer_name': sub.customerName,
               'customer_phone': sub.customerPhone,
               'lines': sub.lines.map((l) => l.toJson()).toList(),
@@ -94,7 +108,7 @@ class SupabaseStorefront {
             'select': 'status',
             'id': 'eq.$orderId',
           }),
-          headers: _headers,
+          headers: await _authHeaders(),
         )
         .timeout(timeout);
     if (resp.statusCode >= 300) {

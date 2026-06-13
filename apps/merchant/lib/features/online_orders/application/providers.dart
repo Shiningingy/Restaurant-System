@@ -15,7 +15,12 @@ import 'inbox_service.dart';
 final onlineOrderChannelProvider = Provider<domain.OnlineOrderChannel>((ref) {
   final config = ref.watch(syncSettingsProvider).config;
   if (!config.isConfigured) return const NoopOnlineOrderChannel();
-  return SupabaseOnlineOrderChannel(url: config.url!, anonKey: config.anonKey!);
+  final auth = ref.read(supabaseAuthProvider);
+  return SupabaseOnlineOrderChannel(
+    url: config.url!,
+    anonKey: config.anonKey!,
+    accessToken: auth?.accessToken,
+  );
 });
 
 final menuPublisherProvider = Provider<MenuPublisher>(

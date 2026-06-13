@@ -27,20 +27,29 @@ class SupabaseOnlineOrderChannel implements domain.OnlineOrderChannel {
   /// Fixed key for the single published-menu row.
   static const _menuRowId = 'menu';
 
+  /// The signed-in restaurant user's access token; RLS lets the
+  /// restaurant read/manage all orders. Falls back to the anon key when
+  /// null (tests).
+  final Future<String?> Function()? accessToken;
+
   SupabaseOnlineOrderChannel({
     required String url,
     required this.anonKey,
+    this.accessToken,
     http.Client? client,
     this.pollInterval = const Duration(seconds: 5),
     this.timeout = const Duration(seconds: 15),
   }) : baseUrl = Uri.parse(url.endsWith('/') ? url : '$url/'),
        _client = client ?? http.Client();
 
-  Map<String, String> get _headers => {
-    'apikey': anonKey,
-    'Authorization': 'Bearer $anonKey',
-    'Content-Type': 'application/json',
-  };
+  Future<Map<String, String>> _authHeaders() async {
+    final token = await accessToken?.call() ?? anonKey;
+    return {
+      'apikey': anonKey,
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    };
+  }
 
   Uri _rest(String table, [Map<String, dynamic>? query]) => baseUrl
       .resolve('rest/v1/$table')
@@ -57,7 +66,7 @@ class SupabaseOnlineOrderChannel implements domain.OnlineOrderChannel {
             'status': 'eq.${status.name}',
             'order': 'submitted_at.asc',
           }),
-          headers: _headers,
+          headers: await _authHeaders(),
         )
         .timeout(timeout);
     if (resp.statusCode >= 300) {
@@ -98,7 +107,10 @@ class SupabaseOnlineOrderChannel implements domain.OnlineOrderChannel {
     final resp = await _client
         .post(
           _rest(domain.OnlineOrderingTables.publishedMenu),
-          headers: {..._headers, 'Prefer': 'resolution=merge-duplicates'},
+          headers: {
+            ...await _authHeaders(),
+            'Prefer': 'resolution=merge-duplicates',
+          },
           body: jsonEncode([
             {
               'id': _menuRowId,
@@ -123,7 +135,7 @@ class SupabaseOnlineOrderChannel implements domain.OnlineOrderChannel {
           _rest(domain.OnlineOrderingTables.onlineOrders, {
             'id': 'eq.$orderId',
           }),
-          headers: _headers,
+          headers: await _authHeaders(),
           body: jsonEncode({'status': status.name}),
         )
         .timeout(timeout);

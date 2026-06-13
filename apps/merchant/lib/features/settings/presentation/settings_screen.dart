@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../../core/db/database.dart';
+import '../../../core/supabase_auth.dart';
 import '../../printing/application/providers.dart';
 import '../../sync/application/providers.dart';
 import '../../sync/data/sync_settings.dart';
@@ -458,6 +459,30 @@ class _CloudSyncSectionState extends ConsumerState<_CloudSyncSection> {
           ),
         ),
         if (config.isConfigured) ...[
+          ListTile(
+            leading: Icon(
+              settings.isSignedIn ? Icons.verified_user : Icons.lock_outline,
+            ),
+            title: Text(
+              settings.isSignedIn
+                  ? 'Signed in as ${settings.restaurantEmail}'
+                  : 'Restaurant sign-in required',
+            ),
+            subtitle: Text(
+              settings.isSignedIn
+                  ? 'Sync and online orders use this secure login.'
+                  : 'Cloud features need your restaurant Supabase login so '
+                        'your data stays private. (Customers never get it.)',
+            ),
+            trailing: TextButton(
+              onPressed: _busy
+                  ? null
+                  : settings.isSignedIn
+                  ? _signOut
+                  : () => _signIn(context, config),
+              child: Text(settings.isSignedIn ? 'Sign out' : 'Sign in'),
+            ),
+          ),
           if (lastAt != null)
             Padding(
               padding: const EdgeInsets.only(left: 16, bottom: 8),
@@ -498,6 +523,91 @@ class _CloudSyncSectionState extends ConsumerState<_CloudSyncSection> {
           ),
       ],
     );
+  }
+
+  Future<void> _signIn(BuildContext context, SupabaseConfig config) async {
+    final email = TextEditingController();
+    final password = TextEditingController();
+    try {
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Restaurant sign-in'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Sign in with the Supabase user you created for this '
+                'restaurant. This keeps your data private from customers.',
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: email,
+                decoration: const InputDecoration(labelText: 'Email'),
+                keyboardType: TextInputType.emailAddress,
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: password,
+                decoration: const InputDecoration(labelText: 'Password'),
+                obscureText: true,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Sign in'),
+            ),
+          ],
+        ),
+      );
+      if (ok != true) return;
+      setState(() {
+        _busy = true;
+        _message = null;
+      });
+      final auth = SupabaseAuth(url: config.url!, anonKey: config.anonKey!);
+      final session = await auth.signInWithPassword(
+        email: email.text.trim(),
+        password: password.text,
+      );
+      await ref
+          .read(syncSettingsProvider)
+          .saveRestaurantSession(
+            email: email.text.trim(),
+            refreshToken: session.refreshToken,
+          );
+      ref.invalidate(syncSettingsProvider);
+      ref.invalidate(supabaseAuthProvider);
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _message = 'Signed in.';
+        });
+      }
+    } on Object catch (e) {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _message = 'Sign-in failed: $e';
+        });
+      }
+    } finally {
+      email.dispose();
+      password.dispose();
+    }
+  }
+
+  Future<void> _signOut() async {
+    await ref.read(syncSettingsProvider).clearRestaurantSession();
+    ref.invalidate(syncSettingsProvider);
+    ref.invalidate(supabaseAuthProvider);
+    setState(() => _message = 'Signed out.');
   }
 
   Future<void> _syncNow() async {

@@ -69,7 +69,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         requestedPickupAt: _pickupDateTime,
         lines: cart.lines.map((l) => l.toPreorderLine()).toList(),
       );
-      final orderId = await storefront.submitPreorder(submission);
+      final orderId = await storefront.submitPreorder(
+        submission,
+        customerUid: ref.read(storefrontConfigProvider).customerUid,
+      );
       await ref
           .read(storefrontConfigRepositoryProvider)
           .rememberCustomer(name: _name.text.trim(), phone: _phone.text.trim());

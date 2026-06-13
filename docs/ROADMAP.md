@@ -86,6 +86,13 @@ denied to the customer key (merchant tablet authenticates instead of using the
 shared anon key). Pair with the live-Supabase smoke test. **The full model and
 exact SQL are in docs/CLOUD_SECURITY.md.**
 **Exit:** the customer key cannot reach `sync_changes` or other customers' orders.
+*Status: the **client side is done** — the merchant signs in with a password and
+the customer signs in anonymously; both carry their user token on every request,
+the customer tags preorders with its uid, and an RLS-enforcing test proves a
+customer is blocked from the private feed, other customers' orders, status
+changes, and uid-spoofing. **Remaining (needs a real project):** apply the RLS
+SQL from CLOUD_SECURITY.md, create the restaurant login, enable anonymous
+sign-ins, and run the live smoke test.*
 
 ## Phase 7 — Optional online payment
 Processor-hosted checkout (Moneris Checkout preferred — aligns with the

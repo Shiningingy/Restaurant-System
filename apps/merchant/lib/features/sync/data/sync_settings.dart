@@ -21,6 +21,8 @@ class SyncSettings {
   static const _deviceIdKey = 'syncDeviceId';
   static const _cursorKey = 'syncCursorIso';
   static const _lastAtKey = 'syncLastAtIso';
+  static const _restaurantEmailKey = 'syncRestaurantEmail';
+  static const _restaurantRefreshKey = 'syncRestaurantRefreshToken';
 
   /// The pull cursor's floor when nothing has synced yet — replays the
   /// whole remote feed (used by restore).
@@ -98,4 +100,23 @@ class SyncSettings {
 
   Future<void> setLastSyncedAt(DateTime value) =>
       _set(_lastAtKey, value.toIso8601String());
+
+  // --- Restaurant Supabase login (cloud features require it) ---
+
+  String? get restaurantEmail => _get(_restaurantEmailKey);
+  String? get restaurantRefreshToken => _get(_restaurantRefreshKey);
+  bool get isSignedIn => restaurantRefreshToken != null;
+
+  Future<void> saveRestaurantSession({
+    required String email,
+    required String refreshToken,
+  }) async {
+    await _set(_restaurantEmailKey, email);
+    await _set(_restaurantRefreshKey, refreshToken);
+  }
+
+  Future<void> clearRestaurantSession() async {
+    await _remove(_restaurantEmailKey);
+    await _remove(_restaurantRefreshKey);
+  }
 }

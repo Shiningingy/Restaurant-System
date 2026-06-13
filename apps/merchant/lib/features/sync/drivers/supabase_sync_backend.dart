@@ -27,10 +27,16 @@ class SupabaseSyncBackend implements domain.SyncBackend {
   final http.Client _client;
   final Duration timeout;
 
+  /// The signed-in restaurant user's access token. `sync_changes` RLS
+  /// denies the bare anon key, so production must supply this; when it
+  /// returns null we fall back to the anon key (used by tests).
+  final Future<String?> Function()? accessToken;
+
   SupabaseSyncBackend({
     required String url,
     required this.anonKey,
     required this.deviceId,
+    this.accessToken,
     http.Client? client,
     this.timeout = const Duration(seconds: 15),
   }) : baseUrl = Uri.parse(url.endsWith('/') ? url : '$url/'),
@@ -38,11 +44,14 @@ class SupabaseSyncBackend implements domain.SyncBackend {
 
   static const _table = 'sync_changes';
 
-  Map<String, String> get _headers => {
-    'apikey': anonKey,
-    'Authorization': 'Bearer $anonKey',
-    'Content-Type': 'application/json',
-  };
+  Future<Map<String, String>> _authHeaders() async {
+    final token = await accessToken?.call() ?? anonKey;
+    return {
+      'apikey': anonKey,
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    };
+  }
 
   Uri _rest([Map<String, dynamic>? query]) => baseUrl
       .resolve('rest/v1/$_table')
@@ -66,7 +75,10 @@ class SupabaseSyncBackend implements domain.SyncBackend {
     final resp = await _client
         .post(
           _rest(),
-          headers: {..._headers, 'Prefer': 'resolution=merge-duplicates'},
+          headers: {
+            ...await _authHeaders(),
+            'Prefer': 'resolution=merge-duplicates',
+          },
           body: jsonEncode(rows),
         )
         .timeout(timeout);
@@ -85,7 +97,7 @@ class SupabaseSyncBackend implements domain.SyncBackend {
             'device_id': 'neq.$deviceId',
             'order': 'occurred_at.asc',
           }),
-          headers: _headers,
+          headers: await _authHeaders(),
         )
         .timeout(timeout);
     if (resp.statusCode >= 300) {
@@ -108,7 +120,10 @@ class SupabaseSyncBackend implements domain.SyncBackend {
   Future<domain.SyncHealth> healthCheck() async {
     try {
       final resp = await _client
-          .get(_rest({'select': 'id', 'limit': '1'}), headers: _headers)
+          .get(
+            _rest({'select': 'id', 'limit': '1'}),
+            headers: await _authHeaders(),
+          )
           .timeout(timeout);
       if (resp.statusCode == 200) return domain.SyncHealth.ok;
       if (resp.statusCode == 401 || resp.statusCode == 403) {

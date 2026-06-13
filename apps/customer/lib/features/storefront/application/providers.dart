@@ -3,6 +3,7 @@ import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../../core/providers.dart';
 import '../data/storefront_config.dart';
+import '../drivers/supabase_auth.dart';
 import '../drivers/supabase_storefront.dart';
 
 final storefrontConfigRepositoryProvider = Provider<StorefrontConfigRepository>(
@@ -16,11 +17,20 @@ class StorefrontConfigNotifier extends Notifier<StorefrontConfig> {
   StorefrontConfig build() =>
       ref.watch(storefrontConfigRepositoryProvider).config;
 
+  /// Saves the storefront and signs in **anonymously** so this device has
+  /// a stable identity (its preorders are scoped to it by RLS — see
+  /// docs/CLOUD_SECURITY.md). Throws if sign-in fails, so "connected"
+  /// always implies a usable session.
   Future<void> connect({required String url, required String anonKey}) async {
-    await ref
-        .read(storefrontConfigRepositoryProvider)
-        .connect(url: url, anonKey: anonKey);
-    state = ref.read(storefrontConfigRepositoryProvider).config;
+    final repo = ref.read(storefrontConfigRepositoryProvider);
+    final auth = SupabaseAuth(url: url, anonKey: anonKey);
+    final session = await auth.signInAnonymously();
+    await repo.connect(url: url, anonKey: anonKey);
+    await repo.saveSession(
+      refreshToken: session.refreshToken,
+      uid: session.userId,
+    );
+    state = repo.config;
   }
 
   Future<void> disconnect() async {
@@ -34,12 +44,29 @@ final storefrontConfigProvider =
       StorefrontConfigNotifier.new,
     );
 
-/// The HTTP client for the connected storefront, or null when not
-/// connected.
+/// The HTTP client for the connected storefront (carrying the device's
+/// anonymous session), or null when not connected.
 final storefrontProvider = Provider<SupabaseStorefront?>((ref) {
   final config = ref.watch(storefrontConfigProvider);
   if (!config.isConnected) return null;
-  return SupabaseStorefront(url: config.url!, anonKey: config.anonKey!);
+  final auth = SupabaseAuth(url: config.url!, anonKey: config.anonKey!);
+  final refresh = config.sessionRefreshToken;
+  if (refresh != null) {
+    // Restore with a past expiry so the first request refreshes the token.
+    auth.restore(
+      SupabaseSession(
+        accessToken: '',
+        refreshToken: refresh,
+        userId: config.customerUid ?? '',
+        expiresAt: DateTime(2000),
+      ),
+    );
+  }
+  return SupabaseStorefront(
+    url: config.url!,
+    anonKey: config.anonKey!,
+    accessToken: auth.accessToken,
+  );
 });
 
 /// The published menu being browsed.
