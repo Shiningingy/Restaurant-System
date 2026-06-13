@@ -24,6 +24,7 @@ class OrderRepository {
     required domain.OrderType type,
     required int taxRateBp,
     String? tableId,
+    String? note,
   }) async {
     final id = domain.newId();
     await db.transaction(() async {
@@ -40,6 +41,7 @@ class OrderRepository {
               subtotal: domain.Money.zero,
               tax: domain.Money.zero,
               total: domain.Money.zero,
+              note: Value(note),
             ),
           );
       await _journalOrder(id);

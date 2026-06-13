@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'features/menu/presentation/menu_screen.dart';
+import 'features/online_orders/presentation/inbox_screen.dart';
 import 'features/orders/presentation/order_screen.dart';
 import 'features/orders/presentation/orders_screen.dart';
 import 'features/reports/presentation/reports_screen.dart';
@@ -35,6 +36,14 @@ GoRouter _createRouter() => GoRouter(
             GoRoute(
               path: '/menu',
               builder: (context, state) => const MenuScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/inbox',
+              builder: (context, state) => const InboxScreen(),
             ),
           ],
         ),
@@ -113,6 +122,11 @@ class _HomeShell extends StatelessWidget {
                 icon: Icon(Icons.restaurant_menu_outlined),
                 selectedIcon: Icon(Icons.restaurant_menu),
                 label: Text('Menu'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.inbox_outlined),
+                selectedIcon: Icon(Icons.inbox),
+                label: Text('Inbox'),
               ),
               NavigationRailDestination(
                 icon: Icon(Icons.bar_chart_outlined),

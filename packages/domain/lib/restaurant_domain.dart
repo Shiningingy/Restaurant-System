@@ -17,6 +17,7 @@ export 'ports/sync_backend.dart';
 export 'src/escpos.dart';
 export 'src/ids.dart';
 export 'src/money.dart';
+export 'src/online_order.dart';
 export 'src/order_totals.dart';
 export 'src/payment_math.dart';
 export 'src/receipt_templates.dart';

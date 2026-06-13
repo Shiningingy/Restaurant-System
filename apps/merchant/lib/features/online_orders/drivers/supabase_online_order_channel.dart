@@ -1,0 +1,146 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
+import 'package:restaurant_domain/restaurant_domain.dart' as domain;
+
+/// Real [domain.OnlineOrderChannel] over the restaurant's own Supabase —
+/// the same project that carries cloud sync. The only place the merchant
+/// app knows the online-ordering wire format.
+///
+/// Two PostgREST tables the restaurant creates once:
+///
+/// ```sql
+/// create table published_menu (
+///   id text primary key, menu jsonb not null,
+///   published_at timestamptz not null default now());
+///
+/// create table online_orders (
+///   id uuid primary key,
+///   customer_name text not null, customer_phone text,
+///   lines jsonb not null,
+///   requested_pickup_at timestamptz not null,
+///   submitted_at timestamptz not null default now(),
+///   status text not null default 'submitted',
+///   note text);
+/// create index online_orders_status on online_orders (status);
+/// ```
+///
+/// New preorders are found by polling `status = submitted` (Supabase
+/// Realtime would also work; polling keeps the dependency surface small
+/// and is plenty for a single tablet).
+class SupabaseOnlineOrderChannel implements domain.OnlineOrderChannel {
+  final Uri baseUrl;
+  final String anonKey;
+  final http.Client _client;
+  final Duration pollInterval;
+  final Duration timeout;
+
+  /// Fixed key for the single published-menu row.
+  static const _menuRowId = 'menu';
+
+  SupabaseOnlineOrderChannel({
+    required String url,
+    required this.anonKey,
+    http.Client? client,
+    this.pollInterval = const Duration(seconds: 5),
+    this.timeout = const Duration(seconds: 15),
+  }) : baseUrl = Uri.parse(url.endsWith('/') ? url : '$url/'),
+       _client = client ?? http.Client();
+
+  Map<String, String> get _headers => {
+    'apikey': anonKey,
+    'Authorization': 'Bearer $anonKey',
+    'Content-Type': 'application/json',
+  };
+
+  Uri _rest(String table, [Map<String, dynamic>? query]) => baseUrl
+      .resolve('rest/v1/$table')
+      .replace(queryParameters: query?.map((k, v) => MapEntry(k, '$v')));
+
+  /// One-shot fetch of preorders in a given [status], oldest first.
+  Future<List<domain.IncomingOnlineOrder>> fetchByStatus(
+    domain.OnlineOrderStatus status,
+  ) async {
+    final resp = await _client
+        .get(
+          _rest(domain.OnlineOrderingTables.onlineOrders, {
+            'select': '*',
+            'status': 'eq.${status.name}',
+            'order': 'submitted_at.asc',
+          }),
+          headers: _headers,
+        )
+        .timeout(timeout);
+    if (resp.statusCode >= 300) {
+      throw domain.SyncException('fetch online orders (${resp.statusCode})');
+    }
+    final list = (jsonDecode(resp.body) as List).cast<Map<String, dynamic>>();
+    return list.map(_incomingFromRow).toList();
+  }
+
+  /// Preorders awaiting a decision. [watchIncomingOrders] polls this.
+  Future<List<domain.IncomingOnlineOrder>> fetchSubmitted() =>
+      fetchByStatus(domain.OnlineOrderStatus.submitted);
+
+  domain.IncomingOnlineOrder _incomingFromRow(Map<String, dynamic> r) =>
+      domain.IncomingOnlineOrder(
+        id: r['id'] as String,
+        customerName: r['customer_name'] as String,
+        customerPhone: r['customer_phone'] as String?,
+        linesJson: jsonEncode(r['lines']),
+        requestedPickupAt: DateTime.parse(r['requested_pickup_at'] as String),
+        submittedAt: DateTime.parse(r['submitted_at'] as String),
+      );
+
+  @override
+  Stream<domain.IncomingOnlineOrder> watchIncomingOrders() async* {
+    final seen = <String>{};
+    while (true) {
+      final orders = await fetchSubmitted();
+      for (final order in orders) {
+        if (seen.add(order.id)) yield order;
+      }
+      await Future<void>.delayed(pollInterval);
+    }
+  }
+
+  @override
+  Future<void> publishMenu(String menuJson) async {
+    final resp = await _client
+        .post(
+          _rest(domain.OnlineOrderingTables.publishedMenu),
+          headers: {..._headers, 'Prefer': 'resolution=merge-duplicates'},
+          body: jsonEncode([
+            {
+              'id': _menuRowId,
+              'menu': jsonDecode(menuJson),
+              'published_at': DateTime.now().toUtc().toIso8601String(),
+            },
+          ]),
+        )
+        .timeout(timeout);
+    if (resp.statusCode >= 300) {
+      throw domain.SyncException('publish menu (${resp.statusCode})');
+    }
+  }
+
+  @override
+  Future<void> updateOrderStatus(
+    String orderId,
+    domain.OnlineOrderStatus status,
+  ) async {
+    final resp = await _client
+        .patch(
+          _rest(domain.OnlineOrderingTables.onlineOrders, {
+            'id': 'eq.$orderId',
+          }),
+          headers: _headers,
+          body: jsonEncode({'status': status.name}),
+        )
+        .timeout(timeout);
+    if (resp.statusCode >= 300) {
+      throw domain.SyncException('update order status (${resp.statusCode})');
+    }
+  }
+}
