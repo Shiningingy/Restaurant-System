@@ -49,6 +49,14 @@ SyncLog change journaling, `SupabaseSyncBackend`, settings UI where the
 restaurant enters its own Supabase URL + key. Last-write-wins conflict policy,
 documented.
 **Exit:** a wiped tablet restores its data from the restaurant's Supabase.
+*Status: complete — always-on change-feed journaling (in-transaction), pull-
+then-push `SyncService` with last-write-wins, `SupabaseSyncBackend` over a
+single PostgREST `sync_changes` table, and a Settings cloud-sync section
+(credentials, Sync now, Restore from cloud). The exit criterion is pinned by a
+two-database test: device A does business and pushes; an empty device B
+restores and reconstructs A's menu, tables, orders, lines, payments and daily
+report. The real Supabase adapter is compile-verified only — it needs a live
+project to exercise end-to-end (like the LAN printer and Moneris terminal).*
 
 ## Phase 6 — Customer app & online preorder
 Scaffold `apps/customer` (iOS/Android). Menu browsing (published to the

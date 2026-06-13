@@ -143,6 +143,31 @@ class PrintJobs extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+/// Append-only journal of local writes, for optional cloud sync (Phase 5).
+/// Each row is one change to a synced aggregate; [payload] is the full
+/// JSON of the row/aggregate for an upsert, null for a delete. [syncedAt]
+/// is set once the change has been pushed to the restaurant's Supabase.
+/// The local SQLite DB is always the source of truth — this table is
+/// strictly additive (docs/PRINCIPLES.md).
+@DataClassName('SyncLogRow')
+class SyncLog extends Table {
+  TextColumn get id => text()();
+  TextColumn get entity => text()();
+  TextColumn get entityId => text()();
+  TextColumn get op => textEnum<domain.SyncOp>()();
+  TextColumn get payload => text().nullable()();
+
+  /// Microseconds since epoch. Stored as int (not a DateTime column,
+  /// which drift truncates to whole seconds) so writes within the same
+  /// second keep a strict order — the change feed needs sub-second
+  /// precision for cursors and last-write-wins.
+  IntColumn get occurredAtUs => integer()();
+  DateTimeColumn get syncedAt => dateTime().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
 @DataClassName('PaymentRow')
 class Payments extends Table {
   TextColumn get id => text()();

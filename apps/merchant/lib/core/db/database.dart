@@ -19,6 +19,7 @@ part 'database.g.dart';
     OrderLineModifiers,
     Payments,
     PrintJobs,
+    SyncLog,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -28,13 +29,14 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.open() : super(driftDatabase(name: 'restaurant_pos'));
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) => m.createAll(),
     onUpgrade: (m, from, to) async {
       if (from < 2) await m.createTable(printJobs); // v2: print queue
+      if (from < 3) await m.createTable(syncLog); // v3: cloud-sync journal
     },
   );
 }

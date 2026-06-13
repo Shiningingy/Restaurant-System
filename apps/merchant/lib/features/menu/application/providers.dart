@@ -2,10 +2,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../../core/providers.dart';
+import '../../sync/application/providers.dart';
 import '../data/menu_repository.dart';
 
 final menuRepositoryProvider = Provider<MenuRepository>(
-  (ref) => MenuRepository(ref.watch(databaseProvider)),
+  (ref) => MenuRepository(
+    ref.watch(databaseProvider),
+    journal: ref.watch(syncJournalProvider),
+  ),
 );
 
 final categoriesProvider = StreamProvider<List<domain.Category>>(

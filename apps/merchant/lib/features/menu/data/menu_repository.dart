@@ -2,11 +2,15 @@ import 'package:drift/drift.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../../core/db/database.dart';
+import '../../sync/data/sync_codec.dart';
+import '../../sync/data/sync_journal.dart';
 
 class MenuRepository {
   final AppDatabase db;
+  final SyncJournal journal;
 
-  MenuRepository(this.db);
+  MenuRepository(this.db, {SyncJournal? journal})
+    : journal = journal ?? SyncJournal(db);
 
   // --- Categories ---
 
@@ -20,16 +24,19 @@ class MenuRepository {
   }
 
   Future<void> upsertCategory(domain.Category category) {
-    return db
-        .into(db.categories)
-        .insertOnConflictUpdate(
-          CategoriesCompanion.insert(
-            id: category.id,
-            name: category.name,
-            sortOrder: Value(category.sortOrder),
-            isActive: Value(category.isActive),
-          ),
-        );
+    return db.transaction(() async {
+      await db
+          .into(db.categories)
+          .insertOnConflictUpdate(
+            CategoriesCompanion.insert(
+              id: category.id,
+              name: category.name,
+              sortOrder: Value(category.sortOrder),
+              isActive: Value(category.isActive),
+            ),
+          );
+      await journal.recordUpsert(SyncEntities.category, category.id);
+    });
   }
 
   // --- Menu items ---
@@ -82,6 +89,7 @@ class MenuRepository {
               ),
             );
       }
+      await journal.recordUpsert(SyncEntities.menuItem, item.id);
     });
   }
 
@@ -145,44 +153,61 @@ class MenuRepository {
   }
 
   Future<void> upsertModifierGroup(domain.ModifierGroup group) {
-    return db
-        .into(db.modifierGroups)
-        .insertOnConflictUpdate(
-          ModifierGroupsCompanion.insert(
-            id: group.id,
-            name: group.name,
-            minSelect: Value(group.minSelect),
-            maxSelect: Value(group.maxSelect),
-          ),
-        );
+    return db.transaction(() async {
+      await db
+          .into(db.modifierGroups)
+          .insertOnConflictUpdate(
+            ModifierGroupsCompanion.insert(
+              id: group.id,
+              name: group.name,
+              minSelect: Value(group.minSelect),
+              maxSelect: Value(group.maxSelect),
+            ),
+          );
+      await journal.recordUpsert(SyncEntities.modifierGroup, group.id);
+    });
   }
 
   Future<void> upsertModifier(domain.Modifier modifier) {
-    return db
-        .into(db.modifiers)
-        .insertOnConflictUpdate(
-          ModifiersCompanion.insert(
-            id: modifier.id,
-            groupId: modifier.groupId,
-            name: modifier.name,
-            priceDelta: modifier.priceDelta,
-          ),
-        );
+    return db.transaction(() async {
+      await db
+          .into(db.modifiers)
+          .insertOnConflictUpdate(
+            ModifiersCompanion.insert(
+              id: modifier.id,
+              groupId: modifier.groupId,
+              name: modifier.name,
+              priceDelta: modifier.priceDelta,
+            ),
+          );
+      await journal.recordUpsert(SyncEntities.modifier, modifier.id);
+    });
   }
 
   /// Hard deletes are safe here: order lines snapshot modifier names and
   /// prices, so history never references these rows.
   Future<void> deleteModifier(String id) {
-    return (db.delete(db.modifiers)..where((t) => t.id.equals(id))).go();
+    return db.transaction(() async {
+      await (db.delete(db.modifiers)..where((t) => t.id.equals(id))).go();
+      await journal.recordDelete(SyncEntities.modifier, id);
+    });
   }
 
   Future<void> deleteModifierGroup(String id) {
     return db.transaction(() async {
+      final modifierIds =
+          await (db.select(db.modifiers)..where((t) => t.groupId.equals(id)))
+              .get()
+              .then((rows) => rows.map((r) => r.id).toList());
       await (db.delete(
         db.menuItemModifierGroups,
       )..where((t) => t.groupId.equals(id))).go();
       await (db.delete(db.modifiers)..where((t) => t.groupId.equals(id))).go();
       await (db.delete(db.modifierGroups)..where((t) => t.id.equals(id))).go();
+      for (final modifierId in modifierIds) {
+        await journal.recordDelete(SyncEntities.modifier, modifierId);
+      }
+      await journal.recordDelete(SyncEntities.modifierGroup, id);
     });
   }
 

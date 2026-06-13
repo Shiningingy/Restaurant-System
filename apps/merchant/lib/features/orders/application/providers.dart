@@ -2,10 +2,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../../core/providers.dart';
+import '../../sync/application/providers.dart';
 import '../data/order_repository.dart';
 
 final orderRepositoryProvider = Provider<OrderRepository>(
-  (ref) => OrderRepository(ref.watch(databaseProvider)),
+  (ref) => OrderRepository(
+    ref.watch(databaseProvider),
+    journal: ref.watch(syncJournalProvider),
+  ),
 );
 
 final openOrdersProvider = StreamProvider<List<domain.Order>>(

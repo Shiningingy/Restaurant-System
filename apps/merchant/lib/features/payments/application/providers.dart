@@ -2,12 +2,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../../core/providers.dart';
+import '../../sync/application/providers.dart';
 import '../data/payment_repository.dart';
 import '../drivers/manual_entry_terminal.dart';
 import 'payment_service.dart';
 
 final paymentRepositoryProvider = Provider<PaymentRepository>(
-  (ref) => PaymentRepository(ref.watch(databaseProvider)),
+  (ref) => PaymentRepository(
+    ref.watch(databaseProvider),
+    journal: ref.watch(syncJournalProvider),
+  ),
 );
 
 final paymentServiceProvider = Provider<PaymentService>((ref) {

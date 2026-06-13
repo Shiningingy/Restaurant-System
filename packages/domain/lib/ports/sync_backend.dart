@@ -38,6 +38,18 @@ class RemoteChange {
 
 enum SyncHealth { ok, unreachable, authFailed, notConfigured }
 
+/// Thrown by a [SyncBackend] when a push/pull fails (network, auth, or a
+/// non-2xx response). The sync engine catches it and surfaces a status;
+/// the local database is never left inconsistent.
+class SyncException implements Exception {
+  final String message;
+
+  const SyncException(this.message);
+
+  @override
+  String toString() => 'SyncException($message)';
+}
+
 /// Optional cloud sync. The local SQLite database is always the source
 /// of truth; sync is strictly additive and the app must be fully
 /// functional with [SyncHealth.notConfigured] forever

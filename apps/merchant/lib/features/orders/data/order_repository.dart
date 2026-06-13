@@ -2,11 +2,21 @@ import 'package:drift/drift.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../../core/db/database.dart';
+import '../../sync/data/sync_codec.dart';
+import '../../sync/data/sync_journal.dart';
 
 class OrderRepository {
   final AppDatabase db;
+  final SyncJournal journal;
 
-  OrderRepository(this.db);
+  OrderRepository(this.db, {SyncJournal? journal})
+    : journal = journal ?? SyncJournal(db);
+
+  /// Re-journals the whole order aggregate (order + lines + modifiers) as
+  /// one upsert — called at the end of every mutation so the change feed
+  /// always carries the order's complete current state.
+  Future<void> _journalOrder(String orderId) =>
+      journal.recordUpsert(SyncEntities.order, orderId);
 
   // --- Creating & watching ---
 
@@ -16,21 +26,24 @@ class OrderRepository {
     String? tableId,
   }) async {
     final id = domain.newId();
-    await db
-        .into(db.orders)
-        .insert(
-          OrdersCompanion.insert(
-            id: id,
-            type: type,
-            status: domain.OrderStatus.open,
-            tableId: Value(tableId),
-            createdAt: DateTime.now(),
-            taxRateBp: taxRateBp,
-            subtotal: domain.Money.zero,
-            tax: domain.Money.zero,
-            total: domain.Money.zero,
-          ),
-        );
+    await db.transaction(() async {
+      await db
+          .into(db.orders)
+          .insert(
+            OrdersCompanion.insert(
+              id: id,
+              type: type,
+              status: domain.OrderStatus.open,
+              tableId: Value(tableId),
+              createdAt: DateTime.now(),
+              taxRateBp: taxRateBp,
+              subtotal: domain.Money.zero,
+              tax: domain.Money.zero,
+              total: domain.Money.zero,
+            ),
+          );
+      await _journalOrder(id);
+    });
     return id;
   }
 
@@ -146,6 +159,7 @@ class OrderRepository {
             );
       }
       await _recomputeTotals(orderId);
+      await _journalOrder(orderId);
     });
   }
 
@@ -167,6 +181,7 @@ class OrderRepository {
         OrderLinesCompanion(qty: Value(qty), lineTotal: Value(lineTotal)),
       );
       await _recomputeTotals(line.orderId);
+      await _journalOrder(line.orderId);
     });
   }
 
@@ -180,30 +195,40 @@ class OrderRepository {
         const OrderLinesCompanion(status: Value(domain.OrderLineStatus.voided)),
       );
       await _recomputeTotals(line.orderId);
+      await _journalOrder(line.orderId);
     });
   }
 
   /// Marks an open order as sent to the kitchen (Phase 2 — printing the
   /// kitchen ticket). Idempotent for already-sent orders.
   Future<void> markSent(String orderId) {
-    return (db.update(db.orders)..where(
-          (t) =>
-              t.id.equals(orderId) &
-              t.status.equalsValue(domain.OrderStatus.open),
-        ))
-        .write(const OrdersCompanion(status: Value(domain.OrderStatus.sent)));
+    return db.transaction(() async {
+      final changed =
+          await (db.update(db.orders)..where(
+                (t) =>
+                    t.id.equals(orderId) &
+                    t.status.equalsValue(domain.OrderStatus.open),
+              ))
+              .write(
+                const OrdersCompanion(status: Value(domain.OrderStatus.sent)),
+              );
+      if (changed > 0) await _journalOrder(orderId);
+    });
   }
 
   // Closing an order now lives in PaymentRepository.recordApproved
   // (Phase 3): the order closes when its payment balance reaches zero.
 
   Future<void> voidOrder(String orderId) {
-    return (db.update(db.orders)..where((t) => t.id.equals(orderId))).write(
-      OrdersCompanion(
-        status: const Value(domain.OrderStatus.voided),
-        closedAt: Value(DateTime.now()),
-      ),
-    );
+    return db.transaction(() async {
+      await (db.update(db.orders)..where((t) => t.id.equals(orderId))).write(
+        OrdersCompanion(
+          status: const Value(domain.OrderStatus.voided),
+          closedAt: Value(DateTime.now()),
+        ),
+      );
+      await _journalOrder(orderId);
+    });
   }
 
   // --- Internals ---

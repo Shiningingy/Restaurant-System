@@ -59,7 +59,9 @@ Payment         id, orderId→Order, method{terminal|manual|cash}, amountCents,
 PrintJob        id, orderId?, kind{customerReceipt|kitchenTicket|testPage},
                 payload (rendered ESC/POS bytes), attempts, lastError?,
                 status{queued|printing|done|failed}, createdAt, updatedAt
-SyncLog         id, entity, entityId, op{insert|update|delete}, payload, syncedAt?
+SyncLog         id, entity, entityId, op{update|delete}, payload (full-row
+                JSON, null for delete), occurredAtUs (int µs since epoch),
+                syncedAt?
 ```
 
 ### Invariants
@@ -76,6 +78,50 @@ SyncLog         id, entity, entityId, op{insert|update|delete}, payload, syncedA
 - **IDs are UUIDv4 generated on-device,** never autoincrement — offline-first
   and sync-safe.
 - Reports are pure queries over this schema; no derived tables in MVP.
+
+## Optional cloud sync (Phase 5)
+
+Sync is off by default and the POS is fully functional without it forever.
+When a restaurant enters its own Supabase URL + anon key, the app
+journals and syncs an **append-only change feed**:
+
+- **Journaling.** Every local write to a synced entity also writes a
+  `SyncLog` row in the *same transaction* (always on, via `SyncJournal`),
+  so the feed can never miss a mutation. Entities are self-contained
+  aggregates: `menu_item` carries its modifier-group ids; `order` carries
+  its lines and line modifiers. Seven entities sync — categories, menu
+  items, modifier groups, modifiers, dining tables, orders, payments.
+  Print jobs are device-local and never sync. `SyncCodec` is the single
+  source of truth for the wire format (encode-on-journal,
+  apply-on-pull).
+- **Cycle.** `SyncService` does pull-then-push: pull applies remote
+  changes via `SyncCodec` (never re-journaled, so they don't echo back),
+  push sends locally-journaled changes the cloud hasn't seen.
+- **Conflicts: last-write-wins by `occurred_at`.** Each device stamps
+  changes from a per-device monotonic microsecond clock. On pull, a
+  remote change is skipped only if this device has a *newer un-pushed*
+  change for the same row; otherwise it is applied as a full-row upsert
+  (or delete). Replaying the whole feed in timestamp order reconstructs
+  the final state — that is exactly **restore on a wiped/new tablet**
+  (the Phase 5 exit criterion).
+- **Backend.** `SupabaseSyncBackend` (the only place that knows the
+  Supabase wire format) is a thin `package:http` adapter over one
+  PostgREST table the restaurant creates once:
+
+  ```sql
+  create table sync_changes (
+    id uuid primary key, entity text not null, entity_id text not null,
+    op text not null, payload jsonb,
+    occurred_at timestamptz not null, device_id text not null);
+  create index sync_changes_occurred_at on sync_changes (occurred_at);
+  ```
+
+  Push is an upsert-by-id (idempotent re-push); pull selects
+  `occurred_at > cursor and device_id <> self`. No credentials →
+  `NoopSyncBackend` → POS unaffected.
+- **Scope.** Sync covers database-backed business data. Device settings
+  (printer IP, business name, tax rate — in `shared_preferences`) are
+  network/store-local and re-entered on a new device, not synced.
 
 ## Online ordering data flow (Phase 6)
 

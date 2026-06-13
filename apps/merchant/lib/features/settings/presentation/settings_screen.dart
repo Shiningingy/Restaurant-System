@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../../core/db/database.dart';
 import '../../printing/application/providers.dart';
+import '../../sync/application/providers.dart';
+import '../../sync/data/sync_settings.dart';
 import '../application/providers.dart';
 import '../data/settings_repository.dart';
+
+final _dateTimeFormat = DateFormat('yyyy-MM-dd HH:mm');
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -138,6 +143,8 @@ class SettingsScreen extends ConsumerWidget {
               subtitle: t.isActive ? null : const Text('Inactive'),
               onTap: () => _editTable(context, ref, t),
             ),
+          const Divider(height: 32),
+          const _CloudSyncSection(),
         ],
       ),
     );
@@ -405,5 +412,203 @@ class _PrintJobTile extends ConsumerWidget {
             )
           : null,
     );
+  }
+}
+
+/// Optional cloud sync to the restaurant's own Supabase. Off by default;
+/// the POS works fully offline without it.
+class _CloudSyncSection extends ConsumerStatefulWidget {
+  const _CloudSyncSection();
+
+  @override
+  ConsumerState<_CloudSyncSection> createState() => _CloudSyncSectionState();
+}
+
+class _CloudSyncSectionState extends ConsumerState<_CloudSyncSection> {
+  bool _busy = false;
+  String? _message;
+
+  @override
+  Widget build(BuildContext context) {
+    final settings = ref.watch(syncSettingsProvider);
+    final config = settings.config;
+    final lastAt = settings.lastSyncedAt;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Cloud sync', style: Theme.of(context).textTheme.titleMedium),
+        ListTile(
+          leading: const Icon(Icons.cloud_outlined),
+          title: Text(
+            config.isConfigured
+                ? 'Backing up to your Supabase'
+                : 'Not configured',
+          ),
+          subtitle: Text(
+            config.isConfigured
+                ? '${config.url}\nOptional - the POS works fully offline.'
+                : 'Back up and sync to your own Supabase project. '
+                      'Optional; the POS works fully offline without it.',
+          ),
+          isThreeLine: config.isConfigured,
+          trailing: TextButton(
+            onPressed: _busy ? null : () => _editCredentials(context, config),
+            child: Text(config.isConfigured ? 'Edit' : 'Set up'),
+          ),
+        ),
+        if (config.isConfigured) ...[
+          if (lastAt != null)
+            Padding(
+              padding: const EdgeInsets.only(left: 16, bottom: 8),
+              child: Text(
+                'Last synced ${_dateTimeFormat.format(lastAt)}',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+          OverflowBar(
+            spacing: 8,
+            children: [
+              FilledButton.tonalIcon(
+                onPressed: _busy ? null : _syncNow,
+                icon: _busy
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.sync),
+                label: const Text('Sync now'),
+              ),
+              OutlinedButton.icon(
+                onPressed: _busy ? null : _restore,
+                icon: const Icon(Icons.cloud_download_outlined),
+                label: const Text('Restore from cloud'),
+              ),
+            ],
+          ),
+        ],
+        if (_message != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 16, top: 8),
+            child: Text(
+              _message!,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+      ],
+    );
+  }
+
+  Future<void> _syncNow() async {
+    setState(() {
+      _busy = true;
+      _message = null;
+    });
+    final outcome = await ref.read(syncServiceProvider).syncNow();
+    if (!mounted) return;
+    setState(() {
+      _busy = false;
+      _message = outcome.ok
+          ? 'Synced: ${outcome.pulled} in, ${outcome.pushed} out.'
+          : 'Sync failed: ${outcome.error}';
+    });
+  }
+
+  Future<void> _restore() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Restore from cloud?'),
+        content: const Text(
+          'Pulls the full history from your Supabase and applies it to '
+          'this device. Use this on a new or wiped tablet. Existing local '
+          'data is merged (last write wins), never wiped.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Restore'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    setState(() {
+      _busy = true;
+      _message = null;
+    });
+    final outcome = await ref.read(syncServiceProvider).restoreFromCloud();
+    if (!mounted) return;
+    setState(() {
+      _busy = false;
+      _message = outcome.ok
+          ? 'Restored ${outcome.pulled} changes from the cloud.'
+          : 'Restore failed: ${outcome.error}';
+    });
+  }
+
+  Future<void> _editCredentials(
+    BuildContext context,
+    SupabaseConfig current,
+  ) async {
+    final urlController = TextEditingController(text: current.url ?? '');
+    final keyController = TextEditingController(text: current.anonKey ?? '');
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Your Supabase project'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Enter your project URL and anon (public) key. Create a '
+              '"sync_changes" table first - see the setup SQL in the docs. '
+              'Leave the URL empty to turn sync off.',
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: urlController,
+              decoration: const InputDecoration(
+                labelText: 'Project URL',
+                hintText: 'https://xxxx.supabase.co',
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: keyController,
+              decoration: const InputDecoration(labelText: 'Anon key'),
+              maxLines: 2,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    if (saved == true) {
+      await ref
+          .read(syncSettingsProvider)
+          .setConfig(
+            SupabaseConfig(
+              url: urlController.text,
+              anonKey: keyController.text,
+            ),
+          );
+      ref.invalidate(syncSettingsProvider);
+      if (mounted) setState(() => _message = null);
+    }
   }
 }

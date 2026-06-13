@@ -2,14 +2,18 @@ import 'package:drift/drift.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../../core/db/database.dart';
+import '../../sync/data/sync_codec.dart';
+import '../../sync/data/sync_journal.dart';
 
 /// Persists payment attempts against orders. Every terminal outcome is
 /// recorded — declined attempts included — so the day's activity is
 /// auditable (docs/ARCHITECTURE.md: status flips, never deletes).
 class PaymentRepository {
   final AppDatabase db;
+  final SyncJournal journal;
 
-  PaymentRepository(this.db);
+  PaymentRepository(this.db, {SyncJournal? journal})
+    : journal = journal ?? SyncJournal(db);
 
   Stream<List<domain.Payment>> watchPayments(String orderId) {
     final q = db.select(db.payments)
@@ -51,6 +55,8 @@ class PaymentRepository {
           closedAt: Value(DateTime.now()),
         ),
       );
+      // Closing changes the order row — re-journal it for sync.
+      await journal.recordUpsert(SyncEntities.order, orderId);
       return true;
     });
   }
@@ -62,13 +68,15 @@ class PaymentRepository {
     required domain.Money amount,
     String? terminalRef,
   }) {
-    return _insert(
-      orderId: orderId,
-      method: method,
-      status: domain.PaymentStatus.declined,
-      amount: amount,
-      tip: domain.Money.zero,
-      terminalRef: terminalRef,
+    return db.transaction(
+      () => _insert(
+        orderId: orderId,
+        method: method,
+        status: domain.PaymentStatus.declined,
+        amount: amount,
+        tip: domain.Money.zero,
+        terminalRef: terminalRef,
+      ),
     );
   }
 
@@ -88,6 +96,8 @@ class PaymentRepository {
     );
   }
 
+  /// Inserts a payment and journals it for sync. Callers run this inside
+  /// a transaction so the insert and its journal entry are atomic.
   Future<void> _insert({
     required String orderId,
     required domain.PaymentMethod method,
@@ -95,12 +105,13 @@ class PaymentRepository {
     required domain.Money amount,
     required domain.Money tip,
     String? terminalRef,
-  }) {
-    return db
+  }) async {
+    final id = domain.newId();
+    await db
         .into(db.payments)
         .insert(
           PaymentsCompanion.insert(
-            id: domain.newId(),
+            id: id,
             orderId: orderId,
             method: method,
             status: status,
@@ -110,6 +121,7 @@ class PaymentRepository {
             createdAt: DateTime.now(),
           ),
         );
+    await journal.recordUpsert(SyncEntities.payment, id);
   }
 
   domain.Payment _fromRow(PaymentRow r) => domain.Payment(

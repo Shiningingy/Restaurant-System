@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../../core/providers.dart';
+import '../../sync/application/providers.dart';
 import '../data/settings_repository.dart';
 import '../data/tables_repository.dart';
 
@@ -10,7 +11,10 @@ final settingsRepositoryProvider = Provider<SettingsRepository>(
 );
 
 final tablesRepositoryProvider = Provider<TablesRepository>(
-  (ref) => TablesRepository(ref.watch(databaseProvider)),
+  (ref) => TablesRepository(
+    ref.watch(databaseProvider),
+    journal: ref.watch(syncJournalProvider),
+  ),
 );
 
 final tablesProvider = StreamProvider<List<domain.DiningTable>>(
