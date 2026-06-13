@@ -39,6 +39,10 @@ once you register as an integrator — see the
 Daily sales summary (Z-report style), order history browser, item sales counts.
 All read-only queries over the existing schema.
 **Exit:** end-of-day report matches the day's closed orders.
+*Status: complete — Reports tab with per-day Z-report (orders/gross/tax/tips,
+collected-by-method drawer breakdown, item sales) and a history browser with
+order detail + receipt reprint. The exit criterion is pinned by a repository
+test (yesterday's orders, open orders and declined payments all excluded).*
 
 ## Phase 5 — Optional cloud sync
 SyncLog change journaling, `SupabaseSyncBackend`, settings UI where the

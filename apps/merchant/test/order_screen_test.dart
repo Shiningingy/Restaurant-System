@@ -8,27 +8,8 @@ import 'package:merchant/features/orders/presentation/order_screen.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'helpers/pump_until.dart';
 import 'helpers/test_db.dart';
-
-/// Pumps (letting real async DB work complete) until [finder] matches,
-/// failing after ~2.5s. Drift queries run on real async, so fixed pump
-/// durations race against them.
-Future<void> pumpUntilFound(WidgetTester tester, Finder finder) async {
-  for (var i = 0; i < 50; i++) {
-    if (finder.evaluate().isNotEmpty) {
-      // Finish route/dialog animations so the target is tappable at its
-      // final position.
-      await tester.pump(const Duration(milliseconds: 250));
-      await tester.pump(const Duration(milliseconds: 250));
-      return;
-    }
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 50)),
-    );
-    await tester.pump();
-  }
-  expect(finder, findsWidgets);
-}
 
 void main() {
   testWidgets('order screen shows Send to kitchen and Pay actions', (

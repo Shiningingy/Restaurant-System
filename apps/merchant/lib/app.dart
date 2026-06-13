@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'features/menu/presentation/menu_screen.dart';
 import 'features/orders/presentation/order_screen.dart';
 import 'features/orders/presentation/orders_screen.dart';
+import 'features/reports/presentation/reports_screen.dart';
 import 'features/settings/presentation/settings_screen.dart';
 
 // Built per MerchantApp instance so navigation state never leaks
@@ -34,6 +35,14 @@ GoRouter _createRouter() => GoRouter(
             GoRoute(
               path: '/menu',
               builder: (context, state) => const MenuScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/reports',
+              builder: (context, state) => const ReportsScreen(),
             ),
           ],
         ),
@@ -104,6 +113,11 @@ class _HomeShell extends StatelessWidget {
                 icon: Icon(Icons.restaurant_menu_outlined),
                 selectedIcon: Icon(Icons.restaurant_menu),
                 label: Text('Menu'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.bar_chart_outlined),
+                selectedIcon: Icon(Icons.bar_chart),
+                label: Text('Reports'),
               ),
               NavigationRailDestination(
                 icon: Icon(Icons.settings_outlined),
