@@ -5,6 +5,7 @@ import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../../core/l10n_ext.dart';
 import '../../../core/labels.dart';
+import '../../../core/widgets/item_name_lines.dart';
 import '../../menu/application/providers.dart';
 import '../../payments/application/payment_service.dart';
 import '../../payments/application/providers.dart';
@@ -198,10 +199,25 @@ class _MenuPicker extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
-                          child: Text(
-                            item.name,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item.code == null || item.code!.isEmpty
+                                    ? item.name
+                                    : '${item.code}  ${item.name}',
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              if (item.nameSecondary != null &&
+                                  item.nameSecondary!.isNotEmpty)
+                                Text(
+                                  item.nameSecondary!,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                            ],
                           ),
                         ),
                         Text(
@@ -252,7 +268,11 @@ class _Ticket extends ConsumerWidget {
                   itemBuilder: (context, i) {
                     final line = visibleLines[i];
                     return ListTile(
-                      title: Text(line.nameSnapshot),
+                      title: ItemNameLines(
+                        code: line.codeSnapshot,
+                        name: line.nameSnapshot,
+                        nameSecondary: line.nameSecondarySnapshot,
+                      ),
                       subtitle: line.modifiers.isEmpty
                           ? null
                           : Text(

@@ -51,14 +51,18 @@ class MenuRepository {
     return q.watch().map((rows) => rows.map(_itemFromRow).toList());
   }
 
-  /// Item with its modifier-group ids filled in — for the edit dialog.
+  /// Item with its modifier-group ids and custom attributes filled in — for
+  /// the item editor.
   Future<domain.MenuItem?> getItem(String itemId) async {
     final row = await (db.select(
       db.menuItems,
     )..where((t) => t.id.equals(itemId))).getSingleOrNull();
     if (row == null) return null;
     final groupIds = await _groupIdsForItem(itemId);
-    return _itemFromRow(row).copyWith(modifierGroupIds: groupIds);
+    final attributes = await _attributesForItem(itemId);
+    return _itemFromRow(
+      row,
+    ).copyWith(modifierGroupIds: groupIds, attributes: attributes);
   }
 
   Future<void> upsertItem(domain.MenuItem item) {
@@ -71,6 +75,8 @@ class MenuRepository {
               categoryId: item.categoryId,
               name: item.name,
               price: item.price,
+              code: Value(item.code),
+              nameSecondary: Value(item.nameSecondary),
               sku: Value(item.sku),
               sortOrder: Value(item.sortOrder),
               isActive: Value(item.isActive),
@@ -89,8 +95,45 @@ class MenuRepository {
               ),
             );
       }
+      await (db.delete(
+        db.menuItemAttributes,
+      )..where((t) => t.itemId.equals(item.id))).go();
+      for (var i = 0; i < item.attributes.length; i++) {
+        final a = item.attributes[i];
+        await db
+            .into(db.menuItemAttributes)
+            .insert(
+              MenuItemAttributesCompanion.insert(
+                id: a.id,
+                itemId: item.id,
+                label: a.label,
+                value: a.value,
+                sortOrder: Value(i),
+              ),
+            );
+      }
       await journal.recordUpsert(SyncEntities.menuItem, item.id);
     });
+  }
+
+  Future<List<domain.MenuItemAttribute>> _attributesForItem(
+    String itemId,
+  ) async {
+    final rows =
+        await (db.select(db.menuItemAttributes)
+              ..where((t) => t.itemId.equals(itemId))
+              ..orderBy([(t) => OrderingTerm.asc(t.sortOrder)]))
+            .get();
+    return rows
+        .map(
+          (r) => domain.MenuItemAttribute(
+            id: r.id,
+            label: r.label,
+            value: r.value,
+            sortOrder: r.sortOrder,
+          ),
+        )
+        .toList();
   }
 
   /// The modifier groups (with their modifiers) offered for an item —
@@ -225,6 +268,8 @@ class MenuRepository {
     categoryId: r.categoryId,
     name: r.name,
     price: r.price,
+    code: r.code,
+    nameSecondary: r.nameSecondary,
     sku: r.sku,
     sortOrder: r.sortOrder,
     isActive: r.isActive,

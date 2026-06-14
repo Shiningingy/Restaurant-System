@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../src/money.dart';
+import 'menu_item_attribute.dart';
 
 part 'menu_item.freezed.dart';
 
@@ -11,6 +12,14 @@ abstract class MenuItem with _$MenuItem {
     required String categoryId,
     required String name,
     required Money price,
+
+    /// Optional human item number (e.g. "A01") for ordering "by number".
+    /// Distinct from [sortOrder], which is the internal display order.
+    String? code,
+
+    /// Optional second name line (e.g. a native-language name), shown stacked
+    /// under [name]. Language-agnostic — both lines always show together.
+    String? nameSecondary,
     String? sku,
     @Default(0) int sortOrder,
     @Default(true) bool isActive,
@@ -18,5 +27,8 @@ abstract class MenuItem with _$MenuItem {
     /// Ids of the modifier groups offered with this item
     /// (filled by the repository from the join table).
     @Default([]) List<String> modifierGroupIds,
+
+    /// User-defined renamable text fields (filled by the repository).
+    @Default([]) List<MenuItemAttribute> attributes,
   }) = _MenuItem;
 }

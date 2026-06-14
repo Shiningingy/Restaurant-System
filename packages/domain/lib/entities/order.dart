@@ -44,6 +44,11 @@ abstract class OrderLine with _$OrderLine {
     required int qty,
     required Money lineTotal,
     @Default(OrderLineStatus.active) OrderLineStatus status,
+
+    /// Item code + second name line, snapshotted at sale time so a later menu
+    /// edit never rewrites order history (mirrors [nameSnapshot]).
+    String? codeSnapshot,
+    String? nameSecondarySnapshot,
     String? note,
 
     /// Filled by the repository from the line-modifier rows.

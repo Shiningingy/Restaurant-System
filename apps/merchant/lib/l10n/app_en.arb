@@ -405,5 +405,22 @@
   "adminOnlineAuthBody": "When connected to your backend, high-risk actions can require a one-time passcode sent to the owner.",
   "adminDiscounts": "Discounts & comps",
   "adminEndOfDay": "End-of-day cash count",
-  "adminExport": "Export data"
+  "adminExport": "Export data",
+  "itemCodeLabel": "Item code (optional)",
+  "itemNameSecondaryLabel": "Second name (optional)",
+  "itemFieldsSection": "Custom fields",
+  "itemFieldLabelHint": "Field",
+  "itemFieldValueHint": "Value",
+  "itemAddField": "Add field",
+  "itemFieldCustom": "Custom…",
+  "fieldPresetDescription": "Description",
+  "fieldPresetIngredients": "Ingredients",
+  "fieldPresetAllergens": "Allergens",
+  "fieldPresetSpice": "Spice level",
+  "fieldPresetNotes": "Notes",
+  "itemImagesSection": "Photos",
+  "itemAddImage": "Add photo",
+  "itemImageLabelHint": "Label",
+  "itemSaveFirstForPhotos": "Save the item first to add photos.",
+  "itemRenameImage": "Rename photo"
 }

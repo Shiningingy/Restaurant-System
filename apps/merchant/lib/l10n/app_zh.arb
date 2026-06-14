@@ -273,5 +273,22 @@
   "adminOnlineAuthBody": "连接到您的后端后，高风险操作可要求输入发送给店主的一次性验证码。",
   "adminDiscounts": "折扣与赠送",
   "adminEndOfDay": "日终现金盘点",
-  "adminExport": "导出数据"
+  "adminExport": "导出数据",
+  "itemCodeLabel": "编号（可选）",
+  "itemNameSecondaryLabel": "第二名称（可选）",
+  "itemFieldsSection": "自定义字段",
+  "itemFieldLabelHint": "字段",
+  "itemFieldValueHint": "内容",
+  "itemAddField": "添加字段",
+  "itemFieldCustom": "自定义…",
+  "fieldPresetDescription": "描述",
+  "fieldPresetIngredients": "配料",
+  "fieldPresetAllergens": "过敏原",
+  "fieldPresetSpice": "辣度",
+  "fieldPresetNotes": "备注",
+  "itemImagesSection": "图片",
+  "itemAddImage": "添加图片",
+  "itemImageLabelHint": "标签",
+  "itemSaveFirstForPhotos": "请先保存菜品再添加图片。",
+  "itemRenameImage": "重命名图片"
 }

@@ -892,4 +892,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminExport => 'Export data';
+
+  @override
+  String get itemCodeLabel => 'Item code (optional)';
+
+  @override
+  String get itemNameSecondaryLabel => 'Second name (optional)';
+
+  @override
+  String get itemFieldsSection => 'Custom fields';
+
+  @override
+  String get itemFieldLabelHint => 'Field';
+
+  @override
+  String get itemFieldValueHint => 'Value';
+
+  @override
+  String get itemAddField => 'Add field';
+
+  @override
+  String get itemFieldCustom => 'Custom…';
+
+  @override
+  String get fieldPresetDescription => 'Description';
+
+  @override
+  String get fieldPresetIngredients => 'Ingredients';
+
+  @override
+  String get fieldPresetAllergens => 'Allergens';
+
+  @override
+  String get fieldPresetSpice => 'Spice level';
+
+  @override
+  String get fieldPresetNotes => 'Notes';
+
+  @override
+  String get itemImagesSection => 'Photos';
+
+  @override
+  String get itemAddImage => 'Add photo';
+
+  @override
+  String get itemImageLabelHint => 'Label';
+
+  @override
+  String get itemSaveFirstForPhotos => 'Save the item first to add photos.';
+
+  @override
+  String get itemRenameImage => 'Rename photo';
 }

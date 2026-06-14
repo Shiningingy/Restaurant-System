@@ -1,9 +1,22 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:merchant/core/db/database.dart';
+import 'package:merchant/features/menu/data/item_image_repository.dart';
+import 'package:merchant/features/menu/data/item_image_store.dart';
 import 'package:merchant/features/menu/data/menu_repository.dart';
 import 'package:restaurant_domain/restaurant_domain.dart';
 
 import 'helpers/test_db.dart';
+
+/// Avoids touching the real filesystem (path_provider has no platform in
+/// unit tests): returns a fake stored path and records deletions.
+class _FakeImageStore extends ItemImageStore {
+  final List<String> deleted = [];
+  int _n = 0;
+  @override
+  Future<String> import(String sourcePath) async => '/fake/${_n++}.png';
+  @override
+  Future<void> delete(String path) async => deleted.add(path);
+}
 
 void main() {
   late AppDatabase db;
@@ -86,6 +99,85 @@ void main() {
 
       final items = await menu.watchItemsInCategory(cat.id).first;
       expect(items, hasLength(1)); // updated, not duplicated
+    },
+  );
+
+  test(
+    'code, second name and custom fields round-trip; fields replace on update',
+    () async {
+      final cat = Category(id: newId(), name: 'Noodles');
+      await menu.upsertCategory(cat);
+      final item = MenuItem(
+        id: newId(),
+        categoryId: cat.id,
+        name: 'Beef Noodle',
+        price: const Money(1500),
+        code: 'A01',
+        nameSecondary: '牛肉面',
+        attributes: [
+          MenuItemAttribute(id: newId(), label: 'Spice', value: 'Medium'),
+          MenuItemAttribute(
+            id: newId(),
+            label: 'Ingredients',
+            value: 'Beef, noodles',
+          ),
+        ],
+      );
+      await menu.upsertItem(item);
+
+      final fetched = await menu.getItem(item.id);
+      expect(fetched!.code, 'A01');
+      expect(fetched.nameSecondary, '牛肉面');
+      expect(fetched.attributes.map((a) => a.label), ['Spice', 'Ingredients']);
+      expect(fetched.attributes.first.value, 'Medium');
+
+      // The list view also carries code + second name (for stacked display).
+      final listed = (await menu.watchItemsInCategory(cat.id).first).single;
+      expect(listed.code, 'A01');
+      expect(listed.nameSecondary, '牛肉面');
+
+      // Saving with fewer fields replaces, never appends.
+      await menu.upsertItem(
+        fetched.copyWith(attributes: [fetched.attributes.first]),
+      );
+      final reread = await menu.getItem(item.id);
+      expect(reread!.attributes, hasLength(1));
+      expect(reread.attributes.single.label, 'Spice');
+    },
+  );
+
+  test(
+    'item images add (ordered), rename, and delete with file cleanup',
+    () async {
+      final cat = Category(id: newId(), name: 'X');
+      await menu.upsertCategory(cat);
+      final item = MenuItem(
+        id: newId(),
+        categoryId: cat.id,
+        name: 'A',
+        price: const Money(100),
+      );
+      await menu.upsertItem(item);
+
+      final store = _FakeImageStore();
+      final images = ItemImageRepository(db, store: store);
+      await images.addImage(itemId: item.id, label: 'front', sourcePath: 'a');
+      await images.addImage(itemId: item.id, label: '', sourcePath: 'b');
+
+      var list = await images.watchImages(item.id).first;
+      expect(list, hasLength(2));
+      expect(list.map((i) => i.sortOrder), [0, 1]);
+      final firstId = list.first.id;
+      final firstPath = list.first.path;
+
+      await images.renameImage(firstId, 'hero');
+      list = await images.watchImages(item.id).first;
+      expect(list.firstWhere((i) => i.id == firstId).label, 'hero');
+
+      await images.deleteImage(firstId);
+      list = await images.watchImages(item.id).first;
+      expect(list, hasLength(1));
+      expect(store.deleted, contains(firstPath));
     },
   );
 

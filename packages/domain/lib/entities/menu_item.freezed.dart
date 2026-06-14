@@ -18,6 +18,14 @@ mixin _$MenuItem {
   String get categoryId;
   String get name;
   Money get price;
+
+  /// Optional human item number (e.g. "A01") for ordering "by number".
+  /// Distinct from [sortOrder], which is the internal display order.
+  String? get code;
+
+  /// Optional second name line (e.g. a native-language name), shown stacked
+  /// under [name]. Language-agnostic — both lines always show together.
+  String? get nameSecondary;
   String? get sku;
   int get sortOrder;
   bool get isActive;
@@ -25,6 +33,9 @@ mixin _$MenuItem {
   /// Ids of the modifier groups offered with this item
   /// (filled by the repository from the join table).
   List<String> get modifierGroupIds;
+
+  /// User-defined renamable text fields (filled by the repository).
+  List<MenuItemAttribute> get attributes;
 
   /// Create a copy of MenuItem
   /// with the given fields replaced by the non-null parameter values.
@@ -43,13 +54,18 @@ mixin _$MenuItem {
                 other.categoryId == categoryId) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.price, price) || other.price == price) &&
+            (identical(other.code, code) || other.code == code) &&
+            (identical(other.nameSecondary, nameSecondary) ||
+                other.nameSecondary == nameSecondary) &&
             (identical(other.sku, sku) || other.sku == sku) &&
             (identical(other.sortOrder, sortOrder) ||
                 other.sortOrder == sortOrder) &&
             (identical(other.isActive, isActive) ||
                 other.isActive == isActive) &&
             const DeepCollectionEquality()
-                .equals(other.modifierGroupIds, modifierGroupIds));
+                .equals(other.modifierGroupIds, modifierGroupIds) &&
+            const DeepCollectionEquality()
+                .equals(other.attributes, attributes));
   }
 
   @override
@@ -59,14 +75,17 @@ mixin _$MenuItem {
       categoryId,
       name,
       price,
+      code,
+      nameSecondary,
       sku,
       sortOrder,
       isActive,
-      const DeepCollectionEquality().hash(modifierGroupIds));
+      const DeepCollectionEquality().hash(modifierGroupIds),
+      const DeepCollectionEquality().hash(attributes));
 
   @override
   String toString() {
-    return 'MenuItem(id: $id, categoryId: $categoryId, name: $name, price: $price, sku: $sku, sortOrder: $sortOrder, isActive: $isActive, modifierGroupIds: $modifierGroupIds)';
+    return 'MenuItem(id: $id, categoryId: $categoryId, name: $name, price: $price, code: $code, nameSecondary: $nameSecondary, sku: $sku, sortOrder: $sortOrder, isActive: $isActive, modifierGroupIds: $modifierGroupIds, attributes: $attributes)';
   }
 }
 
@@ -80,10 +99,13 @@ abstract mixin class $MenuItemCopyWith<$Res> {
       String categoryId,
       String name,
       Money price,
+      String? code,
+      String? nameSecondary,
       String? sku,
       int sortOrder,
       bool isActive,
-      List<String> modifierGroupIds});
+      List<String> modifierGroupIds,
+      List<MenuItemAttribute> attributes});
 }
 
 /// @nodoc
@@ -102,10 +124,13 @@ class _$MenuItemCopyWithImpl<$Res> implements $MenuItemCopyWith<$Res> {
     Object? categoryId = null,
     Object? name = null,
     Object? price = null,
+    Object? code = freezed,
+    Object? nameSecondary = freezed,
     Object? sku = freezed,
     Object? sortOrder = null,
     Object? isActive = null,
     Object? modifierGroupIds = null,
+    Object? attributes = null,
   }) {
     return _then(_self.copyWith(
       id: null == id
@@ -124,6 +149,14 @@ class _$MenuItemCopyWithImpl<$Res> implements $MenuItemCopyWith<$Res> {
           ? _self.price
           : price // ignore: cast_nullable_to_non_nullable
               as Money,
+      code: freezed == code
+          ? _self.code
+          : code // ignore: cast_nullable_to_non_nullable
+              as String?,
+      nameSecondary: freezed == nameSecondary
+          ? _self.nameSecondary
+          : nameSecondary // ignore: cast_nullable_to_non_nullable
+              as String?,
       sku: freezed == sku
           ? _self.sku
           : sku // ignore: cast_nullable_to_non_nullable
@@ -140,6 +173,10 @@ class _$MenuItemCopyWithImpl<$Res> implements $MenuItemCopyWith<$Res> {
           ? _self.modifierGroupIds
           : modifierGroupIds // ignore: cast_nullable_to_non_nullable
               as List<String>,
+      attributes: null == attributes
+          ? _self.attributes
+          : attributes // ignore: cast_nullable_to_non_nullable
+              as List<MenuItemAttribute>,
     ));
   }
 }
@@ -242,18 +279,31 @@ extension MenuItemPatterns on MenuItem {
             String categoryId,
             String name,
             Money price,
+            String? code,
+            String? nameSecondary,
             String? sku,
             int sortOrder,
             bool isActive,
-            List<String> modifierGroupIds)?
+            List<String> modifierGroupIds,
+            List<MenuItemAttribute> attributes)?
         $default, {
     required TResult orElse(),
   }) {
     final _that = this;
     switch (_that) {
       case _MenuItem() when $default != null:
-        return $default(_that.id, _that.categoryId, _that.name, _that.price,
-            _that.sku, _that.sortOrder, _that.isActive, _that.modifierGroupIds);
+        return $default(
+            _that.id,
+            _that.categoryId,
+            _that.name,
+            _that.price,
+            _that.code,
+            _that.nameSecondary,
+            _that.sku,
+            _that.sortOrder,
+            _that.isActive,
+            _that.modifierGroupIds,
+            _that.attributes);
       case _:
         return orElse();
     }
@@ -279,17 +329,30 @@ extension MenuItemPatterns on MenuItem {
             String categoryId,
             String name,
             Money price,
+            String? code,
+            String? nameSecondary,
             String? sku,
             int sortOrder,
             bool isActive,
-            List<String> modifierGroupIds)
+            List<String> modifierGroupIds,
+            List<MenuItemAttribute> attributes)
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _MenuItem():
-        return $default(_that.id, _that.categoryId, _that.name, _that.price,
-            _that.sku, _that.sortOrder, _that.isActive, _that.modifierGroupIds);
+        return $default(
+            _that.id,
+            _that.categoryId,
+            _that.name,
+            _that.price,
+            _that.code,
+            _that.nameSecondary,
+            _that.sku,
+            _that.sortOrder,
+            _that.isActive,
+            _that.modifierGroupIds,
+            _that.attributes);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -314,17 +377,30 @@ extension MenuItemPatterns on MenuItem {
             String categoryId,
             String name,
             Money price,
+            String? code,
+            String? nameSecondary,
             String? sku,
             int sortOrder,
             bool isActive,
-            List<String> modifierGroupIds)?
+            List<String> modifierGroupIds,
+            List<MenuItemAttribute> attributes)?
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _MenuItem() when $default != null:
-        return $default(_that.id, _that.categoryId, _that.name, _that.price,
-            _that.sku, _that.sortOrder, _that.isActive, _that.modifierGroupIds);
+        return $default(
+            _that.id,
+            _that.categoryId,
+            _that.name,
+            _that.price,
+            _that.code,
+            _that.nameSecondary,
+            _that.sku,
+            _that.sortOrder,
+            _that.isActive,
+            _that.modifierGroupIds,
+            _that.attributes);
       case _:
         return null;
     }
@@ -339,11 +415,15 @@ class _MenuItem implements MenuItem {
       required this.categoryId,
       required this.name,
       required this.price,
+      this.code,
+      this.nameSecondary,
       this.sku,
       this.sortOrder = 0,
       this.isActive = true,
-      final List<String> modifierGroupIds = const []})
-      : _modifierGroupIds = modifierGroupIds;
+      final List<String> modifierGroupIds = const [],
+      final List<MenuItemAttribute> attributes = const []})
+      : _modifierGroupIds = modifierGroupIds,
+        _attributes = attributes;
 
   @override
   final String id;
@@ -353,6 +433,16 @@ class _MenuItem implements MenuItem {
   final String name;
   @override
   final Money price;
+
+  /// Optional human item number (e.g. "A01") for ordering "by number".
+  /// Distinct from [sortOrder], which is the internal display order.
+  @override
+  final String? code;
+
+  /// Optional second name line (e.g. a native-language name), shown stacked
+  /// under [name]. Language-agnostic — both lines always show together.
+  @override
+  final String? nameSecondary;
   @override
   final String? sku;
   @override
@@ -377,6 +467,18 @@ class _MenuItem implements MenuItem {
     return EqualUnmodifiableListView(_modifierGroupIds);
   }
 
+  /// User-defined renamable text fields (filled by the repository).
+  final List<MenuItemAttribute> _attributes;
+
+  /// User-defined renamable text fields (filled by the repository).
+  @override
+  @JsonKey()
+  List<MenuItemAttribute> get attributes {
+    if (_attributes is EqualUnmodifiableListView) return _attributes;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_attributes);
+  }
+
   /// Create a copy of MenuItem
   /// with the given fields replaced by the non-null parameter values.
   @override
@@ -395,13 +497,18 @@ class _MenuItem implements MenuItem {
                 other.categoryId == categoryId) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.price, price) || other.price == price) &&
+            (identical(other.code, code) || other.code == code) &&
+            (identical(other.nameSecondary, nameSecondary) ||
+                other.nameSecondary == nameSecondary) &&
             (identical(other.sku, sku) || other.sku == sku) &&
             (identical(other.sortOrder, sortOrder) ||
                 other.sortOrder == sortOrder) &&
             (identical(other.isActive, isActive) ||
                 other.isActive == isActive) &&
             const DeepCollectionEquality()
-                .equals(other._modifierGroupIds, _modifierGroupIds));
+                .equals(other._modifierGroupIds, _modifierGroupIds) &&
+            const DeepCollectionEquality()
+                .equals(other._attributes, _attributes));
   }
 
   @override
@@ -411,14 +518,17 @@ class _MenuItem implements MenuItem {
       categoryId,
       name,
       price,
+      code,
+      nameSecondary,
       sku,
       sortOrder,
       isActive,
-      const DeepCollectionEquality().hash(_modifierGroupIds));
+      const DeepCollectionEquality().hash(_modifierGroupIds),
+      const DeepCollectionEquality().hash(_attributes));
 
   @override
   String toString() {
-    return 'MenuItem(id: $id, categoryId: $categoryId, name: $name, price: $price, sku: $sku, sortOrder: $sortOrder, isActive: $isActive, modifierGroupIds: $modifierGroupIds)';
+    return 'MenuItem(id: $id, categoryId: $categoryId, name: $name, price: $price, code: $code, nameSecondary: $nameSecondary, sku: $sku, sortOrder: $sortOrder, isActive: $isActive, modifierGroupIds: $modifierGroupIds, attributes: $attributes)';
   }
 }
 
@@ -434,10 +544,13 @@ abstract mixin class _$MenuItemCopyWith<$Res>
       String categoryId,
       String name,
       Money price,
+      String? code,
+      String? nameSecondary,
       String? sku,
       int sortOrder,
       bool isActive,
-      List<String> modifierGroupIds});
+      List<String> modifierGroupIds,
+      List<MenuItemAttribute> attributes});
 }
 
 /// @nodoc
@@ -456,10 +569,13 @@ class __$MenuItemCopyWithImpl<$Res> implements _$MenuItemCopyWith<$Res> {
     Object? categoryId = null,
     Object? name = null,
     Object? price = null,
+    Object? code = freezed,
+    Object? nameSecondary = freezed,
     Object? sku = freezed,
     Object? sortOrder = null,
     Object? isActive = null,
     Object? modifierGroupIds = null,
+    Object? attributes = null,
   }) {
     return _then(_MenuItem(
       id: null == id
@@ -478,6 +594,14 @@ class __$MenuItemCopyWithImpl<$Res> implements _$MenuItemCopyWith<$Res> {
           ? _self.price
           : price // ignore: cast_nullable_to_non_nullable
               as Money,
+      code: freezed == code
+          ? _self.code
+          : code // ignore: cast_nullable_to_non_nullable
+              as String?,
+      nameSecondary: freezed == nameSecondary
+          ? _self.nameSecondary
+          : nameSecondary // ignore: cast_nullable_to_non_nullable
+              as String?,
       sku: freezed == sku
           ? _self.sku
           : sku // ignore: cast_nullable_to_non_nullable
@@ -494,6 +618,10 @@ class __$MenuItemCopyWithImpl<$Res> implements _$MenuItemCopyWith<$Res> {
           ? _self._modifierGroupIds
           : modifierGroupIds // ignore: cast_nullable_to_non_nullable
               as List<String>,
+      attributes: null == attributes
+          ? _self._attributes
+          : attributes // ignore: cast_nullable_to_non_nullable
+              as List<MenuItemAttribute>,
     ));
   }
 }

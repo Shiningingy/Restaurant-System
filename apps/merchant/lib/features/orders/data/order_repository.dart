@@ -145,6 +145,8 @@ class OrderRepository {
               qty: qty,
               lineTotal: lineTotal,
               status: domain.OrderLineStatus.active,
+              codeSnapshot: Value(item.code),
+              nameSecondarySnapshot: Value(item.nameSecondary),
               note: Value(note),
             ),
           );
@@ -278,6 +280,8 @@ class OrderRepository {
     qty: r.qty,
     lineTotal: r.lineTotal,
     status: r.status,
+    codeSnapshot: r.codeSnapshot,
+    nameSecondarySnapshot: r.nameSecondarySnapshot,
     note: r.note,
   );
 }

@@ -12,6 +12,7 @@ dependencies:
   crypto: ^3.0.0
   drift: ^2.34.0
   drift_flutter: ^0.3.0
+  file_selector: ^1.0.0
   flutter:
     sdk: flutter
   flutter_localizations:
@@ -20,6 +21,8 @@ dependencies:
   go_router: ^17.0.0
   http: ^1.2.0
   intl: ^0.20.0
+  path: ^1.9.0
+  path_provider: ^2.1.0
   restaurant_domain:
     path: ../../packages/domain
   shared_preferences: ^2.5.0

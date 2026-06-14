@@ -1657,6 +1657,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Export data'**
   String get adminExport;
+
+  /// No description provided for @itemCodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Item code (optional)'**
+  String get itemCodeLabel;
+
+  /// No description provided for @itemNameSecondaryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Second name (optional)'**
+  String get itemNameSecondaryLabel;
+
+  /// No description provided for @itemFieldsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom fields'**
+  String get itemFieldsSection;
+
+  /// No description provided for @itemFieldLabelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Field'**
+  String get itemFieldLabelHint;
+
+  /// No description provided for @itemFieldValueHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Value'**
+  String get itemFieldValueHint;
+
+  /// No description provided for @itemAddField.
+  ///
+  /// In en, this message translates to:
+  /// **'Add field'**
+  String get itemAddField;
+
+  /// No description provided for @itemFieldCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom…'**
+  String get itemFieldCustom;
+
+  /// No description provided for @fieldPresetDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get fieldPresetDescription;
+
+  /// No description provided for @fieldPresetIngredients.
+  ///
+  /// In en, this message translates to:
+  /// **'Ingredients'**
+  String get fieldPresetIngredients;
+
+  /// No description provided for @fieldPresetAllergens.
+  ///
+  /// In en, this message translates to:
+  /// **'Allergens'**
+  String get fieldPresetAllergens;
+
+  /// No description provided for @fieldPresetSpice.
+  ///
+  /// In en, this message translates to:
+  /// **'Spice level'**
+  String get fieldPresetSpice;
+
+  /// No description provided for @fieldPresetNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get fieldPresetNotes;
+
+  /// No description provided for @itemImagesSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get itemImagesSection;
+
+  /// No description provided for @itemAddImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add photo'**
+  String get itemAddImage;
+
+  /// No description provided for @itemImageLabelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Label'**
+  String get itemImageLabelHint;
+
+  /// No description provided for @itemSaveFirstForPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Save the item first to add photos.'**
+  String get itemSaveFirstForPhotos;
+
+  /// No description provided for @itemRenameImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename photo'**
+  String get itemRenameImage;
 }
 
 class _AppLocalizationsDelegate

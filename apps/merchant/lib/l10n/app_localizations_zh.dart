@@ -878,4 +878,55 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get adminExport => '导出数据';
+
+  @override
+  String get itemCodeLabel => '编号（可选）';
+
+  @override
+  String get itemNameSecondaryLabel => '第二名称（可选）';
+
+  @override
+  String get itemFieldsSection => '自定义字段';
+
+  @override
+  String get itemFieldLabelHint => '字段';
+
+  @override
+  String get itemFieldValueHint => '内容';
+
+  @override
+  String get itemAddField => '添加字段';
+
+  @override
+  String get itemFieldCustom => '自定义…';
+
+  @override
+  String get fieldPresetDescription => '描述';
+
+  @override
+  String get fieldPresetIngredients => '配料';
+
+  @override
+  String get fieldPresetAllergens => '过敏原';
+
+  @override
+  String get fieldPresetSpice => '辣度';
+
+  @override
+  String get fieldPresetNotes => '备注';
+
+  @override
+  String get itemImagesSection => '图片';
+
+  @override
+  String get itemAddImage => '添加图片';
+
+  @override
+  String get itemImageLabelHint => '标签';
+
+  @override
+  String get itemSaveFirstForPhotos => '请先保存菜品再添加图片。';
+
+  @override
+  String get itemRenameImage => '重命名图片';
 }
