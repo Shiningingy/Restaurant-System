@@ -168,6 +168,20 @@ class SyncLog extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
+/// Local staff roster for role-based access (PIN sign-in). [role] is a
+/// StaffRole enum name; [pinHash] is sha256("$id:$pin"), never plaintext.
+/// Local-only — not part of the cloud-sync journal this phase.
+@DataClassName('StaffRow')
+class Staff extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  TextColumn get role => text()();
+  TextColumn get pinHash => text()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
 @DataClassName('PaymentRow')
 class Payments extends Table {
   TextColumn get id => text()();

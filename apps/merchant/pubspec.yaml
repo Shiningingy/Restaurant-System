@@ -9,6 +9,7 @@ environment:
 resolution: workspace
 
 dependencies:
+  crypto: ^3.0.0
   drift: ^2.34.0
   drift_flutter: ^0.3.0
   flutter:

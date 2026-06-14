@@ -364,5 +364,46 @@
   "setYourSupabaseProject": "Your Supabase project",
   "setSupabaseBody": "Enter your project URL and anon (public) key. Create a \"sync_changes\" table first — see the setup SQL in the docs. Leave the URL empty to turn sync off.",
   "setProjectUrl": "Project URL",
-  "setAnonKey": "Anon key"
+  "setAnonKey": "Anon key",
+
+  "navAdmin": "Admin",
+  "roleOwner": "Owner",
+  "roleManager": "Manager",
+  "roleServer": "Server",
+  "roleSignIn": "Sign in",
+  "roleSwitchUser": "Switch user",
+  "roleSignOut": "Sign out",
+  "roleNoStaffYet": "No staff set up yet",
+  "roleAccessRequired": "Manager access required",
+
+  "pinEnterTitle": "Enter PIN",
+  "pinFieldLabel": "4-digit PIN",
+  "pinIncorrect": "Incorrect PIN",
+  "pinUnlock": "Unlock",
+
+  "adminStaffSection": "Staff & roles",
+  "adminAddStaff": "Add staff",
+  "adminManageStaffOwnerOnly": "Only an owner can manage staff.",
+  "adminNewStaff": "New staff",
+  "adminEditStaff": "Edit staff",
+  "adminStaffName": "Name",
+  "adminStaffRole": "Role",
+  "adminStaffNameRequired": "Enter a name.",
+  "adminStaffPinRequired": "Set a 4-digit PIN.",
+  "adminStaffPinKeepHint": "Leave blank to keep the current PIN.",
+  "adminCannotDeleteLastOwner": "Can't remove the last owner.",
+  "adminRemoveStaffConfirm": "Remove {name}?",
+  "@adminRemoveStaffConfirm": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "adminBootstrapTitle": "Set up staff access",
+  "adminBootstrapBody": "Create the first owner account to turn on role-based access. Until then, everyone has full access.",
+  "adminCreateFirstOwner": "Create the first owner",
+  "adminManagementSection": "Management",
+  "adminComingSoon": "Coming soon",
+  "adminOnlineAuth": "Online authorizations",
+  "adminOnlineAuthBody": "When connected to your backend, high-risk actions can require a one-time passcode sent to the owner.",
+  "adminDiscounts": "Discounts & comps",
+  "adminEndOfDay": "End-of-day cash count",
+  "adminExport": "Export data"
 }

@@ -3,6 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'core/l10n_ext.dart';
+import 'features/admin/application/providers.dart';
+import 'features/admin/domain/staff.dart';
+import 'features/admin/presentation/admin_screen.dart';
+import 'features/admin/presentation/role_indicator.dart';
 import 'features/settings/application/providers.dart';
 import 'l10n/app_localizations.dart';
 import 'features/menu/presentation/menu_screen.dart';
@@ -62,6 +66,14 @@ GoRouter _createRouter() => GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
+              path: '/admin',
+              builder: (context, state) => const AdminScreen(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
               path: '/settings',
               builder: (context, state) => const SettingsScreen(),
             ),
@@ -104,47 +116,101 @@ class _MerchantAppState extends ConsumerState<MerchantApp> {
   }
 }
 
-class _HomeShell extends StatelessWidget {
+/// A nav destination plus the permission needed to see it (null = everyone).
+/// Order MUST match the router's branch order.
+class _NavItem {
+  final IconData icon;
+  final IconData selectedIcon;
+  final String label;
+  final AppPermission? permission;
+
+  const _NavItem(this.icon, this.selectedIcon, this.label, [this.permission]);
+}
+
+class _HomeShell extends ConsumerWidget {
   final StatefulNavigationShell shell;
 
   const _HomeShell({required this.shell});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final role = ref.watch(currentRoleProvider);
+    final items = <_NavItem>[
+      _NavItem(
+        Icons.receipt_long_outlined,
+        Icons.receipt_long,
+        context.l10n.navOrders,
+      ),
+      _NavItem(
+        Icons.restaurant_menu_outlined,
+        Icons.restaurant_menu,
+        context.l10n.navMenu,
+        AppPermission.editMenu,
+      ),
+      _NavItem(Icons.inbox_outlined, Icons.inbox, context.l10n.navInbox),
+      _NavItem(
+        Icons.bar_chart_outlined,
+        Icons.bar_chart,
+        context.l10n.navReports,
+        AppPermission.viewReports,
+      ),
+      _NavItem(
+        Icons.admin_panel_settings_outlined,
+        Icons.admin_panel_settings,
+        context.l10n.navAdmin,
+        AppPermission.accessAdmin,
+      ),
+      _NavItem(
+        Icons.settings_outlined,
+        Icons.settings,
+        context.l10n.navSettings,
+      ),
+    ];
+    // Branch indices the current role may see, in branch order.
+    final visible = [
+      for (var i = 0; i < items.length; i++)
+        if (items[i].permission == null || allows(role, items[i].permission!))
+          i,
+    ];
+
+    // If the active branch just became hidden (e.g. a manager signed out while
+    // on Reports), bounce back to Orders.
+    if (!visible.contains(shell.currentIndex)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) shell.goBranch(0);
+      });
+    }
+    final selected = visible.indexOf(shell.currentIndex);
+
     return Scaffold(
       body: Row(
         children: [
           NavigationRail(
-            selectedIndex: shell.currentIndex,
-            onDestinationSelected: (i) =>
-                shell.goBranch(i, initialLocation: i == shell.currentIndex),
+            selectedIndex: selected < 0 ? 0 : selected,
+            onDestinationSelected: (railIndex) {
+              final branch = visible[railIndex];
+              shell.goBranch(
+                branch,
+                initialLocation: branch == shell.currentIndex,
+              );
+            },
             labelType: NavigationRailLabelType.all,
+            trailing: Expanded(
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: const RoleIndicator(),
+                ),
+              ),
+            ),
             destinations: [
-              NavigationRailDestination(
-                icon: const Icon(Icons.receipt_long_outlined),
-                selectedIcon: const Icon(Icons.receipt_long),
-                label: Text(context.l10n.navOrders),
-              ),
-              NavigationRailDestination(
-                icon: const Icon(Icons.restaurant_menu_outlined),
-                selectedIcon: const Icon(Icons.restaurant_menu),
-                label: Text(context.l10n.navMenu),
-              ),
-              NavigationRailDestination(
-                icon: const Icon(Icons.inbox_outlined),
-                selectedIcon: const Icon(Icons.inbox),
-                label: Text(context.l10n.navInbox),
-              ),
-              NavigationRailDestination(
-                icon: const Icon(Icons.bar_chart_outlined),
-                selectedIcon: const Icon(Icons.bar_chart),
-                label: Text(context.l10n.navReports),
-              ),
-              NavigationRailDestination(
-                icon: const Icon(Icons.settings_outlined),
-                selectedIcon: const Icon(Icons.settings),
-                label: Text(context.l10n.navSettings),
-              ),
+              for (final i in visible)
+                NavigationRailDestination(
+                  icon: Icon(items[i].icon),
+                  selectedIcon: Icon(items[i].selectedIcon),
+                  label: Text(items[i].label),
+                ),
             ],
           ),
           const VerticalDivider(width: 1),

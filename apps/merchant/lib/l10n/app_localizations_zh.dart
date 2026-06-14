@@ -771,4 +771,111 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get setAnonKey => 'Anon 密钥';
+
+  @override
+  String get navAdmin => '管理';
+
+  @override
+  String get roleOwner => '店主';
+
+  @override
+  String get roleManager => '经理';
+
+  @override
+  String get roleServer => '服务员';
+
+  @override
+  String get roleSignIn => '登录';
+
+  @override
+  String get roleSwitchUser => '切换用户';
+
+  @override
+  String get roleSignOut => '退出登录';
+
+  @override
+  String get roleNoStaffYet => '尚未设置员工';
+
+  @override
+  String get roleAccessRequired => '需要经理权限';
+
+  @override
+  String get pinEnterTitle => '输入 PIN';
+
+  @override
+  String get pinFieldLabel => '4 位 PIN';
+
+  @override
+  String get pinIncorrect => 'PIN 不正确';
+
+  @override
+  String get pinUnlock => '解锁';
+
+  @override
+  String get adminStaffSection => '员工与角色';
+
+  @override
+  String get adminAddStaff => '添加员工';
+
+  @override
+  String get adminManageStaffOwnerOnly => '仅店主可管理员工。';
+
+  @override
+  String get adminNewStaff => '新增员工';
+
+  @override
+  String get adminEditStaff => '编辑员工';
+
+  @override
+  String get adminStaffName => '姓名';
+
+  @override
+  String get adminStaffRole => '角色';
+
+  @override
+  String get adminStaffNameRequired => '请输入姓名。';
+
+  @override
+  String get adminStaffPinRequired => '请设置 4 位 PIN。';
+
+  @override
+  String get adminStaffPinKeepHint => '留空以保留当前 PIN。';
+
+  @override
+  String get adminCannotDeleteLastOwner => '无法移除最后一位店主。';
+
+  @override
+  String adminRemoveStaffConfirm(String name) {
+    return '移除 $name？';
+  }
+
+  @override
+  String get adminBootstrapTitle => '设置员工权限';
+
+  @override
+  String get adminBootstrapBody => '创建第一个店主账号以启用基于角色的权限。在此之前，所有人都拥有完整权限。';
+
+  @override
+  String get adminCreateFirstOwner => '创建第一位店主';
+
+  @override
+  String get adminManagementSection => '管理功能';
+
+  @override
+  String get adminComingSoon => '即将推出';
+
+  @override
+  String get adminOnlineAuth => '在线授权';
+
+  @override
+  String get adminOnlineAuthBody => '连接到您的后端后，高风险操作可要求输入发送给店主的一次性验证码。';
+
+  @override
+  String get adminDiscounts => '折扣与赠送';
+
+  @override
+  String get adminEndOfDay => '日终现金盘点';
+
+  @override
+  String get adminExport => '导出数据';
 }
