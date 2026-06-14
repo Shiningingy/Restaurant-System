@@ -1759,6 +1759,252 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Rename photo'**
   String get itemRenameImage;
+
+  /// No description provided for @captureImportFromPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from photo'**
+  String get captureImportFromPhoto;
+
+  /// No description provided for @captureTemplatesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture templates'**
+  String get captureTemplatesTitle;
+
+  /// No description provided for @captureNewTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'New template'**
+  String get captureNewTemplate;
+
+  /// No description provided for @captureNoTemplates.
+  ///
+  /// In en, this message translates to:
+  /// **'No templates yet. Create one to map where each field sits on a menu photo.'**
+  String get captureNoTemplates;
+
+  /// No description provided for @captureTemplateNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Template name'**
+  String get captureTemplateNameHint;
+
+  /// No description provided for @captureRenameTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename template'**
+  String get captureRenameTemplate;
+
+  /// No description provided for @captureDeleteTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete template'**
+  String get captureDeleteTemplate;
+
+  /// No description provided for @captureDeleteTemplateConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete template \"{name}\"?'**
+  String captureDeleteTemplateConfirm(String name);
+
+  /// No description provided for @captureTemplateEditorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Template'**
+  String get captureTemplateEditorTitle;
+
+  /// No description provided for @capturePickSamplePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a sample photo'**
+  String get capturePickSamplePhoto;
+
+  /// No description provided for @captureBigBlockHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag the large box over one item, then add labeled regions inside it.'**
+  String get captureBigBlockHint;
+
+  /// No description provided for @captureAddRegion.
+  ///
+  /// In en, this message translates to:
+  /// **'Add region'**
+  String get captureAddRegion;
+
+  /// No description provided for @captureRegionField.
+  ///
+  /// In en, this message translates to:
+  /// **'Field'**
+  String get captureRegionField;
+
+  /// No description provided for @captureRegionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Label'**
+  String get captureRegionLabel;
+
+  /// No description provided for @captureDeleteRegion.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete region'**
+  String get captureDeleteRegion;
+
+  /// No description provided for @captureSaveTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Save template'**
+  String get captureSaveTemplate;
+
+  /// No description provided for @captureTemplateNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Name the template.'**
+  String get captureTemplateNameRequired;
+
+  /// No description provided for @captureNeedsBlockAndRegion.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw the big box and at least one region.'**
+  String get captureNeedsBlockAndRegion;
+
+  /// No description provided for @captureFieldCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Code'**
+  String get captureFieldCode;
+
+  /// No description provided for @captureFieldName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get captureFieldName;
+
+  /// No description provided for @captureFieldNameSecondary.
+  ///
+  /// In en, this message translates to:
+  /// **'Second name'**
+  String get captureFieldNameSecondary;
+
+  /// No description provided for @captureFieldPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Price'**
+  String get captureFieldPrice;
+
+  /// No description provided for @captureFieldAttribute.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom field'**
+  String get captureFieldAttribute;
+
+  /// No description provided for @captureFieldImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get captureFieldImage;
+
+  /// No description provided for @captureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from photo'**
+  String get captureTitle;
+
+  /// No description provided for @capturePickPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick menu photo'**
+  String get capturePickPhoto;
+
+  /// No description provided for @captureChooseTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Template'**
+  String get captureChooseTemplate;
+
+  /// No description provided for @captureChooseCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get captureChooseCategory;
+
+  /// No description provided for @captureRunningOcr.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading text…'**
+  String get captureRunningOcr;
+
+  /// No description provided for @captureCaptureItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture item'**
+  String get captureCaptureItem;
+
+  /// No description provided for @captureDraftCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} captured'**
+  String captureDraftCount(int count);
+
+  /// No description provided for @captureReviewAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get captureReviewAction;
+
+  /// No description provided for @captureOcrLanguageMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'No OCR language pack found. Add Chinese or English in Windows Settings → Time & language → Language.'**
+  String get captureOcrLanguageMissing;
+
+  /// No description provided for @captureSelectTemplateFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a template first.'**
+  String get captureSelectTemplateFirst;
+
+  /// No description provided for @captureSelectPhotoFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a photo first.'**
+  String get captureSelectPhotoFirst;
+
+  /// No description provided for @captureReviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review drafts'**
+  String get captureReviewTitle;
+
+  /// No description provided for @captureSaveAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Save all'**
+  String get captureSaveAll;
+
+  /// No description provided for @captureDiscardDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get captureDiscardDraft;
+
+  /// No description provided for @captureNoDrafts.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing captured yet.'**
+  String get captureNoDrafts;
+
+  /// No description provided for @captureSavedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved {count} items'**
+  String captureSavedCount(int count);
+
+  /// No description provided for @captureUnsupportedPlatform.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo import runs on Windows for now.'**
+  String get captureUnsupportedPlatform;
 }
 
 class _AppLocalizationsDelegate

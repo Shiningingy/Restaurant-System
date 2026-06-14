@@ -929,4 +929,134 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get itemRenameImage => '重命名图片';
+
+  @override
+  String get captureImportFromPhoto => '从照片导入';
+
+  @override
+  String get captureTemplatesTitle => '采集模板';
+
+  @override
+  String get captureNewTemplate => '新建模板';
+
+  @override
+  String get captureNoTemplates => '暂无模板。创建一个，用来标记菜单照片上各字段的位置。';
+
+  @override
+  String get captureTemplateNameHint => '模板名称';
+
+  @override
+  String get captureRenameTemplate => '重命名模板';
+
+  @override
+  String get captureDeleteTemplate => '删除模板';
+
+  @override
+  String captureDeleteTemplateConfirm(String name) {
+    return '删除模板“$name”？';
+  }
+
+  @override
+  String get captureTemplateEditorTitle => '模板';
+
+  @override
+  String get capturePickSamplePhoto => '选择示例照片';
+
+  @override
+  String get captureBigBlockHint => '将大框拖到一个菜品上，然后在框内添加带标签的区域。';
+
+  @override
+  String get captureAddRegion => '添加区域';
+
+  @override
+  String get captureRegionField => '字段';
+
+  @override
+  String get captureRegionLabel => '标签';
+
+  @override
+  String get captureDeleteRegion => '删除区域';
+
+  @override
+  String get captureSaveTemplate => '保存模板';
+
+  @override
+  String get captureTemplateNameRequired => '请为模板命名。';
+
+  @override
+  String get captureNeedsBlockAndRegion => '请绘制大框并至少添加一个区域。';
+
+  @override
+  String get captureFieldCode => '编号';
+
+  @override
+  String get captureFieldName => '名称';
+
+  @override
+  String get captureFieldNameSecondary => '第二名称';
+
+  @override
+  String get captureFieldPrice => '价格';
+
+  @override
+  String get captureFieldAttribute => '自定义字段';
+
+  @override
+  String get captureFieldImage => '图片';
+
+  @override
+  String get captureTitle => '从照片导入';
+
+  @override
+  String get capturePickPhoto => '选择菜单照片';
+
+  @override
+  String get captureChooseTemplate => '模板';
+
+  @override
+  String get captureChooseCategory => '分类';
+
+  @override
+  String get captureRunningOcr => '正在识别文字…';
+
+  @override
+  String get captureCaptureItem => '采集菜品';
+
+  @override
+  String captureDraftCount(int count) {
+    return '已采集 $count 项';
+  }
+
+  @override
+  String get captureReviewAction => '查看';
+
+  @override
+  String get captureOcrLanguageMissing =>
+      '未找到 OCR 语言包。请在 Windows 设置 → 时间和语言 → 语言 中添加中文或英文。';
+
+  @override
+  String get captureSelectTemplateFirst => '请先选择模板。';
+
+  @override
+  String get captureSelectPhotoFirst => '请先选择照片。';
+
+  @override
+  String get captureReviewTitle => '核对草稿';
+
+  @override
+  String get captureSaveAll => '全部保存';
+
+  @override
+  String get captureDiscardDraft => '丢弃';
+
+  @override
+  String get captureNoDrafts => '尚未采集任何内容。';
+
+  @override
+  String captureSavedCount(int count) {
+    return '已保存 $count 项';
+  }
+
+  @override
+  String get captureUnsupportedPlatform => '照片导入目前仅支持 Windows。';
 }

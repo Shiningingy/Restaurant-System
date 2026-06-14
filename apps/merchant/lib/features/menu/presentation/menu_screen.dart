@@ -4,6 +4,7 @@ import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../../core/l10n_ext.dart';
 import '../../../core/widgets/item_name_lines.dart';
+import '../../menu_capture/presentation/capture_screen.dart';
 import '../application/providers.dart';
 import 'item_editor_screen.dart';
 import 'modifier_groups_tab.dart';
@@ -25,6 +26,15 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(context.l10n.menuTitle),
+          actions: [
+            IconButton(
+              tooltip: context.l10n.captureImportFromPhoto,
+              onPressed: () => Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const CaptureScreen())),
+              icon: const Icon(Icons.photo_camera_outlined),
+            ),
+          ],
           bottom: TabBar(
             tabs: [
               Tab(text: context.l10n.menuItems),
