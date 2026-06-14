@@ -74,7 +74,7 @@ end. Discovery is currently paste-the-URL+key; QR scanning is a follow-up. Like
 sync, a smoke test against a live Supabase project still needs the restaurant's
 real credentials.*
 
-## Pre-deployment gate (BLOCKING) — cloud security
+## Pre-deployment gate (cloud security) ✅ CLOSED
 Before any real restaurant uses cloud sync or online ordering, harden the
 Supabase setup. Today both apps share one project + anon key with no real RLS
 (placeholder `using(true)` in the sync setup SQL; none for online orders), so
@@ -86,13 +86,17 @@ denied to the customer key (merchant tablet authenticates instead of using the
 shared anon key). Pair with the live-Supabase smoke test. **The full model and
 exact SQL are in docs/CLOUD_SECURITY.md.**
 **Exit:** the customer key cannot reach `sync_changes` or other customers' orders.
-*Status: the **client side is done** — the merchant signs in with a password and
-the customer signs in anonymously; both carry their user token on every request,
-the customer tags preorders with its uid, and an RLS-enforcing test proves a
-customer is blocked from the private feed, other customers' orders, status
-changes, and uid-spoofing. **Remaining (needs a real project):** apply the RLS
-SQL from CLOUD_SECURITY.md, create the restaurant login, enable anonymous
-sign-ins, and run the live smoke test.*
+*Status: **closed (2026-06-13).** The client side: the merchant signs in with a
+password and the customer signs in anonymously; both carry their user token on
+every request, the customer tags preorders with its uid. Then verified **live
+against a real Supabase project**: the RLS SQL from CLOUD_SECURITY.md was
+applied, a restaurant login created, anonymous sign-ins enabled, and the live
+smoke test (`apps/customer/tool/live_cloud_smoke_test.dart`) passed all 15
+checks over real HTTP — restaurant writes its private feed/menu, a customer
+orders and tracks only their own, and a customer is provably blocked from the
+sync feed, other customers' orders, status changes, and uid-spoofing. Re-run any
+time against a project with `dart run tool/live_cloud_smoke_test.dart` (creds via
+env vars).*
 
 ## Phase 7 — Optional online payment
 Processor-hosted checkout (Moneris Checkout preferred — aligns with the
