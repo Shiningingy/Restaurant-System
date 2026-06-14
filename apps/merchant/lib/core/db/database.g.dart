@@ -357,6 +357,26 @@ class $MenuItemsTable extends MenuItems
         type: DriftSqlType.int,
         requiredDuringInsert: true,
       ).withConverter<domain.Money>($MenuItemsTable.$converterprice);
+  static const VerificationMeta _codeMeta = const VerificationMeta('code');
+  @override
+  late final GeneratedColumn<String> code = GeneratedColumn<String>(
+    'code',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _nameSecondaryMeta = const VerificationMeta(
+    'nameSecondary',
+  );
+  @override
+  late final GeneratedColumn<String> nameSecondary = GeneratedColumn<String>(
+    'name_secondary',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _skuMeta = const VerificationMeta('sku');
   @override
   late final GeneratedColumn<String> sku = GeneratedColumn<String>(
@@ -399,6 +419,8 @@ class $MenuItemsTable extends MenuItems
     categoryId,
     name,
     price,
+    code,
+    nameSecondary,
     sku,
     sortOrder,
     isActive,
@@ -435,6 +457,21 @@ class $MenuItemsTable extends MenuItems
       );
     } else if (isInserting) {
       context.missing(_nameMeta);
+    }
+    if (data.containsKey('code')) {
+      context.handle(
+        _codeMeta,
+        code.isAcceptableOrUnknown(data['code']!, _codeMeta),
+      );
+    }
+    if (data.containsKey('name_secondary')) {
+      context.handle(
+        _nameSecondaryMeta,
+        nameSecondary.isAcceptableOrUnknown(
+          data['name_secondary']!,
+          _nameSecondaryMeta,
+        ),
+      );
     }
     if (data.containsKey('sku')) {
       context.handle(
@@ -481,6 +518,14 @@ class $MenuItemsTable extends MenuItems
           data['${effectivePrefix}price'],
         )!,
       ),
+      code: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}code'],
+      ),
+      nameSecondary: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name_secondary'],
+      ),
       sku: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}sku'],
@@ -510,6 +555,12 @@ class MenuItemRow extends DataClass implements Insertable<MenuItemRow> {
   final String categoryId;
   final String name;
   final domain.Money price;
+
+  /// Human item number (e.g. "A01"); optional. Not the internal sort order.
+  final String? code;
+
+  /// Optional second name line (e.g. a native-language name).
+  final String? nameSecondary;
   final String? sku;
   final int sortOrder;
   final bool isActive;
@@ -518,6 +569,8 @@ class MenuItemRow extends DataClass implements Insertable<MenuItemRow> {
     required this.categoryId,
     required this.name,
     required this.price,
+    this.code,
+    this.nameSecondary,
     this.sku,
     required this.sortOrder,
     required this.isActive,
@@ -533,6 +586,12 @@ class MenuItemRow extends DataClass implements Insertable<MenuItemRow> {
         $MenuItemsTable.$converterprice.toSql(price),
       );
     }
+    if (!nullToAbsent || code != null) {
+      map['code'] = Variable<String>(code);
+    }
+    if (!nullToAbsent || nameSecondary != null) {
+      map['name_secondary'] = Variable<String>(nameSecondary);
+    }
     if (!nullToAbsent || sku != null) {
       map['sku'] = Variable<String>(sku);
     }
@@ -547,6 +606,10 @@ class MenuItemRow extends DataClass implements Insertable<MenuItemRow> {
       categoryId: Value(categoryId),
       name: Value(name),
       price: Value(price),
+      code: code == null && nullToAbsent ? const Value.absent() : Value(code),
+      nameSecondary: nameSecondary == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nameSecondary),
       sku: sku == null && nullToAbsent ? const Value.absent() : Value(sku),
       sortOrder: Value(sortOrder),
       isActive: Value(isActive),
@@ -563,6 +626,8 @@ class MenuItemRow extends DataClass implements Insertable<MenuItemRow> {
       categoryId: serializer.fromJson<String>(json['categoryId']),
       name: serializer.fromJson<String>(json['name']),
       price: serializer.fromJson<domain.Money>(json['price']),
+      code: serializer.fromJson<String?>(json['code']),
+      nameSecondary: serializer.fromJson<String?>(json['nameSecondary']),
       sku: serializer.fromJson<String?>(json['sku']),
       sortOrder: serializer.fromJson<int>(json['sortOrder']),
       isActive: serializer.fromJson<bool>(json['isActive']),
@@ -576,6 +641,8 @@ class MenuItemRow extends DataClass implements Insertable<MenuItemRow> {
       'categoryId': serializer.toJson<String>(categoryId),
       'name': serializer.toJson<String>(name),
       'price': serializer.toJson<domain.Money>(price),
+      'code': serializer.toJson<String?>(code),
+      'nameSecondary': serializer.toJson<String?>(nameSecondary),
       'sku': serializer.toJson<String?>(sku),
       'sortOrder': serializer.toJson<int>(sortOrder),
       'isActive': serializer.toJson<bool>(isActive),
@@ -587,6 +654,8 @@ class MenuItemRow extends DataClass implements Insertable<MenuItemRow> {
     String? categoryId,
     String? name,
     domain.Money? price,
+    Value<String?> code = const Value.absent(),
+    Value<String?> nameSecondary = const Value.absent(),
     Value<String?> sku = const Value.absent(),
     int? sortOrder,
     bool? isActive,
@@ -595,6 +664,10 @@ class MenuItemRow extends DataClass implements Insertable<MenuItemRow> {
     categoryId: categoryId ?? this.categoryId,
     name: name ?? this.name,
     price: price ?? this.price,
+    code: code.present ? code.value : this.code,
+    nameSecondary: nameSecondary.present
+        ? nameSecondary.value
+        : this.nameSecondary,
     sku: sku.present ? sku.value : this.sku,
     sortOrder: sortOrder ?? this.sortOrder,
     isActive: isActive ?? this.isActive,
@@ -607,6 +680,10 @@ class MenuItemRow extends DataClass implements Insertable<MenuItemRow> {
           : this.categoryId,
       name: data.name.present ? data.name.value : this.name,
       price: data.price.present ? data.price.value : this.price,
+      code: data.code.present ? data.code.value : this.code,
+      nameSecondary: data.nameSecondary.present
+          ? data.nameSecondary.value
+          : this.nameSecondary,
       sku: data.sku.present ? data.sku.value : this.sku,
       sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
@@ -620,6 +697,8 @@ class MenuItemRow extends DataClass implements Insertable<MenuItemRow> {
           ..write('categoryId: $categoryId, ')
           ..write('name: $name, ')
           ..write('price: $price, ')
+          ..write('code: $code, ')
+          ..write('nameSecondary: $nameSecondary, ')
           ..write('sku: $sku, ')
           ..write('sortOrder: $sortOrder, ')
           ..write('isActive: $isActive')
@@ -628,8 +707,17 @@ class MenuItemRow extends DataClass implements Insertable<MenuItemRow> {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, categoryId, name, price, sku, sortOrder, isActive);
+  int get hashCode => Object.hash(
+    id,
+    categoryId,
+    name,
+    price,
+    code,
+    nameSecondary,
+    sku,
+    sortOrder,
+    isActive,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -638,6 +726,8 @@ class MenuItemRow extends DataClass implements Insertable<MenuItemRow> {
           other.categoryId == this.categoryId &&
           other.name == this.name &&
           other.price == this.price &&
+          other.code == this.code &&
+          other.nameSecondary == this.nameSecondary &&
           other.sku == this.sku &&
           other.sortOrder == this.sortOrder &&
           other.isActive == this.isActive);
@@ -648,6 +738,8 @@ class MenuItemsCompanion extends UpdateCompanion<MenuItemRow> {
   final Value<String> categoryId;
   final Value<String> name;
   final Value<domain.Money> price;
+  final Value<String?> code;
+  final Value<String?> nameSecondary;
   final Value<String?> sku;
   final Value<int> sortOrder;
   final Value<bool> isActive;
@@ -657,6 +749,8 @@ class MenuItemsCompanion extends UpdateCompanion<MenuItemRow> {
     this.categoryId = const Value.absent(),
     this.name = const Value.absent(),
     this.price = const Value.absent(),
+    this.code = const Value.absent(),
+    this.nameSecondary = const Value.absent(),
     this.sku = const Value.absent(),
     this.sortOrder = const Value.absent(),
     this.isActive = const Value.absent(),
@@ -667,6 +761,8 @@ class MenuItemsCompanion extends UpdateCompanion<MenuItemRow> {
     required String categoryId,
     required String name,
     required domain.Money price,
+    this.code = const Value.absent(),
+    this.nameSecondary = const Value.absent(),
     this.sku = const Value.absent(),
     this.sortOrder = const Value.absent(),
     this.isActive = const Value.absent(),
@@ -680,6 +776,8 @@ class MenuItemsCompanion extends UpdateCompanion<MenuItemRow> {
     Expression<String>? categoryId,
     Expression<String>? name,
     Expression<int>? price,
+    Expression<String>? code,
+    Expression<String>? nameSecondary,
     Expression<String>? sku,
     Expression<int>? sortOrder,
     Expression<bool>? isActive,
@@ -690,6 +788,8 @@ class MenuItemsCompanion extends UpdateCompanion<MenuItemRow> {
       if (categoryId != null) 'category_id': categoryId,
       if (name != null) 'name': name,
       if (price != null) 'price': price,
+      if (code != null) 'code': code,
+      if (nameSecondary != null) 'name_secondary': nameSecondary,
       if (sku != null) 'sku': sku,
       if (sortOrder != null) 'sort_order': sortOrder,
       if (isActive != null) 'is_active': isActive,
@@ -702,6 +802,8 @@ class MenuItemsCompanion extends UpdateCompanion<MenuItemRow> {
     Value<String>? categoryId,
     Value<String>? name,
     Value<domain.Money>? price,
+    Value<String?>? code,
+    Value<String?>? nameSecondary,
     Value<String?>? sku,
     Value<int>? sortOrder,
     Value<bool>? isActive,
@@ -712,6 +814,8 @@ class MenuItemsCompanion extends UpdateCompanion<MenuItemRow> {
       categoryId: categoryId ?? this.categoryId,
       name: name ?? this.name,
       price: price ?? this.price,
+      code: code ?? this.code,
+      nameSecondary: nameSecondary ?? this.nameSecondary,
       sku: sku ?? this.sku,
       sortOrder: sortOrder ?? this.sortOrder,
       isActive: isActive ?? this.isActive,
@@ -736,6 +840,12 @@ class MenuItemsCompanion extends UpdateCompanion<MenuItemRow> {
         $MenuItemsTable.$converterprice.toSql(price.value),
       );
     }
+    if (code.present) {
+      map['code'] = Variable<String>(code.value);
+    }
+    if (nameSecondary.present) {
+      map['name_secondary'] = Variable<String>(nameSecondary.value);
+    }
     if (sku.present) {
       map['sku'] = Variable<String>(sku.value);
     }
@@ -758,6 +868,8 @@ class MenuItemsCompanion extends UpdateCompanion<MenuItemRow> {
           ..write('categoryId: $categoryId, ')
           ..write('name: $name, ')
           ..write('price: $price, ')
+          ..write('code: $code, ')
+          ..write('nameSecondary: $nameSecondary, ')
           ..write('sku: $sku, ')
           ..write('sortOrder: $sortOrder, ')
           ..write('isActive: $isActive, ')
@@ -2622,6 +2734,28 @@ class $OrderLinesTable extends OrderLines
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   ).withConverter<domain.OrderLineStatus>($OrderLinesTable.$converterstatus);
+  static const VerificationMeta _codeSnapshotMeta = const VerificationMeta(
+    'codeSnapshot',
+  );
+  @override
+  late final GeneratedColumn<String> codeSnapshot = GeneratedColumn<String>(
+    'code_snapshot',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _nameSecondarySnapshotMeta =
+      const VerificationMeta('nameSecondarySnapshot');
+  @override
+  late final GeneratedColumn<String> nameSecondarySnapshot =
+      GeneratedColumn<String>(
+        'name_secondary_snapshot',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _noteMeta = const VerificationMeta('note');
   @override
   late final GeneratedColumn<String> note = GeneratedColumn<String>(
@@ -2641,6 +2775,8 @@ class $OrderLinesTable extends OrderLines
     qty,
     lineTotal,
     status,
+    codeSnapshot,
+    nameSecondarySnapshot,
     note,
   ];
   @override
@@ -2698,6 +2834,24 @@ class $OrderLinesTable extends OrderLines
     } else if (isInserting) {
       context.missing(_qtyMeta);
     }
+    if (data.containsKey('code_snapshot')) {
+      context.handle(
+        _codeSnapshotMeta,
+        codeSnapshot.isAcceptableOrUnknown(
+          data['code_snapshot']!,
+          _codeSnapshotMeta,
+        ),
+      );
+    }
+    if (data.containsKey('name_secondary_snapshot')) {
+      context.handle(
+        _nameSecondarySnapshotMeta,
+        nameSecondarySnapshot.isAcceptableOrUnknown(
+          data['name_secondary_snapshot']!,
+          _nameSecondarySnapshotMeta,
+        ),
+      );
+    }
     if (data.containsKey('note')) {
       context.handle(
         _noteMeta,
@@ -2751,6 +2905,14 @@ class $OrderLinesTable extends OrderLines
           data['${effectivePrefix}status'],
         )!,
       ),
+      codeSnapshot: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}code_snapshot'],
+      ),
+      nameSecondarySnapshot: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name_secondary_snapshot'],
+      ),
       note: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}note'],
@@ -2782,6 +2944,10 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
   final int qty;
   final domain.Money lineTotal;
   final domain.OrderLineStatus status;
+
+  /// Item code + second name line, snapshotted at sale time.
+  final String? codeSnapshot;
+  final String? nameSecondarySnapshot;
   final String? note;
   const OrderLineRow({
     required this.id,
@@ -2792,6 +2958,8 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
     required this.qty,
     required this.lineTotal,
     required this.status,
+    this.codeSnapshot,
+    this.nameSecondarySnapshot,
     this.note,
   });
   @override
@@ -2817,6 +2985,12 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
         $OrderLinesTable.$converterstatus.toSql(status),
       );
     }
+    if (!nullToAbsent || codeSnapshot != null) {
+      map['code_snapshot'] = Variable<String>(codeSnapshot);
+    }
+    if (!nullToAbsent || nameSecondarySnapshot != null) {
+      map['name_secondary_snapshot'] = Variable<String>(nameSecondarySnapshot);
+    }
     if (!nullToAbsent || note != null) {
       map['note'] = Variable<String>(note);
     }
@@ -2833,6 +3007,12 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
       qty: Value(qty),
       lineTotal: Value(lineTotal),
       status: Value(status),
+      codeSnapshot: codeSnapshot == null && nullToAbsent
+          ? const Value.absent()
+          : Value(codeSnapshot),
+      nameSecondarySnapshot: nameSecondarySnapshot == null && nullToAbsent
+          ? const Value.absent()
+          : Value(nameSecondarySnapshot),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
     );
   }
@@ -2853,6 +3033,10 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
       status: $OrderLinesTable.$converterstatus.fromJson(
         serializer.fromJson<String>(json['status']),
       ),
+      codeSnapshot: serializer.fromJson<String?>(json['codeSnapshot']),
+      nameSecondarySnapshot: serializer.fromJson<String?>(
+        json['nameSecondarySnapshot'],
+      ),
       note: serializer.fromJson<String?>(json['note']),
     );
   }
@@ -2870,6 +3054,10 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
       'status': serializer.toJson<String>(
         $OrderLinesTable.$converterstatus.toJson(status),
       ),
+      'codeSnapshot': serializer.toJson<String?>(codeSnapshot),
+      'nameSecondarySnapshot': serializer.toJson<String?>(
+        nameSecondarySnapshot,
+      ),
       'note': serializer.toJson<String?>(note),
     };
   }
@@ -2883,6 +3071,8 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
     int? qty,
     domain.Money? lineTotal,
     domain.OrderLineStatus? status,
+    Value<String?> codeSnapshot = const Value.absent(),
+    Value<String?> nameSecondarySnapshot = const Value.absent(),
     Value<String?> note = const Value.absent(),
   }) => OrderLineRow(
     id: id ?? this.id,
@@ -2893,6 +3083,10 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
     qty: qty ?? this.qty,
     lineTotal: lineTotal ?? this.lineTotal,
     status: status ?? this.status,
+    codeSnapshot: codeSnapshot.present ? codeSnapshot.value : this.codeSnapshot,
+    nameSecondarySnapshot: nameSecondarySnapshot.present
+        ? nameSecondarySnapshot.value
+        : this.nameSecondarySnapshot,
     note: note.present ? note.value : this.note,
   );
   OrderLineRow copyWithCompanion(OrderLinesCompanion data) {
@@ -2911,6 +3105,12 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
       qty: data.qty.present ? data.qty.value : this.qty,
       lineTotal: data.lineTotal.present ? data.lineTotal.value : this.lineTotal,
       status: data.status.present ? data.status.value : this.status,
+      codeSnapshot: data.codeSnapshot.present
+          ? data.codeSnapshot.value
+          : this.codeSnapshot,
+      nameSecondarySnapshot: data.nameSecondarySnapshot.present
+          ? data.nameSecondarySnapshot.value
+          : this.nameSecondarySnapshot,
       note: data.note.present ? data.note.value : this.note,
     );
   }
@@ -2926,6 +3126,8 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
           ..write('qty: $qty, ')
           ..write('lineTotal: $lineTotal, ')
           ..write('status: $status, ')
+          ..write('codeSnapshot: $codeSnapshot, ')
+          ..write('nameSecondarySnapshot: $nameSecondarySnapshot, ')
           ..write('note: $note')
           ..write(')'))
         .toString();
@@ -2941,6 +3143,8 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
     qty,
     lineTotal,
     status,
+    codeSnapshot,
+    nameSecondarySnapshot,
     note,
   );
   @override
@@ -2955,6 +3159,8 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
           other.qty == this.qty &&
           other.lineTotal == this.lineTotal &&
           other.status == this.status &&
+          other.codeSnapshot == this.codeSnapshot &&
+          other.nameSecondarySnapshot == this.nameSecondarySnapshot &&
           other.note == this.note);
 }
 
@@ -2967,6 +3173,8 @@ class OrderLinesCompanion extends UpdateCompanion<OrderLineRow> {
   final Value<int> qty;
   final Value<domain.Money> lineTotal;
   final Value<domain.OrderLineStatus> status;
+  final Value<String?> codeSnapshot;
+  final Value<String?> nameSecondarySnapshot;
   final Value<String?> note;
   final Value<int> rowid;
   const OrderLinesCompanion({
@@ -2978,6 +3186,8 @@ class OrderLinesCompanion extends UpdateCompanion<OrderLineRow> {
     this.qty = const Value.absent(),
     this.lineTotal = const Value.absent(),
     this.status = const Value.absent(),
+    this.codeSnapshot = const Value.absent(),
+    this.nameSecondarySnapshot = const Value.absent(),
     this.note = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -2990,6 +3200,8 @@ class OrderLinesCompanion extends UpdateCompanion<OrderLineRow> {
     required int qty,
     required domain.Money lineTotal,
     required domain.OrderLineStatus status,
+    this.codeSnapshot = const Value.absent(),
+    this.nameSecondarySnapshot = const Value.absent(),
     this.note = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -3009,6 +3221,8 @@ class OrderLinesCompanion extends UpdateCompanion<OrderLineRow> {
     Expression<int>? qty,
     Expression<int>? lineTotal,
     Expression<String>? status,
+    Expression<String>? codeSnapshot,
+    Expression<String>? nameSecondarySnapshot,
     Expression<String>? note,
     Expression<int>? rowid,
   }) {
@@ -3021,6 +3235,9 @@ class OrderLinesCompanion extends UpdateCompanion<OrderLineRow> {
       if (qty != null) 'qty': qty,
       if (lineTotal != null) 'line_total': lineTotal,
       if (status != null) 'status': status,
+      if (codeSnapshot != null) 'code_snapshot': codeSnapshot,
+      if (nameSecondarySnapshot != null)
+        'name_secondary_snapshot': nameSecondarySnapshot,
       if (note != null) 'note': note,
       if (rowid != null) 'rowid': rowid,
     });
@@ -3035,6 +3252,8 @@ class OrderLinesCompanion extends UpdateCompanion<OrderLineRow> {
     Value<int>? qty,
     Value<domain.Money>? lineTotal,
     Value<domain.OrderLineStatus>? status,
+    Value<String?>? codeSnapshot,
+    Value<String?>? nameSecondarySnapshot,
     Value<String?>? note,
     Value<int>? rowid,
   }) {
@@ -3047,6 +3266,9 @@ class OrderLinesCompanion extends UpdateCompanion<OrderLineRow> {
       qty: qty ?? this.qty,
       lineTotal: lineTotal ?? this.lineTotal,
       status: status ?? this.status,
+      codeSnapshot: codeSnapshot ?? this.codeSnapshot,
+      nameSecondarySnapshot:
+          nameSecondarySnapshot ?? this.nameSecondarySnapshot,
       note: note ?? this.note,
       rowid: rowid ?? this.rowid,
     );
@@ -3085,6 +3307,14 @@ class OrderLinesCompanion extends UpdateCompanion<OrderLineRow> {
         $OrderLinesTable.$converterstatus.toSql(status.value),
       );
     }
+    if (codeSnapshot.present) {
+      map['code_snapshot'] = Variable<String>(codeSnapshot.value);
+    }
+    if (nameSecondarySnapshot.present) {
+      map['name_secondary_snapshot'] = Variable<String>(
+        nameSecondarySnapshot.value,
+      );
+    }
     if (note.present) {
       map['note'] = Variable<String>(note.value);
     }
@@ -3105,6 +3335,8 @@ class OrderLinesCompanion extends UpdateCompanion<OrderLineRow> {
           ..write('qty: $qty, ')
           ..write('lineTotal: $lineTotal, ')
           ..write('status: $status, ')
+          ..write('codeSnapshot: $codeSnapshot, ')
+          ..write('nameSecondarySnapshot: $nameSecondarySnapshot, ')
           ..write('note: $note, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -5322,6 +5554,711 @@ class StaffCompanion extends UpdateCompanion<StaffRow> {
   }
 }
 
+class $MenuItemAttributesTable extends MenuItemAttributes
+    with TableInfo<$MenuItemAttributesTable, MenuItemAttributeRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MenuItemAttributesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _itemIdMeta = const VerificationMeta('itemId');
+  @override
+  late final GeneratedColumn<String> itemId = GeneratedColumn<String>(
+    'item_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES menu_items (id)',
+    ),
+  );
+  static const VerificationMeta _labelMeta = const VerificationMeta('label');
+  @override
+  late final GeneratedColumn<String> label = GeneratedColumn<String>(
+    'label',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<String> value = GeneratedColumn<String>(
+    'value',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta(
+    'sortOrder',
+  );
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+    'sort_order',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, itemId, label, value, sortOrder];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'menu_item_attributes';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MenuItemAttributeRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('item_id')) {
+      context.handle(
+        _itemIdMeta,
+        itemId.isAcceptableOrUnknown(data['item_id']!, _itemIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_itemIdMeta);
+    }
+    if (data.containsKey('label')) {
+      context.handle(
+        _labelMeta,
+        label.isAcceptableOrUnknown(data['label']!, _labelMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_labelMeta);
+    }
+    if (data.containsKey('value')) {
+      context.handle(
+        _valueMeta,
+        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_valueMeta);
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(
+        _sortOrderMeta,
+        sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MenuItemAttributeRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MenuItemAttributeRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      itemId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}item_id'],
+      )!,
+      label: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}label'],
+      )!,
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}value'],
+      )!,
+      sortOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sort_order'],
+      )!,
+    );
+  }
+
+  @override
+  $MenuItemAttributesTable createAlias(String alias) {
+    return $MenuItemAttributesTable(attachedDatabase, alias);
+  }
+}
+
+class MenuItemAttributeRow extends DataClass
+    implements Insertable<MenuItemAttributeRow> {
+  final String id;
+  final String itemId;
+  final String label;
+  final String value;
+  final int sortOrder;
+  const MenuItemAttributeRow({
+    required this.id,
+    required this.itemId,
+    required this.label,
+    required this.value,
+    required this.sortOrder,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['item_id'] = Variable<String>(itemId);
+    map['label'] = Variable<String>(label);
+    map['value'] = Variable<String>(value);
+    map['sort_order'] = Variable<int>(sortOrder);
+    return map;
+  }
+
+  MenuItemAttributesCompanion toCompanion(bool nullToAbsent) {
+    return MenuItemAttributesCompanion(
+      id: Value(id),
+      itemId: Value(itemId),
+      label: Value(label),
+      value: Value(value),
+      sortOrder: Value(sortOrder),
+    );
+  }
+
+  factory MenuItemAttributeRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MenuItemAttributeRow(
+      id: serializer.fromJson<String>(json['id']),
+      itemId: serializer.fromJson<String>(json['itemId']),
+      label: serializer.fromJson<String>(json['label']),
+      value: serializer.fromJson<String>(json['value']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'itemId': serializer.toJson<String>(itemId),
+      'label': serializer.toJson<String>(label),
+      'value': serializer.toJson<String>(value),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+    };
+  }
+
+  MenuItemAttributeRow copyWith({
+    String? id,
+    String? itemId,
+    String? label,
+    String? value,
+    int? sortOrder,
+  }) => MenuItemAttributeRow(
+    id: id ?? this.id,
+    itemId: itemId ?? this.itemId,
+    label: label ?? this.label,
+    value: value ?? this.value,
+    sortOrder: sortOrder ?? this.sortOrder,
+  );
+  MenuItemAttributeRow copyWithCompanion(MenuItemAttributesCompanion data) {
+    return MenuItemAttributeRow(
+      id: data.id.present ? data.id.value : this.id,
+      itemId: data.itemId.present ? data.itemId.value : this.itemId,
+      label: data.label.present ? data.label.value : this.label,
+      value: data.value.present ? data.value.value : this.value,
+      sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MenuItemAttributeRow(')
+          ..write('id: $id, ')
+          ..write('itemId: $itemId, ')
+          ..write('label: $label, ')
+          ..write('value: $value, ')
+          ..write('sortOrder: $sortOrder')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, itemId, label, value, sortOrder);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MenuItemAttributeRow &&
+          other.id == this.id &&
+          other.itemId == this.itemId &&
+          other.label == this.label &&
+          other.value == this.value &&
+          other.sortOrder == this.sortOrder);
+}
+
+class MenuItemAttributesCompanion
+    extends UpdateCompanion<MenuItemAttributeRow> {
+  final Value<String> id;
+  final Value<String> itemId;
+  final Value<String> label;
+  final Value<String> value;
+  final Value<int> sortOrder;
+  final Value<int> rowid;
+  const MenuItemAttributesCompanion({
+    this.id = const Value.absent(),
+    this.itemId = const Value.absent(),
+    this.label = const Value.absent(),
+    this.value = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MenuItemAttributesCompanion.insert({
+    required String id,
+    required String itemId,
+    required String label,
+    required String value,
+    this.sortOrder = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       itemId = Value(itemId),
+       label = Value(label),
+       value = Value(value);
+  static Insertable<MenuItemAttributeRow> custom({
+    Expression<String>? id,
+    Expression<String>? itemId,
+    Expression<String>? label,
+    Expression<String>? value,
+    Expression<int>? sortOrder,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (itemId != null) 'item_id': itemId,
+      if (label != null) 'label': label,
+      if (value != null) 'value': value,
+      if (sortOrder != null) 'sort_order': sortOrder,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MenuItemAttributesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? itemId,
+    Value<String>? label,
+    Value<String>? value,
+    Value<int>? sortOrder,
+    Value<int>? rowid,
+  }) {
+    return MenuItemAttributesCompanion(
+      id: id ?? this.id,
+      itemId: itemId ?? this.itemId,
+      label: label ?? this.label,
+      value: value ?? this.value,
+      sortOrder: sortOrder ?? this.sortOrder,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (itemId.present) {
+      map['item_id'] = Variable<String>(itemId.value);
+    }
+    if (label.present) {
+      map['label'] = Variable<String>(label.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<String>(value.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MenuItemAttributesCompanion(')
+          ..write('id: $id, ')
+          ..write('itemId: $itemId, ')
+          ..write('label: $label, ')
+          ..write('value: $value, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $MenuItemImagesTable extends MenuItemImages
+    with TableInfo<$MenuItemImagesTable, MenuItemImageRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MenuItemImagesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _itemIdMeta = const VerificationMeta('itemId');
+  @override
+  late final GeneratedColumn<String> itemId = GeneratedColumn<String>(
+    'item_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES menu_items (id)',
+    ),
+  );
+  static const VerificationMeta _labelMeta = const VerificationMeta('label');
+  @override
+  late final GeneratedColumn<String> label = GeneratedColumn<String>(
+    'label',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _pathMeta = const VerificationMeta('path');
+  @override
+  late final GeneratedColumn<String> path = GeneratedColumn<String>(
+    'path',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta(
+    'sortOrder',
+  );
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+    'sort_order',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, itemId, label, path, sortOrder];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'menu_item_images';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MenuItemImageRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('item_id')) {
+      context.handle(
+        _itemIdMeta,
+        itemId.isAcceptableOrUnknown(data['item_id']!, _itemIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_itemIdMeta);
+    }
+    if (data.containsKey('label')) {
+      context.handle(
+        _labelMeta,
+        label.isAcceptableOrUnknown(data['label']!, _labelMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_labelMeta);
+    }
+    if (data.containsKey('path')) {
+      context.handle(
+        _pathMeta,
+        path.isAcceptableOrUnknown(data['path']!, _pathMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_pathMeta);
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(
+        _sortOrderMeta,
+        sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MenuItemImageRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MenuItemImageRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      itemId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}item_id'],
+      )!,
+      label: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}label'],
+      )!,
+      path: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}path'],
+      )!,
+      sortOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sort_order'],
+      )!,
+    );
+  }
+
+  @override
+  $MenuItemImagesTable createAlias(String alias) {
+    return $MenuItemImagesTable(attachedDatabase, alias);
+  }
+}
+
+class MenuItemImageRow extends DataClass
+    implements Insertable<MenuItemImageRow> {
+  final String id;
+  final String itemId;
+  final String label;
+  final String path;
+  final int sortOrder;
+  const MenuItemImageRow({
+    required this.id,
+    required this.itemId,
+    required this.label,
+    required this.path,
+    required this.sortOrder,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['item_id'] = Variable<String>(itemId);
+    map['label'] = Variable<String>(label);
+    map['path'] = Variable<String>(path);
+    map['sort_order'] = Variable<int>(sortOrder);
+    return map;
+  }
+
+  MenuItemImagesCompanion toCompanion(bool nullToAbsent) {
+    return MenuItemImagesCompanion(
+      id: Value(id),
+      itemId: Value(itemId),
+      label: Value(label),
+      path: Value(path),
+      sortOrder: Value(sortOrder),
+    );
+  }
+
+  factory MenuItemImageRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MenuItemImageRow(
+      id: serializer.fromJson<String>(json['id']),
+      itemId: serializer.fromJson<String>(json['itemId']),
+      label: serializer.fromJson<String>(json['label']),
+      path: serializer.fromJson<String>(json['path']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'itemId': serializer.toJson<String>(itemId),
+      'label': serializer.toJson<String>(label),
+      'path': serializer.toJson<String>(path),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+    };
+  }
+
+  MenuItemImageRow copyWith({
+    String? id,
+    String? itemId,
+    String? label,
+    String? path,
+    int? sortOrder,
+  }) => MenuItemImageRow(
+    id: id ?? this.id,
+    itemId: itemId ?? this.itemId,
+    label: label ?? this.label,
+    path: path ?? this.path,
+    sortOrder: sortOrder ?? this.sortOrder,
+  );
+  MenuItemImageRow copyWithCompanion(MenuItemImagesCompanion data) {
+    return MenuItemImageRow(
+      id: data.id.present ? data.id.value : this.id,
+      itemId: data.itemId.present ? data.itemId.value : this.itemId,
+      label: data.label.present ? data.label.value : this.label,
+      path: data.path.present ? data.path.value : this.path,
+      sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MenuItemImageRow(')
+          ..write('id: $id, ')
+          ..write('itemId: $itemId, ')
+          ..write('label: $label, ')
+          ..write('path: $path, ')
+          ..write('sortOrder: $sortOrder')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, itemId, label, path, sortOrder);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MenuItemImageRow &&
+          other.id == this.id &&
+          other.itemId == this.itemId &&
+          other.label == this.label &&
+          other.path == this.path &&
+          other.sortOrder == this.sortOrder);
+}
+
+class MenuItemImagesCompanion extends UpdateCompanion<MenuItemImageRow> {
+  final Value<String> id;
+  final Value<String> itemId;
+  final Value<String> label;
+  final Value<String> path;
+  final Value<int> sortOrder;
+  final Value<int> rowid;
+  const MenuItemImagesCompanion({
+    this.id = const Value.absent(),
+    this.itemId = const Value.absent(),
+    this.label = const Value.absent(),
+    this.path = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MenuItemImagesCompanion.insert({
+    required String id,
+    required String itemId,
+    required String label,
+    required String path,
+    this.sortOrder = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       itemId = Value(itemId),
+       label = Value(label),
+       path = Value(path);
+  static Insertable<MenuItemImageRow> custom({
+    Expression<String>? id,
+    Expression<String>? itemId,
+    Expression<String>? label,
+    Expression<String>? path,
+    Expression<int>? sortOrder,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (itemId != null) 'item_id': itemId,
+      if (label != null) 'label': label,
+      if (path != null) 'path': path,
+      if (sortOrder != null) 'sort_order': sortOrder,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MenuItemImagesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? itemId,
+    Value<String>? label,
+    Value<String>? path,
+    Value<int>? sortOrder,
+    Value<int>? rowid,
+  }) {
+    return MenuItemImagesCompanion(
+      id: id ?? this.id,
+      itemId: itemId ?? this.itemId,
+      label: label ?? this.label,
+      path: path ?? this.path,
+      sortOrder: sortOrder ?? this.sortOrder,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (itemId.present) {
+      map['item_id'] = Variable<String>(itemId.value);
+    }
+    if (label.present) {
+      map['label'] = Variable<String>(label.value);
+    }
+    if (path.present) {
+      map['path'] = Variable<String>(path.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MenuItemImagesCompanion(')
+          ..write('id: $id, ')
+          ..write('itemId: $itemId, ')
+          ..write('label: $label, ')
+          ..write('path: $path, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -5340,6 +6277,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $PrintJobsTable printJobs = $PrintJobsTable(this);
   late final $SyncLogTable syncLog = $SyncLogTable(this);
   late final $StaffTable staff = $StaffTable(this);
+  late final $MenuItemAttributesTable menuItemAttributes =
+      $MenuItemAttributesTable(this);
+  late final $MenuItemImagesTable menuItemImages = $MenuItemImagesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -5358,6 +6298,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     printJobs,
     syncLog,
     staff,
+    menuItemAttributes,
+    menuItemImages,
   ];
 }
 
@@ -5649,6 +6591,8 @@ typedef $$MenuItemsTableCreateCompanionBuilder =
       required String categoryId,
       required String name,
       required domain.Money price,
+      Value<String?> code,
+      Value<String?> nameSecondary,
       Value<String?> sku,
       Value<int> sortOrder,
       Value<bool> isActive,
@@ -5660,6 +6604,8 @@ typedef $$MenuItemsTableUpdateCompanionBuilder =
       Value<String> categoryId,
       Value<String> name,
       Value<domain.Money> price,
+      Value<String?> code,
+      Value<String?> nameSecondary,
       Value<String?> sku,
       Value<int> sortOrder,
       Value<bool> isActive,
@@ -5711,6 +6657,48 @@ final class $$MenuItemsTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<
+    $MenuItemAttributesTable,
+    List<MenuItemAttributeRow>
+  >
+  _menuItemAttributesRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.menuItemAttributes,
+        aliasName: 'menu_items__id__menu_item_attributes__item_id',
+      );
+
+  $$MenuItemAttributesTableProcessedTableManager get menuItemAttributesRefs {
+    final manager = $$MenuItemAttributesTableTableManager(
+      $_db,
+      $_db.menuItemAttributes,
+    ).filter((f) => f.itemId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _menuItemAttributesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$MenuItemImagesTable, List<MenuItemImageRow>>
+  _menuItemImagesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.menuItemImages,
+    aliasName: 'menu_items__id__menu_item_images__item_id',
+  );
+
+  $$MenuItemImagesTableProcessedTableManager get menuItemImagesRefs {
+    final manager = $$MenuItemImagesTableTableManager(
+      $_db,
+      $_db.menuItemImages,
+    ).filter((f) => f.itemId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_menuItemImagesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$MenuItemsTableFilterComposer
@@ -5737,6 +6725,16 @@ class $$MenuItemsTableFilterComposer
         column: $table.price,
         builder: (column) => ColumnWithTypeConverterFilters(column),
       );
+
+  ColumnFilters<String> get code => $composableBuilder(
+    column: $table.code,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nameSecondary => $composableBuilder(
+    column: $table.nameSecondary,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get sku => $composableBuilder(
     column: $table.sku,
@@ -5801,6 +6799,56 @@ class $$MenuItemsTableFilterComposer
         );
     return f(composer);
   }
+
+  Expression<bool> menuItemAttributesRefs(
+    Expression<bool> Function($$MenuItemAttributesTableFilterComposer f) f,
+  ) {
+    final $$MenuItemAttributesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.menuItemAttributes,
+      getReferencedColumn: (t) => t.itemId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MenuItemAttributesTableFilterComposer(
+            $db: $db,
+            $table: $db.menuItemAttributes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> menuItemImagesRefs(
+    Expression<bool> Function($$MenuItemImagesTableFilterComposer f) f,
+  ) {
+    final $$MenuItemImagesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.menuItemImages,
+      getReferencedColumn: (t) => t.itemId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MenuItemImagesTableFilterComposer(
+            $db: $db,
+            $table: $db.menuItemImages,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$MenuItemsTableOrderingComposer
@@ -5824,6 +6872,16 @@ class $$MenuItemsTableOrderingComposer
 
   ColumnOrderings<int> get price => $composableBuilder(
     column: $table.price,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get code => $composableBuilder(
+    column: $table.code,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nameSecondary => $composableBuilder(
+    column: $table.nameSecondary,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -5884,6 +6942,14 @@ class $$MenuItemsTableAnnotationComposer
   GeneratedColumnWithTypeConverter<domain.Money, int> get price =>
       $composableBuilder(column: $table.price, builder: (column) => column);
 
+  GeneratedColumn<String> get code =>
+      $composableBuilder(column: $table.code, builder: (column) => column);
+
+  GeneratedColumn<String> get nameSecondary => $composableBuilder(
+    column: $table.nameSecondary,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get sku =>
       $composableBuilder(column: $table.sku, builder: (column) => column);
 
@@ -5941,6 +7007,57 @@ class $$MenuItemsTableAnnotationComposer
         );
     return f(composer);
   }
+
+  Expression<T> menuItemAttributesRefs<T extends Object>(
+    Expression<T> Function($$MenuItemAttributesTableAnnotationComposer a) f,
+  ) {
+    final $$MenuItemAttributesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.menuItemAttributes,
+          getReferencedColumn: (t) => t.itemId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$MenuItemAttributesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.menuItemAttributes,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> menuItemImagesRefs<T extends Object>(
+    Expression<T> Function($$MenuItemImagesTableAnnotationComposer a) f,
+  ) {
+    final $$MenuItemImagesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.menuItemImages,
+      getReferencedColumn: (t) => t.itemId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MenuItemImagesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.menuItemImages,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$MenuItemsTableTableManager
@@ -5959,6 +7076,8 @@ class $$MenuItemsTableTableManager
           PrefetchHooks Function({
             bool categoryId,
             bool menuItemModifierGroupsRefs,
+            bool menuItemAttributesRefs,
+            bool menuItemImagesRefs,
           })
         > {
   $$MenuItemsTableTableManager(_$AppDatabase db, $MenuItemsTable table)
@@ -5978,6 +7097,8 @@ class $$MenuItemsTableTableManager
                 Value<String> categoryId = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<domain.Money> price = const Value.absent(),
+                Value<String?> code = const Value.absent(),
+                Value<String?> nameSecondary = const Value.absent(),
                 Value<String?> sku = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
@@ -5987,6 +7108,8 @@ class $$MenuItemsTableTableManager
                 categoryId: categoryId,
                 name: name,
                 price: price,
+                code: code,
+                nameSecondary: nameSecondary,
                 sku: sku,
                 sortOrder: sortOrder,
                 isActive: isActive,
@@ -5998,6 +7121,8 @@ class $$MenuItemsTableTableManager
                 required String categoryId,
                 required String name,
                 required domain.Money price,
+                Value<String?> code = const Value.absent(),
+                Value<String?> nameSecondary = const Value.absent(),
                 Value<String?> sku = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
@@ -6007,6 +7132,8 @@ class $$MenuItemsTableTableManager
                 categoryId: categoryId,
                 name: name,
                 price: price,
+                code: code,
+                nameSecondary: nameSecondary,
                 sku: sku,
                 sortOrder: sortOrder,
                 isActive: isActive,
@@ -6021,11 +7148,18 @@ class $$MenuItemsTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({categoryId = false, menuItemModifierGroupsRefs = false}) {
+              ({
+                categoryId = false,
+                menuItemModifierGroupsRefs = false,
+                menuItemAttributesRefs = false,
+                menuItemImagesRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (menuItemModifierGroupsRefs) db.menuItemModifierGroups,
+                    if (menuItemAttributesRefs) db.menuItemAttributes,
+                    if (menuItemImagesRefs) db.menuItemImages,
                   ],
                   addJoins:
                       <
@@ -6082,6 +7216,48 @@ class $$MenuItemsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (menuItemAttributesRefs)
+                        await $_getPrefetchedData<
+                          MenuItemRow,
+                          $MenuItemsTable,
+                          MenuItemAttributeRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$MenuItemsTableReferences
+                              ._menuItemAttributesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$MenuItemsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).menuItemAttributesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.itemId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (menuItemImagesRefs)
+                        await $_getPrefetchedData<
+                          MenuItemRow,
+                          $MenuItemsTable,
+                          MenuItemImageRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$MenuItemsTableReferences
+                              ._menuItemImagesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$MenuItemsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).menuItemImagesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.itemId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -6102,7 +7278,12 @@ typedef $$MenuItemsTableProcessedTableManager =
       $$MenuItemsTableUpdateCompanionBuilder,
       (MenuItemRow, $$MenuItemsTableReferences),
       MenuItemRow,
-      PrefetchHooks Function({bool categoryId, bool menuItemModifierGroupsRefs})
+      PrefetchHooks Function({
+        bool categoryId,
+        bool menuItemModifierGroupsRefs,
+        bool menuItemAttributesRefs,
+        bool menuItemImagesRefs,
+      })
     >;
 typedef $$ModifierGroupsTableCreateCompanionBuilder =
     ModifierGroupsCompanion Function({
@@ -8079,6 +9260,8 @@ typedef $$OrderLinesTableCreateCompanionBuilder =
       required int qty,
       required domain.Money lineTotal,
       required domain.OrderLineStatus status,
+      Value<String?> codeSnapshot,
+      Value<String?> nameSecondarySnapshot,
       Value<String?> note,
       Value<int> rowid,
     });
@@ -8092,6 +9275,8 @@ typedef $$OrderLinesTableUpdateCompanionBuilder =
       Value<int> qty,
       Value<domain.Money> lineTotal,
       Value<domain.OrderLineStatus> status,
+      Value<String?> codeSnapshot,
+      Value<String?> nameSecondarySnapshot,
       Value<String?> note,
       Value<int> rowid,
     });
@@ -8193,6 +9378,16 @@ class $$OrderLinesTableFilterComposer
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
+  ColumnFilters<String> get codeSnapshot => $composableBuilder(
+    column: $table.codeSnapshot,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nameSecondarySnapshot => $composableBuilder(
+    column: $table.nameSecondarySnapshot,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get note => $composableBuilder(
     column: $table.note,
     builder: (column) => ColumnFilters(column),
@@ -8291,6 +9486,16 @@ class $$OrderLinesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get codeSnapshot => $composableBuilder(
+    column: $table.codeSnapshot,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nameSecondarySnapshot => $composableBuilder(
+    column: $table.nameSecondarySnapshot,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get note => $composableBuilder(
     column: $table.note,
     builder: (column) => ColumnOrderings(column),
@@ -8356,6 +9561,16 @@ class $$OrderLinesTableAnnotationComposer
 
   GeneratedColumnWithTypeConverter<domain.OrderLineStatus, String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get codeSnapshot => $composableBuilder(
+    column: $table.codeSnapshot,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get nameSecondarySnapshot => $composableBuilder(
+    column: $table.nameSecondarySnapshot,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get note =>
       $composableBuilder(column: $table.note, builder: (column) => column);
@@ -8446,6 +9661,8 @@ class $$OrderLinesTableTableManager
                 Value<int> qty = const Value.absent(),
                 Value<domain.Money> lineTotal = const Value.absent(),
                 Value<domain.OrderLineStatus> status = const Value.absent(),
+                Value<String?> codeSnapshot = const Value.absent(),
+                Value<String?> nameSecondarySnapshot = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => OrderLinesCompanion(
@@ -8457,6 +9674,8 @@ class $$OrderLinesTableTableManager
                 qty: qty,
                 lineTotal: lineTotal,
                 status: status,
+                codeSnapshot: codeSnapshot,
+                nameSecondarySnapshot: nameSecondarySnapshot,
                 note: note,
                 rowid: rowid,
               ),
@@ -8470,6 +9689,8 @@ class $$OrderLinesTableTableManager
                 required int qty,
                 required domain.Money lineTotal,
                 required domain.OrderLineStatus status,
+                Value<String?> codeSnapshot = const Value.absent(),
+                Value<String?> nameSecondarySnapshot = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => OrderLinesCompanion.insert(
@@ -8481,6 +9702,8 @@ class $$OrderLinesTableTableManager
                 qty: qty,
                 lineTotal: lineTotal,
                 status: status,
+                codeSnapshot: codeSnapshot,
+                nameSecondarySnapshot: nameSecondarySnapshot,
                 note: note,
                 rowid: rowid,
               ),
@@ -9983,6 +11206,664 @@ typedef $$StaffTableProcessedTableManager =
       StaffRow,
       PrefetchHooks Function()
     >;
+typedef $$MenuItemAttributesTableCreateCompanionBuilder =
+    MenuItemAttributesCompanion Function({
+      required String id,
+      required String itemId,
+      required String label,
+      required String value,
+      Value<int> sortOrder,
+      Value<int> rowid,
+    });
+typedef $$MenuItemAttributesTableUpdateCompanionBuilder =
+    MenuItemAttributesCompanion Function({
+      Value<String> id,
+      Value<String> itemId,
+      Value<String> label,
+      Value<String> value,
+      Value<int> sortOrder,
+      Value<int> rowid,
+    });
+
+final class $$MenuItemAttributesTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $MenuItemAttributesTable,
+          MenuItemAttributeRow
+        > {
+  $$MenuItemAttributesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $MenuItemsTable _itemIdTable(_$AppDatabase db) =>
+      db.menuItems.createAlias('menu_item_attributes__item_id__menu_items__id');
+
+  $$MenuItemsTableProcessedTableManager get itemId {
+    final $_column = $_itemColumn<String>('item_id')!;
+
+    final manager = $$MenuItemsTableTableManager(
+      $_db,
+      $_db.menuItems,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_itemIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$MenuItemAttributesTableFilterComposer
+    extends Composer<_$AppDatabase, $MenuItemAttributesTable> {
+  $$MenuItemAttributesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$MenuItemsTableFilterComposer get itemId {
+    final $$MenuItemsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.itemId,
+      referencedTable: $db.menuItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MenuItemsTableFilterComposer(
+            $db: $db,
+            $table: $db.menuItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MenuItemAttributesTableOrderingComposer
+    extends Composer<_$AppDatabase, $MenuItemAttributesTable> {
+  $$MenuItemAttributesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$MenuItemsTableOrderingComposer get itemId {
+    final $$MenuItemsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.itemId,
+      referencedTable: $db.menuItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MenuItemsTableOrderingComposer(
+            $db: $db,
+            $table: $db.menuItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MenuItemAttributesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MenuItemAttributesTable> {
+  $$MenuItemAttributesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get label =>
+      $composableBuilder(column: $table.label, builder: (column) => column);
+
+  GeneratedColumn<String> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+
+  GeneratedColumn<int> get sortOrder =>
+      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+
+  $$MenuItemsTableAnnotationComposer get itemId {
+    final $$MenuItemsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.itemId,
+      referencedTable: $db.menuItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MenuItemsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.menuItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MenuItemAttributesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MenuItemAttributesTable,
+          MenuItemAttributeRow,
+          $$MenuItemAttributesTableFilterComposer,
+          $$MenuItemAttributesTableOrderingComposer,
+          $$MenuItemAttributesTableAnnotationComposer,
+          $$MenuItemAttributesTableCreateCompanionBuilder,
+          $$MenuItemAttributesTableUpdateCompanionBuilder,
+          (MenuItemAttributeRow, $$MenuItemAttributesTableReferences),
+          MenuItemAttributeRow,
+          PrefetchHooks Function({bool itemId})
+        > {
+  $$MenuItemAttributesTableTableManager(
+    _$AppDatabase db,
+    $MenuItemAttributesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MenuItemAttributesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MenuItemAttributesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MenuItemAttributesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> itemId = const Value.absent(),
+                Value<String> label = const Value.absent(),
+                Value<String> value = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MenuItemAttributesCompanion(
+                id: id,
+                itemId: itemId,
+                label: label,
+                value: value,
+                sortOrder: sortOrder,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String itemId,
+                required String label,
+                required String value,
+                Value<int> sortOrder = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MenuItemAttributesCompanion.insert(
+                id: id,
+                itemId: itemId,
+                label: label,
+                value: value,
+                sortOrder: sortOrder,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$MenuItemAttributesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({itemId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (itemId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.itemId,
+                                referencedTable:
+                                    $$MenuItemAttributesTableReferences
+                                        ._itemIdTable(db),
+                                referencedColumn:
+                                    $$MenuItemAttributesTableReferences
+                                        ._itemIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$MenuItemAttributesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MenuItemAttributesTable,
+      MenuItemAttributeRow,
+      $$MenuItemAttributesTableFilterComposer,
+      $$MenuItemAttributesTableOrderingComposer,
+      $$MenuItemAttributesTableAnnotationComposer,
+      $$MenuItemAttributesTableCreateCompanionBuilder,
+      $$MenuItemAttributesTableUpdateCompanionBuilder,
+      (MenuItemAttributeRow, $$MenuItemAttributesTableReferences),
+      MenuItemAttributeRow,
+      PrefetchHooks Function({bool itemId})
+    >;
+typedef $$MenuItemImagesTableCreateCompanionBuilder =
+    MenuItemImagesCompanion Function({
+      required String id,
+      required String itemId,
+      required String label,
+      required String path,
+      Value<int> sortOrder,
+      Value<int> rowid,
+    });
+typedef $$MenuItemImagesTableUpdateCompanionBuilder =
+    MenuItemImagesCompanion Function({
+      Value<String> id,
+      Value<String> itemId,
+      Value<String> label,
+      Value<String> path,
+      Value<int> sortOrder,
+      Value<int> rowid,
+    });
+
+final class $$MenuItemImagesTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $MenuItemImagesTable, MenuItemImageRow> {
+  $$MenuItemImagesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $MenuItemsTable _itemIdTable(_$AppDatabase db) =>
+      db.menuItems.createAlias('menu_item_images__item_id__menu_items__id');
+
+  $$MenuItemsTableProcessedTableManager get itemId {
+    final $_column = $_itemColumn<String>('item_id')!;
+
+    final manager = $$MenuItemsTableTableManager(
+      $_db,
+      $_db.menuItems,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_itemIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$MenuItemImagesTableFilterComposer
+    extends Composer<_$AppDatabase, $MenuItemImagesTable> {
+  $$MenuItemImagesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get path => $composableBuilder(
+    column: $table.path,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$MenuItemsTableFilterComposer get itemId {
+    final $$MenuItemsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.itemId,
+      referencedTable: $db.menuItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MenuItemsTableFilterComposer(
+            $db: $db,
+            $table: $db.menuItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MenuItemImagesTableOrderingComposer
+    extends Composer<_$AppDatabase, $MenuItemImagesTable> {
+  $$MenuItemImagesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get path => $composableBuilder(
+    column: $table.path,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$MenuItemsTableOrderingComposer get itemId {
+    final $$MenuItemsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.itemId,
+      referencedTable: $db.menuItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MenuItemsTableOrderingComposer(
+            $db: $db,
+            $table: $db.menuItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MenuItemImagesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MenuItemImagesTable> {
+  $$MenuItemImagesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get label =>
+      $composableBuilder(column: $table.label, builder: (column) => column);
+
+  GeneratedColumn<String> get path =>
+      $composableBuilder(column: $table.path, builder: (column) => column);
+
+  GeneratedColumn<int> get sortOrder =>
+      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+
+  $$MenuItemsTableAnnotationComposer get itemId {
+    final $$MenuItemsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.itemId,
+      referencedTable: $db.menuItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MenuItemsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.menuItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MenuItemImagesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MenuItemImagesTable,
+          MenuItemImageRow,
+          $$MenuItemImagesTableFilterComposer,
+          $$MenuItemImagesTableOrderingComposer,
+          $$MenuItemImagesTableAnnotationComposer,
+          $$MenuItemImagesTableCreateCompanionBuilder,
+          $$MenuItemImagesTableUpdateCompanionBuilder,
+          (MenuItemImageRow, $$MenuItemImagesTableReferences),
+          MenuItemImageRow,
+          PrefetchHooks Function({bool itemId})
+        > {
+  $$MenuItemImagesTableTableManager(
+    _$AppDatabase db,
+    $MenuItemImagesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MenuItemImagesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MenuItemImagesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MenuItemImagesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> itemId = const Value.absent(),
+                Value<String> label = const Value.absent(),
+                Value<String> path = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MenuItemImagesCompanion(
+                id: id,
+                itemId: itemId,
+                label: label,
+                path: path,
+                sortOrder: sortOrder,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String itemId,
+                required String label,
+                required String path,
+                Value<int> sortOrder = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MenuItemImagesCompanion.insert(
+                id: id,
+                itemId: itemId,
+                label: label,
+                path: path,
+                sortOrder: sortOrder,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$MenuItemImagesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({itemId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (itemId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.itemId,
+                                referencedTable: $$MenuItemImagesTableReferences
+                                    ._itemIdTable(db),
+                                referencedColumn:
+                                    $$MenuItemImagesTableReferences
+                                        ._itemIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$MenuItemImagesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MenuItemImagesTable,
+      MenuItemImageRow,
+      $$MenuItemImagesTableFilterComposer,
+      $$MenuItemImagesTableOrderingComposer,
+      $$MenuItemImagesTableAnnotationComposer,
+      $$MenuItemImagesTableCreateCompanionBuilder,
+      $$MenuItemImagesTableUpdateCompanionBuilder,
+      (MenuItemImageRow, $$MenuItemImagesTableReferences),
+      MenuItemImageRow,
+      PrefetchHooks Function({bool itemId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -10016,4 +11897,8 @@ class $AppDatabaseManager {
       $$SyncLogTableTableManager(_db, _db.syncLog);
   $$StaffTableTableManager get staff =>
       $$StaffTableTableManager(_db, _db.staff);
+  $$MenuItemAttributesTableTableManager get menuItemAttributes =>
+      $$MenuItemAttributesTableTableManager(_db, _db.menuItemAttributes);
+  $$MenuItemImagesTableTableManager get menuItemImages =>
+      $$MenuItemImagesTableTableManager(_db, _db.menuItemImages);
 }

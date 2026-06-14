@@ -30,9 +30,43 @@ class MenuItems extends Table {
   TextColumn get categoryId => text().references(Categories, #id)();
   TextColumn get name => text()();
   IntColumn get price => integer().map(const MoneyConverter())();
+
+  /// Human item number (e.g. "A01"); optional. Not the internal sort order.
+  TextColumn get code => text().nullable()();
+
+  /// Optional second name line (e.g. a native-language name).
+  TextColumn get nameSecondary => text().nullable()();
   TextColumn get sku => text().nullable()();
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+/// User-defined renamable text fields on a menu item (Description,
+/// Ingredients, …). Part of the synced menu_item aggregate.
+@DataClassName('MenuItemAttributeRow')
+class MenuItemAttributes extends Table {
+  TextColumn get id => text()();
+  TextColumn get itemId => text().references(MenuItems, #id)();
+  TextColumn get label => text()();
+  TextColumn get value => text()();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+/// Renamable images attached to a menu item. [path] points at a file in the
+/// app documents dir. Local-only this phase (not part of the sync journal).
+@DataClassName('MenuItemImageRow')
+class MenuItemImages extends Table {
+  TextColumn get id => text()();
+  TextColumn get itemId => text().references(MenuItems, #id)();
+  TextColumn get label => text()();
+  TextColumn get path => text()();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
@@ -107,6 +141,10 @@ class OrderLines extends Table {
   IntColumn get qty => integer()();
   IntColumn get lineTotal => integer().map(const MoneyConverter())();
   TextColumn get status => textEnum<domain.OrderLineStatus>()();
+
+  /// Item code + second name line, snapshotted at sale time.
+  TextColumn get codeSnapshot => text().nullable()();
+  TextColumn get nameSecondarySnapshot => text().nullable()();
   TextColumn get note => text().nullable()();
 
   @override

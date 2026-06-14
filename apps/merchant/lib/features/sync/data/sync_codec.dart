@@ -58,15 +58,26 @@ class SyncCodec {
         final groups = await (db.select(
           db.menuItemModifierGroups,
         )..where((t) => t.itemId.equals(id))).get();
+        final attrs =
+            await (db.select(db.menuItemAttributes)
+                  ..where((t) => t.itemId.equals(id))
+                  ..orderBy([(t) => OrderingTerm.asc(t.sortOrder)]))
+                .get();
         return {
           'id': r.id,
           'categoryId': r.categoryId,
           'name': r.name,
           'price': r.price.cents,
+          'code': r.code,
+          'nameSecondary': r.nameSecondary,
           'sku': r.sku,
           'sortOrder': r.sortOrder,
           'isActive': r.isActive,
           'modifierGroupIds': groups.map((g) => g.groupId).toList(),
+          'attributes': [
+            for (final a in attrs)
+              {'id': a.id, 'label': a.label, 'value': a.value},
+          ],
         };
       case SyncEntities.modifierGroup:
         final r = await _row(db.modifierGroups, id);
@@ -144,6 +155,8 @@ class SyncCodec {
             'qty': l.qty,
             'lineTotal': l.lineTotal.cents,
             'status': l.status.name,
+            'codeSnapshot': l.codeSnapshot,
+            'nameSecondarySnapshot': l.nameSecondarySnapshot,
             'note': l.note,
             'modifiers': [
               for (final m in mods.where((m) => m.lineId == l.id))
@@ -184,6 +197,8 @@ class SyncCodec {
                   categoryId: p['categoryId'] as String,
                   name: p['name'] as String,
                   price: domain.Money(p['price'] as int),
+                  code: Value(p['code'] as String?),
+                  nameSecondary: Value(p['nameSecondary'] as String?),
                   sku: Value(p['sku'] as String?),
                   sortOrder: Value(p['sortOrder'] as int),
                   isActive: Value(p['isActive'] as bool),
@@ -200,6 +215,25 @@ class SyncCodec {
                   MenuItemModifierGroupsCompanion.insert(
                     itemId: p['id'] as String,
                     groupId: groupId,
+                  ),
+                );
+          }
+          await (db.delete(
+            db.menuItemAttributes,
+          )..where((t) => t.itemId.equals(p['id'] as String))).go();
+          final attrs = (p['attributes'] as List? ?? const [])
+              .cast<Map<String, dynamic>>();
+          for (var i = 0; i < attrs.length; i++) {
+            final a = attrs[i];
+            await db
+                .into(db.menuItemAttributes)
+                .insertOnConflictUpdate(
+                  MenuItemAttributesCompanion.insert(
+                    id: a['id'] as String,
+                    itemId: p['id'] as String,
+                    label: a['label'] as String,
+                    value: a['value'] as String,
+                    sortOrder: Value(i),
                   ),
                 );
           }
@@ -314,6 +348,10 @@ class SyncCodec {
                 lineTotal: domain.Money(l['lineTotal'] as int),
                 status: domain.OrderLineStatus.values.byName(
                   l['status'] as String,
+                ),
+                codeSnapshot: Value(l['codeSnapshot'] as String?),
+                nameSecondarySnapshot: Value(
+                  l['nameSecondarySnapshot'] as String?,
                 ),
                 note: Value(l['note'] as String?),
               ),

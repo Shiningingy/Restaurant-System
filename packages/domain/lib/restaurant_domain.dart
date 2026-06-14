@@ -7,6 +7,7 @@ library;
 export 'entities/category.dart';
 export 'entities/dining_table.dart';
 export 'entities/menu_item.dart';
+export 'entities/menu_item_attribute.dart';
 export 'entities/modifier.dart';
 export 'entities/order.dart';
 export 'entities/payment.dart';

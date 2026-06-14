@@ -48,6 +48,12 @@ String paymentMethodLabel(PaymentMethod method) => switch (method) {
       PaymentMethod.manual => 'Card (keyed)',
     };
 
+/// Leading "A01  " label for a line when the item carried a code, else ''.
+String _codePrefix(OrderLine line) {
+  final code = line.codeSnapshot;
+  return code == null || code.isEmpty ? '' : '$code  ';
+}
+
 final _timeFormat = DateFormat('HH:mm');
 final _dateTimeFormat = DateFormat('yyyy-MM-dd HH:mm');
 
@@ -67,7 +73,14 @@ TicketDoc buildKitchenTicket({
     ),
     const TicketDivider(),
     for (final line in active) ...[
-      TicketText('${line.qty} x ${line.nameSnapshot}', style: TicketStyle.big),
+      TicketText(
+        '${line.qty} x ${_codePrefix(line)}${line.nameSnapshot}',
+        style: TicketStyle.big,
+      ),
+      if (line.nameSecondarySnapshot != null &&
+          line.nameSecondarySnapshot!.isNotEmpty)
+        TicketText('     ${line.nameSecondarySnapshot}',
+            style: TicketStyle.big),
       for (final m in line.modifiers)
         TicketText('   + ${m.nameSnapshot}', style: TicketStyle.big),
       if (line.note != null && line.note!.isNotEmpty)
@@ -108,7 +121,7 @@ TicketDoc buildCustomerReceipt({
     const TicketDivider(),
     for (final line in active) ...[
       TicketRow(
-        '${line.qty} x ${line.nameSnapshot}',
+        '${line.qty} x ${_codePrefix(line)}${line.nameSnapshot}',
         line.lineTotal.format(),
       ),
       for (final m in line.modifiers)

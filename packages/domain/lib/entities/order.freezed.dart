@@ -574,6 +574,11 @@ mixin _$OrderLine {
   int get qty;
   Money get lineTotal;
   OrderLineStatus get status;
+
+  /// Item code + second name line, snapshotted at sale time so a later menu
+  /// edit never rewrites order history (mirrors [nameSnapshot]).
+  String? get codeSnapshot;
+  String? get nameSecondarySnapshot;
   String? get note;
 
   /// Filled by the repository from the line-modifier rows.
@@ -603,6 +608,10 @@ mixin _$OrderLine {
             (identical(other.lineTotal, lineTotal) ||
                 other.lineTotal == lineTotal) &&
             (identical(other.status, status) || other.status == status) &&
+            (identical(other.codeSnapshot, codeSnapshot) ||
+                other.codeSnapshot == codeSnapshot) &&
+            (identical(other.nameSecondarySnapshot, nameSecondarySnapshot) ||
+                other.nameSecondarySnapshot == nameSecondarySnapshot) &&
             (identical(other.note, note) || other.note == note) &&
             const DeepCollectionEquality().equals(other.modifiers, modifiers));
   }
@@ -618,12 +627,14 @@ mixin _$OrderLine {
       qty,
       lineTotal,
       status,
+      codeSnapshot,
+      nameSecondarySnapshot,
       note,
       const DeepCollectionEquality().hash(modifiers));
 
   @override
   String toString() {
-    return 'OrderLine(id: $id, orderId: $orderId, menuItemId: $menuItemId, nameSnapshot: $nameSnapshot, priceSnapshot: $priceSnapshot, qty: $qty, lineTotal: $lineTotal, status: $status, note: $note, modifiers: $modifiers)';
+    return 'OrderLine(id: $id, orderId: $orderId, menuItemId: $menuItemId, nameSnapshot: $nameSnapshot, priceSnapshot: $priceSnapshot, qty: $qty, lineTotal: $lineTotal, status: $status, codeSnapshot: $codeSnapshot, nameSecondarySnapshot: $nameSecondarySnapshot, note: $note, modifiers: $modifiers)';
   }
 }
 
@@ -641,6 +652,8 @@ abstract mixin class $OrderLineCopyWith<$Res> {
       int qty,
       Money lineTotal,
       OrderLineStatus status,
+      String? codeSnapshot,
+      String? nameSecondarySnapshot,
       String? note,
       List<OrderLineModifier> modifiers});
 }
@@ -665,6 +678,8 @@ class _$OrderLineCopyWithImpl<$Res> implements $OrderLineCopyWith<$Res> {
     Object? qty = null,
     Object? lineTotal = null,
     Object? status = null,
+    Object? codeSnapshot = freezed,
+    Object? nameSecondarySnapshot = freezed,
     Object? note = freezed,
     Object? modifiers = null,
   }) {
@@ -701,6 +716,14 @@ class _$OrderLineCopyWithImpl<$Res> implements $OrderLineCopyWith<$Res> {
           ? _self.status
           : status // ignore: cast_nullable_to_non_nullable
               as OrderLineStatus,
+      codeSnapshot: freezed == codeSnapshot
+          ? _self.codeSnapshot
+          : codeSnapshot // ignore: cast_nullable_to_non_nullable
+              as String?,
+      nameSecondarySnapshot: freezed == nameSecondarySnapshot
+          ? _self.nameSecondarySnapshot
+          : nameSecondarySnapshot // ignore: cast_nullable_to_non_nullable
+              as String?,
       note: freezed == note
           ? _self.note
           : note // ignore: cast_nullable_to_non_nullable
@@ -815,6 +838,8 @@ extension OrderLinePatterns on OrderLine {
             int qty,
             Money lineTotal,
             OrderLineStatus status,
+            String? codeSnapshot,
+            String? nameSecondarySnapshot,
             String? note,
             List<OrderLineModifier> modifiers)?
         $default, {
@@ -832,6 +857,8 @@ extension OrderLinePatterns on OrderLine {
             _that.qty,
             _that.lineTotal,
             _that.status,
+            _that.codeSnapshot,
+            _that.nameSecondarySnapshot,
             _that.note,
             _that.modifiers);
       case _:
@@ -863,6 +890,8 @@ extension OrderLinePatterns on OrderLine {
             int qty,
             Money lineTotal,
             OrderLineStatus status,
+            String? codeSnapshot,
+            String? nameSecondarySnapshot,
             String? note,
             List<OrderLineModifier> modifiers)
         $default,
@@ -879,6 +908,8 @@ extension OrderLinePatterns on OrderLine {
             _that.qty,
             _that.lineTotal,
             _that.status,
+            _that.codeSnapshot,
+            _that.nameSecondarySnapshot,
             _that.note,
             _that.modifiers);
       case _:
@@ -909,6 +940,8 @@ extension OrderLinePatterns on OrderLine {
             int qty,
             Money lineTotal,
             OrderLineStatus status,
+            String? codeSnapshot,
+            String? nameSecondarySnapshot,
             String? note,
             List<OrderLineModifier> modifiers)?
         $default,
@@ -925,6 +958,8 @@ extension OrderLinePatterns on OrderLine {
             _that.qty,
             _that.lineTotal,
             _that.status,
+            _that.codeSnapshot,
+            _that.nameSecondarySnapshot,
             _that.note,
             _that.modifiers);
       case _:
@@ -945,6 +980,8 @@ class _OrderLine implements OrderLine {
       required this.qty,
       required this.lineTotal,
       this.status = OrderLineStatus.active,
+      this.codeSnapshot,
+      this.nameSecondarySnapshot,
       this.note,
       final List<OrderLineModifier> modifiers = const []})
       : _modifiers = modifiers;
@@ -966,6 +1003,13 @@ class _OrderLine implements OrderLine {
   @override
   @JsonKey()
   final OrderLineStatus status;
+
+  /// Item code + second name line, snapshotted at sale time so a later menu
+  /// edit never rewrites order history (mirrors [nameSnapshot]).
+  @override
+  final String? codeSnapshot;
+  @override
+  final String? nameSecondarySnapshot;
   @override
   final String? note;
 
@@ -1006,6 +1050,10 @@ class _OrderLine implements OrderLine {
             (identical(other.lineTotal, lineTotal) ||
                 other.lineTotal == lineTotal) &&
             (identical(other.status, status) || other.status == status) &&
+            (identical(other.codeSnapshot, codeSnapshot) ||
+                other.codeSnapshot == codeSnapshot) &&
+            (identical(other.nameSecondarySnapshot, nameSecondarySnapshot) ||
+                other.nameSecondarySnapshot == nameSecondarySnapshot) &&
             (identical(other.note, note) || other.note == note) &&
             const DeepCollectionEquality()
                 .equals(other._modifiers, _modifiers));
@@ -1022,12 +1070,14 @@ class _OrderLine implements OrderLine {
       qty,
       lineTotal,
       status,
+      codeSnapshot,
+      nameSecondarySnapshot,
       note,
       const DeepCollectionEquality().hash(_modifiers));
 
   @override
   String toString() {
-    return 'OrderLine(id: $id, orderId: $orderId, menuItemId: $menuItemId, nameSnapshot: $nameSnapshot, priceSnapshot: $priceSnapshot, qty: $qty, lineTotal: $lineTotal, status: $status, note: $note, modifiers: $modifiers)';
+    return 'OrderLine(id: $id, orderId: $orderId, menuItemId: $menuItemId, nameSnapshot: $nameSnapshot, priceSnapshot: $priceSnapshot, qty: $qty, lineTotal: $lineTotal, status: $status, codeSnapshot: $codeSnapshot, nameSecondarySnapshot: $nameSecondarySnapshot, note: $note, modifiers: $modifiers)';
   }
 }
 
@@ -1048,6 +1098,8 @@ abstract mixin class _$OrderLineCopyWith<$Res>
       int qty,
       Money lineTotal,
       OrderLineStatus status,
+      String? codeSnapshot,
+      String? nameSecondarySnapshot,
       String? note,
       List<OrderLineModifier> modifiers});
 }
@@ -1072,6 +1124,8 @@ class __$OrderLineCopyWithImpl<$Res> implements _$OrderLineCopyWith<$Res> {
     Object? qty = null,
     Object? lineTotal = null,
     Object? status = null,
+    Object? codeSnapshot = freezed,
+    Object? nameSecondarySnapshot = freezed,
     Object? note = freezed,
     Object? modifiers = null,
   }) {
@@ -1108,6 +1162,14 @@ class __$OrderLineCopyWithImpl<$Res> implements _$OrderLineCopyWith<$Res> {
           ? _self.status
           : status // ignore: cast_nullable_to_non_nullable
               as OrderLineStatus,
+      codeSnapshot: freezed == codeSnapshot
+          ? _self.codeSnapshot
+          : codeSnapshot // ignore: cast_nullable_to_non_nullable
+              as String?,
+      nameSecondarySnapshot: freezed == nameSecondarySnapshot
+          ? _self.nameSecondarySnapshot
+          : nameSecondarySnapshot // ignore: cast_nullable_to_non_nullable
+              as String?,
       note: freezed == note
           ? _self.note
           : note // ignore: cast_nullable_to_non_nullable

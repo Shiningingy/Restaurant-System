@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../../core/l10n_ext.dart';
+import '../../../core/widgets/item_name_lines.dart';
+import '../../menu_capture/presentation/capture_screen.dart';
 import '../application/providers.dart';
-import 'item_edit_dialog.dart';
+import 'item_editor_screen.dart';
 import 'modifier_groups_tab.dart';
 
 class MenuScreen extends ConsumerStatefulWidget {
@@ -24,6 +26,18 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(context.l10n.menuTitle),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: TextButton.icon(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const CaptureScreen()),
+                ),
+                icon: const Icon(Icons.photo_camera_outlined),
+                label: Text(context.l10n.captureImportFromPhoto),
+              ),
+            ),
+          ],
           bottom: TabBar(
             tabs: [
               Tab(text: context.l10n.menuItems),
@@ -163,8 +177,11 @@ class _ItemsList extends ConsumerWidget {
         ref.watch(itemsInCategoryProvider(categoryId)).value ?? const [];
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () =>
-            showItemEditDialog(context, ref, categoryId: categoryId),
+        onPressed: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => ItemEditorScreen(categoryId: categoryId),
+          ),
+        ),
         icon: const Icon(Icons.add),
         label: Text(context.l10n.menuItem),
       ),
@@ -176,7 +193,11 @@ class _ItemsList extends ConsumerWidget {
               itemBuilder: (context, i) {
                 final item = items[i];
                 return ListTile(
-                  title: Text(item.name),
+                  title: ItemNameLines(
+                    code: item.code,
+                    name: item.name,
+                    nameSecondary: item.nameSecondary,
+                  ),
                   subtitle: item.isActive
                       ? null
                       : Text(context.l10n.menuHiddenFromOrderScreen),
@@ -184,11 +205,13 @@ class _ItemsList extends ConsumerWidget {
                     item.price.format(),
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
-                  onTap: () => showItemEditDialog(
-                    context,
-                    ref,
-                    categoryId: categoryId,
-                    itemId: item.id,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => ItemEditorScreen(
+                        categoryId: categoryId,
+                        itemId: item.id,
+                      ),
+                    ),
                   ),
                 );
               },

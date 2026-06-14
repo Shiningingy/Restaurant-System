@@ -3,6 +3,7 @@ import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../../core/providers.dart';
 import '../../sync/application/providers.dart';
+import '../data/item_image_repository.dart';
 import '../data/menu_repository.dart';
 
 final menuRepositoryProvider = Provider<MenuRepository>(
@@ -10,6 +11,20 @@ final menuRepositoryProvider = Provider<MenuRepository>(
     ref.watch(databaseProvider),
     journal: ref.watch(syncJournalProvider),
   ),
+);
+
+final itemImageRepositoryProvider = Provider<ItemImageRepository>(
+  (ref) => ItemImageRepository(ref.watch(databaseProvider)),
+);
+
+/// Live images for one item — used by the item editor.
+final itemImagesProvider = StreamProvider.family<List<ItemImage>, String>(
+  (ref, itemId) => ref.watch(itemImageRepositoryProvider).watchImages(itemId),
+);
+
+/// One item with attributes + modifier ids hydrated, for the editor.
+final itemEditorProvider = FutureProvider.family<domain.MenuItem?, String>(
+  (ref, itemId) => ref.watch(menuRepositoryProvider).getItem(itemId),
 );
 
 final categoriesProvider = StreamProvider<List<domain.Category>>(

@@ -78,6 +78,23 @@ void main() {
       final text = render(buildKitchenTicket(order: order, lines: lines));
       expect(text, isNot(contains('Voided Pop')));
     });
+
+    test('shows item code and a stacked second name line', () {
+      const bilingual = OrderLine(
+        id: 'lb',
+        orderId: 'o1',
+        menuItemId: 'mb',
+        nameSnapshot: 'Beef Noodle',
+        priceSnapshot: Money(1500),
+        qty: 2,
+        lineTotal: Money(3000),
+        codeSnapshot: 'A01',
+        nameSecondarySnapshot: '牛肉面',
+      );
+      final text = render(buildKitchenTicket(order: order, lines: [bilingual]));
+      expect(text, contains('2 x A01  Beef Noodle'));
+      expect(text, contains('牛肉面'));
+    });
   });
 
   group('customer receipt', () {
@@ -86,6 +103,25 @@ void main() {
       headerLines: ['123 Main St', '555-0123'],
       footer: 'Thank you!',
     );
+
+    test('prefixes the item code but omits the second name line', () {
+      const bilingual = OrderLine(
+        id: 'lb',
+        orderId: 'o1',
+        menuItemId: 'mb',
+        nameSnapshot: 'Beef Noodle',
+        priceSnapshot: Money(1500),
+        qty: 1,
+        lineTotal: Money(1500),
+        codeSnapshot: 'A01',
+        nameSecondarySnapshot: '牛肉面',
+      );
+      final text = render(
+        buildCustomerReceipt(order: order, lines: [bilingual], config: config),
+      );
+      expect(text, contains('A01  Beef Noodle'));
+      expect(text, isNot(contains('牛肉面')));
+    });
 
     test('shows identity, lines with prices, totals, payment and footer', () {
       final text = render(

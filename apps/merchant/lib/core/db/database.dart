@@ -21,6 +21,8 @@ part 'database.g.dart';
     PrintJobs,
     SyncLog,
     Staff,
+    MenuItemAttributes,
+    MenuItemImages,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -30,7 +32,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.open() : super(driftDatabase(name: 'restaurant_pos'));
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -39,6 +41,15 @@ class AppDatabase extends _$AppDatabase {
       if (from < 2) await m.createTable(printJobs); // v2: print queue
       if (from < 3) await m.createTable(syncLog); // v3: cloud-sync journal
       if (from < 4) await m.createTable(staff); // v4: staff roster / roles
+      if (from < 5) {
+        // v5: extensible menu items — custom fields, images, code + 2nd name.
+        await m.createTable(menuItemAttributes);
+        await m.createTable(menuItemImages);
+        await m.addColumn(menuItems, menuItems.code);
+        await m.addColumn(menuItems, menuItems.nameSecondary);
+        await m.addColumn(orderLines, orderLines.codeSnapshot);
+        await m.addColumn(orderLines, orderLines.nameSecondarySnapshot);
+      }
     },
   );
 }

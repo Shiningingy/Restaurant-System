@@ -892,4 +892,201 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminExport => 'Export data';
+
+  @override
+  String get itemCodeLabel => 'Item code (optional)';
+
+  @override
+  String get itemNameSecondaryLabel => 'Second name (optional)';
+
+  @override
+  String get itemFieldsSection => 'Custom fields';
+
+  @override
+  String get itemFieldLabelHint => 'Field';
+
+  @override
+  String get itemFieldValueHint => 'Value';
+
+  @override
+  String get itemAddField => 'Add field';
+
+  @override
+  String get itemFieldCustom => 'Custom…';
+
+  @override
+  String get fieldPresetDescription => 'Description';
+
+  @override
+  String get fieldPresetIngredients => 'Ingredients';
+
+  @override
+  String get fieldPresetAllergens => 'Allergens';
+
+  @override
+  String get fieldPresetSpice => 'Spice level';
+
+  @override
+  String get fieldPresetNotes => 'Notes';
+
+  @override
+  String get itemImagesSection => 'Photos';
+
+  @override
+  String get itemAddImage => 'Add photo';
+
+  @override
+  String get itemImageLabelHint => 'Label';
+
+  @override
+  String get itemSaveFirstForPhotos => 'Save the item first to add photos.';
+
+  @override
+  String get itemRenameImage => 'Rename photo';
+
+  @override
+  String get captureImportFromPhoto => 'Import from photo';
+
+  @override
+  String get captureTemplatesTitle => 'Capture templates';
+
+  @override
+  String get captureNewTemplate => 'New template';
+
+  @override
+  String get captureNoTemplates =>
+      'No templates yet. Create one to map where each field sits on a menu photo.';
+
+  @override
+  String get captureTemplateNameHint => 'Template name';
+
+  @override
+  String get captureRenameTemplate => 'Rename template';
+
+  @override
+  String get captureDeleteTemplate => 'Delete template';
+
+  @override
+  String captureDeleteTemplateConfirm(String name) {
+    return 'Delete template \"$name\"?';
+  }
+
+  @override
+  String get captureTemplateEditorTitle => 'Template';
+
+  @override
+  String get capturePickSamplePhoto => 'Pick a sample photo';
+
+  @override
+  String get captureBigBlockHint =>
+      'Drag the large box over one item, then add labeled regions inside it.';
+
+  @override
+  String get captureAddRegion => 'Add region';
+
+  @override
+  String get captureRegionField => 'Field';
+
+  @override
+  String get captureRegionLabel => 'Label';
+
+  @override
+  String get captureDeleteRegion => 'Delete region';
+
+  @override
+  String get captureSaveTemplate => 'Save template';
+
+  @override
+  String get captureTemplateNameRequired => 'Name the template.';
+
+  @override
+  String get captureNeedsBlockAndRegion =>
+      'Draw the big box and at least one region.';
+
+  @override
+  String get captureFieldCode => 'Code';
+
+  @override
+  String get captureFieldName => 'Name';
+
+  @override
+  String get captureFieldNameSecondary => 'Second name';
+
+  @override
+  String get captureFieldPrice => 'Price';
+
+  @override
+  String get captureFieldAttribute => 'Custom field';
+
+  @override
+  String get captureFieldImage => 'Photo';
+
+  @override
+  String get captureTitle => 'Import from photo';
+
+  @override
+  String get capturePickPhoto => 'Pick menu photo';
+
+  @override
+  String get captureChooseTemplate => 'Template';
+
+  @override
+  String get captureChooseCategory => 'Category';
+
+  @override
+  String get captureRunningOcr => 'Reading text…';
+
+  @override
+  String get captureCaptureItem => 'Capture item';
+
+  @override
+  String captureDraftCount(int count) {
+    return '$count captured';
+  }
+
+  @override
+  String get captureReviewAction => 'Review';
+
+  @override
+  String get captureOcrLanguageMissing =>
+      'No OCR language pack found. Add Chinese or English in Windows Settings → Time & language → Language.';
+
+  @override
+  String get captureSelectTemplateFirst => 'Choose a template first.';
+
+  @override
+  String get captureSelectPhotoFirst => 'Choose a photo first.';
+
+  @override
+  String get captureReviewTitle => 'Review drafts';
+
+  @override
+  String get captureSaveAll => 'Save all';
+
+  @override
+  String get captureDiscardDraft => 'Discard';
+
+  @override
+  String get captureNoDrafts => 'Nothing captured yet.';
+
+  @override
+  String captureSavedCount(int count) {
+    return 'Saved $count items';
+  }
+
+  @override
+  String get captureUnsupportedPlatform =>
+      'Photo import runs on Windows for now.';
+
+  @override
+  String get captureTemplatesShort => 'Templates';
+
+  @override
+  String get captureLabelsToggle => 'Labels';
+
+  @override
+  String get captureCreateTemplate => 'Create a template';
+
+  @override
+  String get captureResetRegions => 'Reset layout';
 }
