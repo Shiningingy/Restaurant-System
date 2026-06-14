@@ -1059,4 +1059,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get captureUnsupportedPlatform => '照片导入目前仅支持 Windows。';
+
+  @override
+  String get captureTemplatesShort => '模板';
+
+  @override
+  String get captureLabelsToggle => '标签';
+
+  @override
+  String get captureCreateTemplate => '创建模板';
 }

@@ -14,6 +14,34 @@ Color captureFieldColor(CaptureField field) => switch (field) {
   CaptureField.image => Colors.pink,
 };
 
+/// Distinct colours for the (otherwise all-purple) custom-field regions, so
+/// several `attribute` boxes are told apart at a glance.
+const _attributePalette = [
+  Colors.purple,
+  Colors.brown,
+  Colors.indigo,
+  Colors.cyan,
+  Colors.deepOrange,
+  Colors.blueGrey,
+];
+
+/// Assigns a display colour to every region: fixed by field type, except
+/// `attribute` regions which each draw the next colour from [_attributePalette]
+/// by their order among attribute regions.
+Map<String, Color> captureRegionColors(List<CaptureRegion> regions) {
+  final colors = <String, Color>{};
+  var attrIndex = 0;
+  for (final r in regions) {
+    if (r.field == CaptureField.attribute) {
+      colors[r.id] = _attributePalette[attrIndex % _attributePalette.length];
+      attrIndex++;
+    } else {
+      colors[r.id] = captureFieldColor(r.field);
+    }
+  }
+  return colors;
+}
+
 /// Localized display name for a capture-field type.
 String captureFieldLabel(BuildContext context, CaptureField field) =>
     switch (field) {

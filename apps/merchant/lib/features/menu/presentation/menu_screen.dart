@@ -27,12 +27,15 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
         appBar: AppBar(
           title: Text(context.l10n.menuTitle),
           actions: [
-            IconButton(
-              tooltip: context.l10n.captureImportFromPhoto,
-              onPressed: () => Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (_) => const CaptureScreen())),
-              icon: const Icon(Icons.photo_camera_outlined),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: TextButton.icon(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const CaptureScreen()),
+                ),
+                icon: const Icon(Icons.photo_camera_outlined),
+                label: Text(context.l10n.captureImportFromPhoto),
+              ),
             ),
           ],
           bottom: TabBar(

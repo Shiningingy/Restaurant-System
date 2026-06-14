@@ -332,5 +332,8 @@
   "captureDiscardDraft": "丢弃",
   "captureNoDrafts": "尚未采集任何内容。",
   "captureSavedCount": "已保存 {count} 项",
-  "captureUnsupportedPlatform": "照片导入目前仅支持 Windows。"
+  "captureUnsupportedPlatform": "照片导入目前仅支持 Windows。",
+  "captureTemplatesShort": "模板",
+  "captureLabelsToggle": "标签",
+  "captureCreateTemplate": "创建模板"
 }

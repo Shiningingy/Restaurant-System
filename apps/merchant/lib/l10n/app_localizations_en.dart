@@ -1077,4 +1077,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get captureUnsupportedPlatform =>
       'Photo import runs on Windows for now.';
+
+  @override
+  String get captureTemplatesShort => 'Templates';
+
+  @override
+  String get captureLabelsToggle => 'Labels';
+
+  @override
+  String get captureCreateTemplate => 'Create a template';
 }

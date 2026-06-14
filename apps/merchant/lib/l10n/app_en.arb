@@ -473,5 +473,8 @@
   "@captureSavedCount": {
     "placeholders": { "count": { "type": "int" } }
   },
-  "captureUnsupportedPlatform": "Photo import runs on Windows for now."
+  "captureUnsupportedPlatform": "Photo import runs on Windows for now.",
+  "captureTemplatesShort": "Templates",
+  "captureLabelsToggle": "Labels",
+  "captureCreateTemplate": "Create a template"
 }

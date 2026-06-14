@@ -2005,6 +2005,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Photo import runs on Windows for now.'**
   String get captureUnsupportedPlatform;
+
+  /// No description provided for @captureTemplatesShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Templates'**
+  String get captureTemplatesShort;
+
+  /// No description provided for @captureLabelsToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Labels'**
+  String get captureLabelsToggle;
+
+  /// No description provided for @captureCreateTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a template'**
+  String get captureCreateTemplate;
 }
 
 class _AppLocalizationsDelegate

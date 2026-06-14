@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 CaptureTemplate _sample(String id, String name) => CaptureTemplate(
   id: id,
   name: name,
+  block: const RegionRect(left: 0.2, top: 0.1, width: 0.6, height: 0.3),
   regions: [
     CaptureRegion(
       id: '$id-name',
@@ -35,6 +36,16 @@ void main() {
     expect(back.regions[1].field, CaptureField.price);
     expect(back.regions[1].rect.width, 0.5);
     expect(back.regions[1].label, 'Price');
+    // The big block survives the round-trip.
+    expect(back.block.left, 0.2);
+    expect(back.block.width, 0.6);
+  });
+
+  test('legacy template JSON without a block loads the default block', () {
+    final json = _sample('t1', 'Old').toJson()..remove('block');
+    final back = CaptureTemplate.fromJson(json);
+    expect(back.block.left, kDefaultCaptureBlock.left);
+    expect(back.block.width, kDefaultCaptureBlock.width);
   });
 
   group('CaptureTemplateStore', () {

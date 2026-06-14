@@ -39,6 +39,10 @@ enum _Drag { none, moveBlock, resizeBlock, moveRegion, resizeRegion }
 /// pass `onBlockChanged` to make the block movable, `onRegionChanged` to make
 /// the sub-regions editable. Used by both the template editor (regions editable)
 /// and the capture sweep (block movable, regions are read-only guides).
+///
+/// When regions are editable, only the **selected** region can be moved or
+/// resized (tap another to select it) — so densely packed regions don't get
+/// grabbed by accident.
 class PhotoBoxCanvas extends StatefulWidget {
   final String imagePath;
   final Size imageSize;
@@ -48,6 +52,7 @@ class PhotoBoxCanvas extends StatefulWidget {
   final String? selectedRegionId;
   final ValueChanged<String>? onSelectRegion;
   final void Function(String id, RegionRect rect)? onRegionChanged;
+  final bool showLabels;
 
   const PhotoBoxCanvas({
     super.key,
@@ -59,6 +64,7 @@ class PhotoBoxCanvas extends StatefulWidget {
     this.selectedRegionId,
     this.onSelectRegion,
     this.onRegionChanged,
+    this.showLabels = true,
   });
 
   @override
@@ -77,6 +83,8 @@ class _PhotoBoxCanvasState extends State<PhotoBoxCanvas> {
     height: 0,
   );
   Offset _startPointer = Offset.zero;
+
+  bool get _regionsEditable => widget.onRegionChanged != null;
 
   /// The image's displayed rectangle (BoxFit.contain, centred) in widget space.
   Rect _displayRect(Size area) {
@@ -114,23 +122,39 @@ class _PhotoBoxCanvasState extends State<PhotoBoxCanvas> {
     _handle,
   ).contains(p);
 
+  CanvasRegion? _selectedRegion() {
+    for (final r in widget.regions) {
+      if (r.id == widget.selectedRegionId) return r;
+    }
+    return null;
+  }
+
+  /// Topmost region under [p] — used for tap-to-select.
+  void _selectAt(Offset p, Rect dr) {
+    if (!_regionsEditable) return;
+    final blockRect = _blockRect(dr);
+    for (final region in widget.regions.reversed) {
+      if (_regionRect(blockRect, region.rect).contains(p)) {
+        widget.onSelectRegion?.call(region.id);
+        return;
+      }
+    }
+  }
+
   void _onPanStart(Offset p, Rect dr) {
     final blockRect = _blockRect(dr);
 
-    // Sub-regions take priority (topmost first) when editable.
-    if (widget.onRegionChanged != null) {
-      for (final region in widget.regions.reversed) {
-        final rr = _regionRect(blockRect, region.rect);
-        if (_inHandle(rr, p)) {
-          _begin(_Drag.resizeRegion, region.rect, p, region.id);
-          widget.onSelectRegion?.call(region.id);
-          return;
-        }
-        if (rr.contains(p)) {
-          _begin(_Drag.moveRegion, region.rect, p, region.id);
-          widget.onSelectRegion?.call(region.id);
-          return;
-        }
+    // Only the selected region is grabbable, so dense layouts don't misfire.
+    final selected = _selectedRegion();
+    if (_regionsEditable && selected != null) {
+      final rr = _regionRect(blockRect, selected.rect);
+      if (_inHandle(rr, p)) {
+        _begin(_Drag.resizeRegion, selected.rect, p, selected.id);
+        return;
+      }
+      if (rr.contains(p)) {
+        _begin(_Drag.moveRegion, selected.rect, p, selected.id);
+        return;
       }
     }
 
@@ -223,6 +247,7 @@ class _PhotoBoxCanvasState extends State<PhotoBoxCanvas> {
 
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
+          onTapUp: (d) => _selectAt(d.localPosition, dr),
           onPanStart: (d) => _onPanStart(d.localPosition, dr),
           onPanUpdate: (d) => _onPanUpdate(d.localPosition, dr),
           onPanEnd: (_) => _drag = _Drag.none,
@@ -238,6 +263,7 @@ class _PhotoBoxCanvasState extends State<PhotoBoxCanvas> {
                 child: _BoxFrame(
                   color: Colors.lightBlueAccent,
                   thick: true,
+                  movable: blockEditable,
                   showHandle: blockEditable,
                 ),
               ),
@@ -247,9 +273,19 @@ class _PhotoBoxCanvasState extends State<PhotoBoxCanvas> {
                   rect: _regionRect(blockRect, region.rect),
                   child: _BoxFrame(
                     color: region.color,
-                    label: region.label,
+                    label: widget.showLabels ? region.label : null,
                     selected: region.id == widget.selectedRegionId,
-                    showHandle: widget.onRegionChanged != null,
+                    // Only the selected region is directly movable/resizable;
+                    // others show a "tap to select" cursor.
+                    movable:
+                        _regionsEditable &&
+                        region.id == widget.selectedRegionId,
+                    selectable:
+                        _regionsEditable &&
+                        region.id != widget.selectedRegionId,
+                    showHandle:
+                        _regionsEditable &&
+                        region.id == widget.selectedRegionId,
                   ),
                 ),
             ],
@@ -266,6 +302,8 @@ class _BoxFrame extends StatelessWidget {
   final bool thick;
   final bool selected;
   final bool showHandle;
+  final bool movable;
+  final bool selectable;
 
   const _BoxFrame({
     required this.color,
@@ -273,49 +311,66 @@ class _BoxFrame extends StatelessWidget {
     this.thick = false,
     this.selected = false,
     this.showHandle = false,
+    this.movable = false,
+    this.selectable = false,
   });
+
+  MouseCursor get _bodyCursor {
+    if (movable) return SystemMouseCursors.move;
+    if (selectable) return SystemMouseCursors.click;
+    return MouseCursor.defer;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        border: Border.all(color: color, width: selected ? 3 : (thick ? 3 : 2)),
-        color: selected ? color.withValues(alpha: 0.12) : null,
-      ),
-      child: Stack(
-        children: [
-          if (label != null && label!.isNotEmpty)
-            Positioned(
-              left: 0,
-              top: 0,
-              child: ColoredBox(
-                color: color,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 4,
-                    vertical: 1,
-                  ),
-                  child: Text(
-                    label!,
-                    style: const TextStyle(color: Colors.white, fontSize: 11),
-                  ),
-                ),
-              ),
-            ),
-          if (showHandle)
-            Positioned(
-              right: 0,
-              bottom: 0,
-              child: Container(
-                width: 18,
-                height: 18,
-                decoration: BoxDecoration(
+    return MouseRegion(
+      cursor: _bodyCursor,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: color,
+            width: selected ? 3 : (thick ? 3 : 2),
+          ),
+          color: selected ? color.withValues(alpha: 0.12) : null,
+        ),
+        child: Stack(
+          children: [
+            if (label != null && label!.isNotEmpty)
+              Positioned(
+                left: 0,
+                top: 0,
+                child: ColoredBox(
                   color: color,
-                  border: Border.all(color: Colors.white, width: 1),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 1,
+                    ),
+                    child: Text(
+                      label!,
+                      style: const TextStyle(color: Colors.white, fontSize: 11),
+                    ),
+                  ),
                 ),
               ),
-            ),
-        ],
+            if (showHandle)
+              Positioned(
+                right: 0,
+                bottom: 0,
+                child: MouseRegion(
+                  cursor: SystemMouseCursors.resizeUpLeftDownRight,
+                  child: Container(
+                    width: 18,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      color: color,
+                      border: Border.all(color: Colors.white, width: 1),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

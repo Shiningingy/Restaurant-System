@@ -16,7 +16,16 @@ import 'photo_box_canvas.dart';
 /// swept over each item at capture time.
 class TemplateEditorScreen extends ConsumerStatefulWidget {
   final CaptureTemplate template;
-  const TemplateEditorScreen({super.key, required this.template});
+
+  /// When provided (e.g. the photo just picked in the capture flow), the editor
+  /// opens already showing that photo to design against.
+  final String? initialPhotoPath;
+
+  const TemplateEditorScreen({
+    super.key,
+    required this.template,
+    this.initialPhotoPath,
+  });
 
   @override
   ConsumerState<TemplateEditorScreen> createState() =>
@@ -31,14 +40,22 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen> {
 
   String? _imagePath;
   Size? _imageSize;
-  RegionRect _block = const RegionRect(
-    left: 0.1,
-    top: 0.1,
-    width: 0.5,
-    height: 0.4,
-  );
+  late RegionRect _block = widget.template.block;
   late List<CaptureRegion> _regions = [...widget.template.regions];
   String? _selectedId;
+  bool _showLabels = true;
+
+  @override
+  void initState() {
+    super.initState();
+    final path = widget.initialPhotoPath;
+    if (path != null) {
+      _imagePath = path;
+      imageSizeOf(path).then((size) {
+        if (mounted) setState(() => _imageSize = size);
+      });
+    }
+  }
 
   Future<void> _pickPhoto() async {
     final file = await openFile(acceptedTypeGroups: [_imageTypes]);
@@ -95,7 +112,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen> {
     }
     await ref
         .read(captureTemplatesProvider.notifier)
-        .save(widget.template.copyWith(regions: _regions));
+        .save(widget.template.copyWith(regions: _regions, block: _block));
     if (mounted) Navigator.pop(context);
   }
 
@@ -155,16 +172,23 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen> {
   @override
   Widget build(BuildContext context) {
     final hasPhoto = _imagePath != null && _imageSize != null;
+    final colors = captureRegionColors(_regions);
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.template.name),
         actions: [
-          if (hasPhoto)
+          if (hasPhoto) ...[
             IconButton(
-              tooltip: context.l10n.capturePickSamplePhoto,
+              tooltip: context.l10n.captureLabelsToggle,
+              onPressed: () => setState(() => _showLabels = !_showLabels),
+              icon: Icon(_showLabels ? Icons.label : Icons.label_off_outlined),
+            ),
+            TextButton.icon(
               onPressed: _pickPhoto,
               icon: const Icon(Icons.image_outlined),
+              label: Text(context.l10n.capturePickSamplePhoto),
             ),
+          ],
           TextButton(
             onPressed: _save,
             child: Text(context.l10n.captureSaveTemplate),
@@ -196,12 +220,13 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen> {
                       imageSize: _imageSize!,
                       block: _block,
                       onBlockChanged: (b) => setState(() => _block = b),
+                      showLabels: _showLabels,
                       regions: [
                         for (final r in _regions)
                           CanvasRegion(
                             id: r.id,
                             rect: r.rect,
-                            color: captureFieldColor(r.field),
+                            color: colors[r.id]!,
                             label: r.label.isEmpty
                                 ? captureFieldLabel(context, r.field)
                                 : r.label,
@@ -213,17 +238,14 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen> {
                     ),
                   ),
                 ),
-                _editorBar(context),
+                _layersBar(context, colors),
               ],
             ),
     );
   }
 
-  Widget _editorBar(BuildContext context) {
-    CaptureRegion? selected;
-    for (final r in _regions) {
-      if (r.id == _selectedId) selected = r;
-    }
+  /// A "layers" strip: tap a chip to make that region the editable one.
+  Widget _layersBar(BuildContext context, Map<String, Color> colors) {
     return Material(
       elevation: 4,
       child: Padding(
@@ -235,23 +257,39 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen> {
               icon: const Icon(Icons.add),
               label: Text(context.l10n.captureAddRegion),
             ),
-            const Spacer(),
-            if (selected != null) ...[
-              Flexible(
-                child: Text(
-                  selected.label.isEmpty
-                      ? captureFieldLabel(context, selected.field)
-                      : selected.label,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: captureFieldColor(selected.field)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    for (final r in _regions)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: ChoiceChip(
+                          avatar: CircleAvatar(
+                            backgroundColor: colors[r.id],
+                            radius: 8,
+                          ),
+                          label: Text(
+                            r.label.isEmpty
+                                ? captureFieldLabel(context, r.field)
+                                : r.label,
+                          ),
+                          selected: r.id == _selectedId,
+                          onSelected: (_) => setState(() => _selectedId = r.id),
+                        ),
+                      ),
+                  ],
                 ),
               ),
+            ),
+            if (_selectedId != null)
               IconButton(
                 tooltip: context.l10n.captureDeleteRegion,
                 onPressed: _deleteSelected,
                 icon: const Icon(Icons.delete_outline),
               ),
-            ],
           ],
         ),
       ),

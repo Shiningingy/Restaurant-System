@@ -13,6 +13,7 @@ import '../domain/text_recognizer.dart';
 import 'draft_review_screen.dart';
 import 'field_display.dart';
 import 'photo_box_canvas.dart';
+import 'template_editor_screen.dart';
 import 'template_list_screen.dart';
 
 /// The capture sweep: pick a category, a menu photo and a template; OCR the
@@ -38,12 +39,8 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
   RecognizedText? _ocr;
   bool _ocrRunning = false;
 
-  RegionRect _block = const RegionRect(
-    left: 0.05,
-    top: 0.05,
-    width: 0.6,
-    height: 0.25,
-  );
+  RegionRect _block = kDefaultCaptureBlock;
+  bool _showLabels = true;
   final List<ItemDraft> _drafts = [];
 
   Future<void> _pickPhoto() async {
@@ -127,12 +124,18 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
       appBar: AppBar(
         title: Text(context.l10n.captureTitle),
         actions: [
-          IconButton(
-            tooltip: context.l10n.captureTemplatesTitle,
+          if (ready)
+            IconButton(
+              tooltip: context.l10n.captureLabelsToggle,
+              onPressed: () => setState(() => _showLabels = !_showLabels),
+              icon: Icon(_showLabels ? Icons.label : Icons.label_off_outlined),
+            ),
+          TextButton.icon(
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const TemplateListScreen()),
             ),
             icon: const Icon(Icons.dashboard_customize_outlined),
+            label: Text(context.l10n.captureTemplatesShort),
           ),
         ],
       ),
@@ -140,7 +143,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
         children: [
           _setupBar(context, categories, templates),
           if (_ocrRunning) const LinearProgressIndicator(),
-          Expanded(child: _canvasArea(context, ready)),
+          Expanded(child: _canvasArea(context, templates, ready)),
         ],
       ),
       floatingActionButton: ready
@@ -181,7 +184,12 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
               for (final t in templates)
                 DropdownMenuItem(value: t, child: Text(t.name)),
             ],
-            onChanged: (v) => setState(() => _template = v),
+            onChanged: (v) => setState(() {
+              _template = v;
+              // Start the block at the size the template was designed with, so
+              // the regions keep their proportions.
+              if (v != null) _block = v.block;
+            }),
           ),
           OutlinedButton.icon(
             onPressed: _pickPhoto,
@@ -202,13 +210,19 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
     );
   }
 
-  Widget _canvasArea(BuildContext context, bool ready) {
+  Widget _canvasArea(
+    BuildContext context,
+    List<CaptureTemplate> templates,
+    bool ready,
+  ) {
+    if (templates.isEmpty) return _noTemplatesCta(context);
     if (_imagePath == null || _imageSize == null) {
       return Center(child: Text(context.l10n.captureSelectPhotoFirst));
     }
     if (_template == null) {
       return Center(child: Text(context.l10n.captureSelectTemplateFirst));
     }
+    final colors = captureRegionColors(_template!.regions);
     return ColoredBox(
       color: Colors.black12,
       child: PhotoBoxCanvas(
@@ -216,16 +230,82 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
         imageSize: _imageSize!,
         block: _block,
         onBlockChanged: ready ? (b) => setState(() => _block = b) : null,
+        showLabels: _showLabels,
         regions: [
           for (final r in _template!.regions)
             CanvasRegion(
               id: r.id,
               rect: r.rect,
-              color: captureFieldColor(r.field),
+              color: colors[r.id]!,
               label: r.label.isEmpty
                   ? captureFieldLabel(context, r.field)
                   : r.label,
             ),
+        ],
+      ),
+    );
+  }
+
+  /// Shown when no templates exist yet — leads straight into the builder,
+  /// seeded with the photo if one was already picked.
+  Widget _noTemplatesCta(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(context.l10n.captureNoTemplates, textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: _createTemplate,
+              icon: const Icon(Icons.add),
+              label: Text(context.l10n.captureCreateTemplate),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _createTemplate() async {
+    final name = await _promptName();
+    if (name == null || name.isEmpty || !mounted) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => TemplateEditorScreen(
+          template: CaptureTemplate(
+            id: domain.newId(),
+            name: name,
+            regions: const [],
+          ),
+          initialPhotoPath: _imagePath,
+        ),
+      ),
+    );
+  }
+
+  Future<String?> _promptName() {
+    final controller = TextEditingController();
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: InputDecoration(
+            labelText: context.l10n.captureTemplateNameHint,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(context.l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, controller.text.trim()),
+            child: Text(context.l10n.commonSave),
+          ),
         ],
       ),
     );
