@@ -5,9 +5,12 @@ online payment). Each restaurant uses **its own Supabase project**; we host
 nothing. This document is the authoritative setup — the SQL here is what a
 restaurant applies to its project before going live.
 
-> **Status:** this is the target model. It is a **blocking pre-deployment gate**
-> (see ROADMAP.md): do not enable cloud features for a real restaurant until the
-> RLS and auth here are in place. Until then, the apps work fully offline.
+> **Status:** verified live (2026-06-13). This model was applied to a real
+> Supabase project and the live smoke test
+> (`apps/customer/tool/live_cloud_smoke_test.dart`) passed all 15 checks over
+> real HTTP. It remains a **per-deployment gate**: each restaurant must apply
+> this SQL + auth setup to its own project before enabling cloud features.
+> Until then, the apps work fully offline.
 
 ## Keys (what's secret, what isn't)
 
