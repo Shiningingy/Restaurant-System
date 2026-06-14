@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
+import '../../../core/l10n_ext.dart';
 import '../../cart/cart.dart';
 
 /// Lets the customer pick modifiers and a quantity for an item with
@@ -96,7 +97,11 @@ class _ItemSheetState extends State<_ItemSheet> {
                         title: Text(m.name),
                         secondary: m.priceDelta.isZero
                             ? null
-                            : Text('+${m.priceDelta.format()}'),
+                            : Text(
+                                context.l10n.itemPriceDelta(
+                                  m.priceDelta.format(),
+                                ),
+                              ),
                         onChanged: (_) => g.maxSelect == 1
                             ? _toggleSingle(g, m)
                             : _toggleMulti(m),
@@ -129,7 +134,7 @@ class _ItemSheetState extends State<_ItemSheet> {
                     context,
                     CartLine(item: widget.item, modifiers: _chosen, qty: _qty),
                   ),
-                  child: Text('Add - ${(_unit * _qty).format()}'),
+                  child: Text(context.l10n.itemAdd((_unit * _qty).format())),
                 ),
               ],
             ),

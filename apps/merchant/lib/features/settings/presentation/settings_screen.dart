@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../../core/db/database.dart';
+import '../../../core/l10n_ext.dart';
 import '../../../core/supabase_auth.dart';
 import '../../printing/application/providers.dart';
 import '../../sync/application/providers.dart';
@@ -23,18 +24,31 @@ class SettingsScreen extends ConsumerWidget {
     final printer = ref.watch(printerSettingsProvider);
     final receiptConfig = ref.watch(receiptConfigProvider);
     final printJobs = ref.watch(printJobsProvider).value ?? const [];
+    final localePref = ref.watch(localePreferenceProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(title: Text(context.l10n.navSettings)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text('Tax', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            context.l10n.setLanguage,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           ListTile(
-            title: const Text('Sales tax rate'),
-            subtitle: const Text(
-              'Applied to new orders; existing orders keep their rate.',
-            ),
+            leading: const Icon(Icons.translate_outlined),
+            title: Text(context.l10n.setLanguage),
+            subtitle: Text(_languageLabel(context, localePref)),
+            onTap: () => _editLanguage(context, ref, localePref),
+          ),
+          const Divider(height: 32),
+          Text(
+            context.l10n.setTax,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          ListTile(
+            title: Text(context.l10n.setSalesTaxRate),
+            subtitle: Text(context.l10n.setSalesTaxRateSubtitle),
             trailing: Text(
               '${(taxRateBp / 100).toStringAsFixed(2)}%',
               style: Theme.of(context).textTheme.titleMedium,
@@ -42,48 +56,55 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => _editTaxRate(context, ref, taxRateBp),
           ),
           const Divider(height: 32),
-          Text('Payments', style: Theme.of(context).textTheme.titleMedium),
-          const ListTile(
-            leading: Icon(Icons.point_of_sale_outlined),
-            title: Text('Card terminal: manual entry'),
-            subtitle: Text(
-              'Staff key the amount on the standalone terminal and record '
-              'the outcome. Semi-integrated Moneris Go support arrives once '
-              'the Moneris Cloud API access is set up.',
-            ),
+          Text(
+            context.l10n.setPayments,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          ListTile(
+            leading: const Icon(Icons.point_of_sale_outlined),
+            title: Text(context.l10n.setCardTerminalManual),
+            subtitle: Text(context.l10n.setCardTerminalManualSubtitle),
           ),
           const Divider(height: 32),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Printing', style: Theme.of(context).textTheme.titleMedium),
+              Text(
+                context.l10n.setPrinting,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
               if (printer.isConfigured)
                 TextButton.icon(
                   onPressed: () => _testPrint(context, ref),
                   icon: const Icon(Icons.print_outlined),
-                  label: const Text('Test print'),
+                  label: Text(context.l10n.setTestPrint),
                 ),
             ],
           ),
           ListTile(
             leading: const Icon(Icons.print_outlined),
-            title: const Text('Network printer'),
+            title: Text(context.l10n.setNetworkPrinter),
             subtitle: Text(
               printer.isConfigured
-                  ? '${printer.host}:${printer.port} - '
-                        '${printer.paperWidthChars == domain.EscPos.width58mm ? "58" : "80"}mm paper'
-                  : 'Not configured. ESC/POS over LAN (port 9100).',
+                  ? context.l10n.setPrinterConfigured(
+                      printer.host!,
+                      printer.port,
+                      printer.paperWidthChars == domain.EscPos.width58mm
+                          ? '58'
+                          : '80',
+                    )
+                  : context.l10n.setPrinterNotConfigured,
             ),
             onTap: () => _editPrinter(context, ref, printer),
           ),
           ListTile(
             leading: const Icon(Icons.storefront_outlined),
-            title: const Text('Business name on receipts'),
+            title: Text(context.l10n.setBusinessNameOnReceipts),
             subtitle: Text(receiptConfig.businessName),
             onTap: () async {
               final name = await _editText(
                 context,
-                title: 'Business name',
+                title: context.l10n.setBusinessName,
                 current: receiptConfig.businessName,
               );
               if (name != null && name.isNotEmpty) {
@@ -95,12 +116,12 @@ class SettingsScreen extends ConsumerWidget {
           ),
           ListTile(
             leading: const Icon(Icons.notes_outlined),
-            title: const Text('Receipt footer'),
+            title: Text(context.l10n.setReceiptFooter),
             subtitle: Text(receiptConfig.footer),
             onTap: () async {
               final footer = await _editText(
                 context,
-                title: 'Receipt footer',
+                title: context.l10n.setReceiptFooter,
                 current: receiptConfig.footer,
               );
               if (footer != null) {
@@ -114,7 +135,7 @@ class SettingsScreen extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.only(left: 16, top: 8),
               child: Text(
-                'Print queue',
+                context.l10n.setPrintQueue,
                 style: Theme.of(context).textTheme.labelLarge,
               ),
             ),
@@ -124,24 +145,27 @@ class SettingsScreen extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Tables', style: Theme.of(context).textTheme.titleMedium),
+              Text(
+                context.l10n.setTables,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
               TextButton.icon(
                 onPressed: () => _editTable(context, ref, null),
                 icon: const Icon(Icons.add),
-                label: const Text('Table'),
+                label: Text(context.l10n.setTableButton),
               ),
             ],
           ),
           if (tables.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text('Add tables to enable dine-in orders.'),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(context.l10n.setAddTablesHint),
             ),
           for (final t in tables)
             ListTile(
               leading: const Icon(Icons.table_restaurant_outlined),
-              title: Text('Table ${t.label}'),
-              subtitle: t.isActive ? null : const Text('Inactive'),
+              title: Text(context.l10n.orderTableLabel(t.label)),
+              subtitle: t.isActive ? null : Text(context.l10n.setInactive),
               onTap: () => _editTable(context, ref, t),
             ),
           const Divider(height: 32),
@@ -149,6 +173,45 @@ class SettingsScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  String _languageLabel(BuildContext context, Locale? locale) =>
+      switch (locale?.languageCode) {
+        'en' => 'English',
+        'zh' => '中文',
+        _ => context.l10n.setLanguageSystem,
+      };
+
+  Future<void> _editLanguage(
+    BuildContext context,
+    WidgetRef ref,
+    Locale? current,
+  ) async {
+    final options = <({String label, Locale? locale})>[
+      (label: context.l10n.setLanguageSystem, locale: null),
+      (label: 'English', locale: const Locale('en')),
+      (label: '中文', locale: const Locale('zh')),
+    ];
+    final choice = await showDialog<({bool chosen, Locale? locale})>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text(context.l10n.setLanguage),
+        children: [
+          for (final opt in options)
+            ListTile(
+              title: Text(opt.label),
+              trailing: current?.languageCode == opt.locale?.languageCode
+                  ? const Icon(Icons.check)
+                  : null,
+              onTap: () =>
+                  Navigator.pop(context, (chosen: true, locale: opt.locale)),
+            ),
+        ],
+      ),
+    );
+    if (choice != null && choice.chosen) {
+      await ref.read(localePreferenceProvider.notifier).set(choice.locale);
+    }
   }
 
   Future<void> _editTaxRate(
@@ -162,21 +225,24 @@ class SettingsScreen extends ConsumerWidget {
     final saved = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Sales tax rate'),
+        title: Text(context.l10n.setSalesTaxRate),
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(suffixText: '%', labelText: 'Rate'),
+          decoration: InputDecoration(
+            suffixText: '%',
+            labelText: context.l10n.setRate,
+          ),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Save'),
+            child: Text(context.l10n.commonSave),
           ),
         ],
       ),
@@ -189,13 +255,14 @@ class SettingsScreen extends ConsumerWidget {
 
   Future<void> _testPrint(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     final result = await ref.read(printServiceProvider).printTestPage();
     messenger.showSnackBar(
       SnackBar(
         content: Text(
           result.when(
-            ok: (_) => 'Test page sent to the printer.',
-            err: (e) => 'Test print failed: ${e.message}',
+            ok: (_) => l10n.setTestPageSent,
+            err: (e) => l10n.setTestPrintFailed(e.message),
           ),
         ),
       ),
@@ -214,34 +281,34 @@ class SettingsScreen extends ConsumerWidget {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: const Text('Network printer'),
+          title: Text(context.l10n.setNetworkPrinter),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: hostController,
                 autofocus: true,
-                decoration: const InputDecoration(
-                  labelText: 'Printer IP address',
-                  helperText: 'Leave empty to disable printing.',
+                decoration: InputDecoration(
+                  labelText: context.l10n.setPrinterIp,
+                  helperText: context.l10n.setPrinterIpHelper,
                 ),
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: portController,
-                decoration: const InputDecoration(labelText: 'Port'),
+                decoration: InputDecoration(labelText: context.l10n.setPort),
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 16),
               SegmentedButton<int>(
-                segments: const [
+                segments: [
                   ButtonSegment(
                     value: domain.EscPos.width58mm,
-                    label: Text('58mm paper'),
+                    label: Text(context.l10n.setPaper58),
                   ),
                   ButtonSegment(
                     value: domain.EscPos.width80mm,
-                    label: Text('80mm paper'),
+                    label: Text(context.l10n.setPaper80),
                   ),
                 ],
                 selected: {widthChars},
@@ -252,11 +319,11 @@ class SettingsScreen extends ConsumerWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
+              child: Text(context.l10n.commonCancel),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Save'),
+              child: Text(context.l10n.commonSave),
             ),
           ],
         ),
@@ -293,11 +360,11 @@ class SettingsScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Save'),
+            child: Text(context.l10n.commonSave),
           ),
         ],
       ),
@@ -316,20 +383,24 @@ class SettingsScreen extends ConsumerWidget {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: Text(existing == null ? 'New table' : 'Edit table'),
+          title: Text(
+            existing == null
+                ? context.l10n.setNewTable
+                : context.l10n.setEditTable,
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: controller,
                 autofocus: true,
-                decoration: const InputDecoration(
-                  labelText: 'Label (e.g. 1, 2, Patio A)',
+                decoration: InputDecoration(
+                  labelText: context.l10n.setTableLabelHint,
                 ),
               ),
               if (existing != null)
                 SwitchListTile(
-                  title: const Text('Active'),
+                  title: Text(context.l10n.setActive),
                   value: isActive,
                   onChanged: (v) => setState(() => isActive = v),
                 ),
@@ -338,11 +409,11 @@ class SettingsScreen extends ConsumerWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
+              child: Text(context.l10n.commonCancel),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Save'),
+              child: Text(context.l10n.commonSave),
             ),
           ],
         ),
@@ -370,15 +441,27 @@ class _PrintJobTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final kindLabel = switch (job.kind) {
-      domain.PrintJobKind.kitchenTicket => 'Kitchen ticket',
-      domain.PrintJobKind.customerReceipt => 'Customer receipt',
-      domain.PrintJobKind.testPage => 'Test page',
+      domain.PrintJobKind.kitchenTicket => context.l10n.setJobKitchenTicket,
+      domain.PrintJobKind.customerReceipt => context.l10n.setJobCustomerReceipt,
+      domain.PrintJobKind.testPage => context.l10n.setJobTestPage,
     };
     final (icon, statusLabel) = switch (job.status) {
-      domain.PrintJobStatus.queued => (Icons.schedule, 'Queued'),
-      domain.PrintJobStatus.printing => (Icons.print, 'Printing...'),
-      domain.PrintJobStatus.done => (Icons.check_circle_outline, 'Printed'),
-      domain.PrintJobStatus.failed => (Icons.error_outline, 'Failed'),
+      domain.PrintJobStatus.queued => (
+        Icons.schedule,
+        context.l10n.setJobQueued,
+      ),
+      domain.PrintJobStatus.printing => (
+        Icons.print,
+        context.l10n.setJobPrinting,
+      ),
+      domain.PrintJobStatus.done => (
+        Icons.check_circle_outline,
+        context.l10n.setJobPrinted,
+      ),
+      domain.PrintJobStatus.failed => (
+        Icons.error_outline,
+        context.l10n.setJobFailed,
+      ),
     };
     final failed = job.status == domain.PrintJobStatus.failed;
     return ListTile(
@@ -390,7 +473,7 @@ class _PrintJobTile extends ConsumerWidget {
       title: Text(kindLabel),
       subtitle: Text(
         failed && job.lastError != null
-            ? '$statusLabel - ${job.lastError}'
+            ? context.l10n.setJobStatusError(statusLabel, job.lastError!)
             : statusLabel,
       ),
       trailing: failed
@@ -399,13 +482,13 @@ class _PrintJobTile extends ConsumerWidget {
               children: [
                 IconButton(
                   icon: const Icon(Icons.refresh),
-                  tooltip: 'Retry',
+                  tooltip: context.l10n.setRetry,
                   onPressed: () =>
                       ref.read(printServiceProvider).retryJob(job.id),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close),
-                  tooltip: 'Discard',
+                  tooltip: context.l10n.setDiscard,
                   onPressed: () =>
                       ref.read(printJobRepositoryProvider).deleteJob(job.id),
                 ),
@@ -438,24 +521,30 @@ class _CloudSyncSectionState extends ConsumerState<_CloudSyncSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Cloud sync', style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          context.l10n.setCloudSync,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         ListTile(
           leading: const Icon(Icons.cloud_outlined),
           title: Text(
             config.isConfigured
-                ? 'Backing up to your Supabase'
-                : 'Not configured',
+                ? context.l10n.setCloudBackingUp
+                : context.l10n.setCloudNotConfigured,
           ),
           subtitle: Text(
             config.isConfigured
-                ? '${config.url}\nOptional - the POS works fully offline.'
-                : 'Back up and sync to your own Supabase project. '
-                      'Optional; the POS works fully offline without it.',
+                ? context.l10n.setCloudConfiguredSubtitle(config.url!)
+                : context.l10n.setCloudNotConfiguredSubtitle,
           ),
           isThreeLine: config.isConfigured,
           trailing: TextButton(
             onPressed: _busy ? null : () => _editCredentials(context, config),
-            child: Text(config.isConfigured ? 'Edit' : 'Set up'),
+            child: Text(
+              config.isConfigured
+                  ? context.l10n.commonEdit
+                  : context.l10n.setSetUp,
+            ),
           ),
         ),
         if (config.isConfigured) ...[
@@ -465,14 +554,13 @@ class _CloudSyncSectionState extends ConsumerState<_CloudSyncSection> {
             ),
             title: Text(
               settings.isSignedIn
-                  ? 'Signed in as ${settings.restaurantEmail}'
-                  : 'Restaurant sign-in required',
+                  ? context.l10n.setSignedInAs(settings.restaurantEmail ?? '')
+                  : context.l10n.setSignInRequired,
             ),
             subtitle: Text(
               settings.isSignedIn
-                  ? 'Sync and online orders use this secure login.'
-                  : 'Cloud features need your restaurant Supabase login so '
-                        'your data stays private. (Customers never get it.)',
+                  ? context.l10n.setSignedInSubtitle
+                  : context.l10n.setSignInRequiredSubtitle,
             ),
             trailing: TextButton(
               onPressed: _busy
@@ -480,14 +568,18 @@ class _CloudSyncSectionState extends ConsumerState<_CloudSyncSection> {
                   : settings.isSignedIn
                   ? _signOut
                   : () => _signIn(context, config),
-              child: Text(settings.isSignedIn ? 'Sign out' : 'Sign in'),
+              child: Text(
+                settings.isSignedIn
+                    ? context.l10n.setSignOut
+                    : context.l10n.setSignIn,
+              ),
             ),
           ),
           if (lastAt != null)
             Padding(
               padding: const EdgeInsets.only(left: 16, bottom: 8),
               child: Text(
-                'Last synced ${_dateTimeFormat.format(lastAt)}',
+                context.l10n.setLastSynced(_dateTimeFormat.format(lastAt)),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ),
@@ -503,12 +595,12 @@ class _CloudSyncSectionState extends ConsumerState<_CloudSyncSection> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.sync),
-                label: const Text('Sync now'),
+                label: Text(context.l10n.setSyncNow),
               ),
               OutlinedButton.icon(
                 onPressed: _busy ? null : _restore,
                 icon: const Icon(Icons.cloud_download_outlined),
-                label: const Text('Restore from cloud'),
+                label: Text(context.l10n.setRestoreFromCloud),
               ),
             ],
           ),
@@ -528,28 +620,28 @@ class _CloudSyncSectionState extends ConsumerState<_CloudSyncSection> {
   Future<void> _signIn(BuildContext context, SupabaseConfig config) async {
     final email = TextEditingController();
     final password = TextEditingController();
+    final l10n = context.l10n;
     try {
       final ok = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Restaurant sign-in'),
+          title: Text(context.l10n.setRestaurantSignIn),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'Sign in with the Supabase user you created for this '
-                'restaurant. This keeps your data private from customers.',
-              ),
+              Text(context.l10n.setSignInBody),
               const SizedBox(height: 16),
               TextField(
                 controller: email,
-                decoration: const InputDecoration(labelText: 'Email'),
+                decoration: InputDecoration(labelText: context.l10n.setEmail),
                 keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: password,
-                decoration: const InputDecoration(labelText: 'Password'),
+                decoration: InputDecoration(
+                  labelText: context.l10n.setPassword,
+                ),
                 obscureText: true,
               ),
             ],
@@ -557,11 +649,11 @@ class _CloudSyncSectionState extends ConsumerState<_CloudSyncSection> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
+              child: Text(context.l10n.commonCancel),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Sign in'),
+              child: Text(context.l10n.setSignIn),
             ),
           ],
         ),
@@ -587,14 +679,14 @@ class _CloudSyncSectionState extends ConsumerState<_CloudSyncSection> {
       if (mounted) {
         setState(() {
           _busy = false;
-          _message = 'Signed in.';
+          _message = l10n.setSignedInMsg;
         });
       }
     } on Object catch (e) {
       if (mounted) {
         setState(() {
           _busy = false;
-          _message = 'Sign-in failed: $e';
+          _message = l10n.setSignInFailed('$e');
         });
       }
     } finally {
@@ -604,13 +696,15 @@ class _CloudSyncSectionState extends ConsumerState<_CloudSyncSection> {
   }
 
   Future<void> _signOut() async {
+    final l10n = context.l10n;
     await ref.read(syncSettingsProvider).clearRestaurantSession();
     ref.invalidate(syncSettingsProvider);
     ref.invalidate(supabaseAuthProvider);
-    setState(() => _message = 'Signed out.');
+    setState(() => _message = l10n.setSignedOutMsg);
   }
 
   Future<void> _syncNow() async {
+    final l10n = context.l10n;
     setState(() {
       _busy = true;
       _message = null;
@@ -620,29 +714,26 @@ class _CloudSyncSectionState extends ConsumerState<_CloudSyncSection> {
     setState(() {
       _busy = false;
       _message = outcome.ok
-          ? 'Synced: ${outcome.pulled} in, ${outcome.pushed} out.'
-          : 'Sync failed: ${outcome.error}';
+          ? l10n.setSyncedMsg(outcome.pulled, outcome.pushed)
+          : l10n.setSyncFailed('${outcome.error}');
     });
   }
 
   Future<void> _restore() async {
+    final l10n = context.l10n;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Restore from cloud?'),
-        content: const Text(
-          'Pulls the full history from your Supabase and applies it to '
-          'this device. Use this on a new or wiped tablet. Existing local '
-          'data is merged (last write wins), never wiped.',
-        ),
+        title: Text(context.l10n.setRestoreTitle),
+        content: Text(context.l10n.setRestoreBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Restore'),
+            child: Text(context.l10n.setRestore),
           ),
         ],
       ),
@@ -657,8 +748,8 @@ class _CloudSyncSectionState extends ConsumerState<_CloudSyncSection> {
     setState(() {
       _busy = false;
       _message = outcome.ok
-          ? 'Restored ${outcome.pulled} changes from the cloud.'
-          : 'Restore failed: ${outcome.error}';
+          ? l10n.setRestoredMsg(outcome.pulled)
+          : l10n.setRestoreFailed('${outcome.error}');
     });
   }
 
@@ -671,27 +762,23 @@ class _CloudSyncSectionState extends ConsumerState<_CloudSyncSection> {
     final saved = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Your Supabase project'),
+        title: Text(context.l10n.setYourSupabaseProject),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'Enter your project URL and anon (public) key. Create a '
-              '"sync_changes" table first - see the setup SQL in the docs. '
-              'Leave the URL empty to turn sync off.',
-            ),
+            Text(context.l10n.setSupabaseBody),
             const SizedBox(height: 16),
             TextField(
               controller: urlController,
-              decoration: const InputDecoration(
-                labelText: 'Project URL',
+              decoration: InputDecoration(
+                labelText: context.l10n.setProjectUrl,
                 hintText: 'https://xxxx.supabase.co',
               ),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: keyController,
-              decoration: const InputDecoration(labelText: 'Anon key'),
+              decoration: InputDecoration(labelText: context.l10n.setAnonKey),
               maxLines: 2,
             ),
           ],
@@ -699,11 +786,11 @@ class _CloudSyncSectionState extends ConsumerState<_CloudSyncSection> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Save'),
+            child: Text(context.l10n.commonSave),
           ),
         ],
       ),

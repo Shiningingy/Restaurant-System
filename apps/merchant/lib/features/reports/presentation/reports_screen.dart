@@ -7,10 +7,11 @@ import '../../orders/application/providers.dart';
 import '../../payments/application/providers.dart';
 import '../../printing/application/providers.dart';
 import '../../settings/application/providers.dart';
+import '../../../core/l10n_ext.dart';
+import '../../../core/labels.dart';
 import '../application/providers.dart';
 import '../data/reports_repository.dart';
 
-final _dateFormat = DateFormat('EEE, yyyy-MM-dd');
 final _timeFormat = DateFormat('HH:mm');
 
 class ReportsScreen extends ConsumerWidget {
@@ -27,24 +28,29 @@ class ReportsScreen extends ConsumerWidget {
         day.month == today.month &&
         day.day == today.day;
 
+    final dateFormat = DateFormat(
+      'EEE, yyyy-MM-dd',
+      Localizations.localeOf(context).toString(),
+    );
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Reports'),
+        title: Text(context.l10n.repTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.chevron_left),
-            tooltip: 'Previous day',
+            tooltip: context.l10n.repPreviousDay,
             onPressed: () => ref
                 .read(reportDateProvider.notifier)
                 .set(day.subtract(const Duration(days: 1))),
           ),
           TextButton(
             onPressed: () => _pickDate(context, ref, day),
-            child: Text(_dateFormat.format(day)),
+            child: Text(dateFormat.format(day)),
           ),
           IconButton(
             icon: const Icon(Icons.chevron_right),
-            tooltip: 'Next day',
+            tooltip: context.l10n.repNextDay,
             onPressed: isToday
                 ? null
                 : () => ref
@@ -63,7 +69,7 @@ class ReportsScreen extends ConsumerWidget {
                 const SizedBox(height: 24),
                 if (report.collected.isNotEmpty) ...[
                   Text(
-                    'Collected',
+                    context.l10n.repCollected,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 4),
@@ -72,7 +78,7 @@ class ReportsScreen extends ConsumerWidget {
                 ],
                 if (report.itemSales.isNotEmpty) ...[
                   Text(
-                    'Item sales',
+                    context.l10n.repItemSales,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 4),
@@ -82,7 +88,7 @@ class ReportsScreen extends ConsumerWidget {
                       leading: SizedBox(
                         width: 40,
                         child: Text(
-                          '${item.qty}x',
+                          context.l10n.repItemQty(item.qty),
                           style: Theme.of(context).textTheme.titleSmall,
                         ),
                       ),
@@ -92,14 +98,14 @@ class ReportsScreen extends ConsumerWidget {
                   const SizedBox(height: 24),
                 ],
                 Text(
-                  'Order history',
+                  context.l10n.repOrderHistory,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 4),
                 if (orders.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Text('No closed orders on this day.'),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(context.l10n.repNoClosedOrders),
                   ),
                 for (final order in orders) _OrderHistoryTile(order: order),
               ],
@@ -135,18 +141,20 @@ class _SummaryCards extends StatelessWidget {
       children: [
         _card(
           context,
-          'Orders',
+          context.l10n.repOrders,
           '${report.ordersPaid}',
-          report.ordersVoided == 0 ? null : '${report.ordersVoided} voided',
+          report.ordersVoided == 0
+              ? null
+              : context.l10n.repOrdersVoided(report.ordersVoided),
         ),
         _card(
           context,
-          'Gross sales',
+          context.l10n.repGrossSales,
           report.gross.format(),
-          'Subtotal ${report.subtotal.format()}',
+          context.l10n.repSubtotalValue(report.subtotal.format()),
         ),
-        _card(context, 'Tax', report.tax.format(), null),
-        _card(context, 'Tips', report.tipsTotal.format(), null),
+        _card(context, context.l10n.repTax, report.tax.format(), null),
+        _card(context, context.l10n.repTips, report.tipsTotal.format(), null),
       ],
     );
   }
@@ -189,17 +197,18 @@ class _CollectedTable extends StatelessWidget {
         for (final m in report.collected)
           ListTile(
             dense: true,
-            title: Text(domain.paymentMethodLabel(m.method)),
+            title: Text(paymentMethodLabel(context, m.method)),
             subtitle: Text(
-              '${m.count} payment${m.count == 1 ? '' : 's'}'
-              '${m.tips.isZero ? '' : ' - tips ${m.tips.format()}'}',
+              m.tips.isZero
+                  ? context.l10n.repPaymentsCount(m.count)
+                  : context.l10n.repPaymentsCountTips(m.count, m.tips.format()),
             ),
             trailing: Text(m.amount.format()),
           ),
         ListTile(
           dense: true,
           title: Text(
-            'Total collected',
+            context.l10n.repTotalCollected,
             style: Theme.of(context).textTheme.titleSmall,
           ),
           trailing: Text(
@@ -220,21 +229,15 @@ class _OrderHistoryTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final voided = order.status == domain.OrderStatus.voided;
-    final typeLabel = switch (order.type) {
-      domain.OrderType.dineIn => 'Dine-in',
-      domain.OrderType.takeout => 'Takeout',
-      domain.OrderType.online => 'Online',
-    };
+    final typeLabel = order.type.label(context);
+    final ref0 = '$typeLabel ${domain.orderRef(order.id)}';
     return ListTile(
       dense: true,
       leading: Icon(
         voided ? Icons.block : Icons.check_circle_outline,
         color: voided ? Theme.of(context).colorScheme.error : null,
       ),
-      title: Text(
-        '$typeLabel ${domain.orderRef(order.id)}'
-        '${voided ? ' - voided' : ''}',
-      ),
+      title: Text(voided ? context.l10n.repOrderVoidedSuffix(ref0) : ref0),
       subtitle: Text(
         order.closedAt == null ? '' : _timeFormat.format(order.closedAt!),
       ),
@@ -264,10 +267,12 @@ class _OrderDetailDialog extends ConsumerWidget {
         order.status == domain.OrderStatus.paid &&
         ref.watch(printerSettingsProvider).isConfigured;
 
+    final orderRef = domain.orderRef(order.id);
     return AlertDialog(
       title: Text(
-        '${domain.orderRef(order.id)}'
-        '${order.status == domain.OrderStatus.voided ? ' (voided)' : ''}',
+        order.status == domain.OrderStatus.voided
+            ? context.l10n.repOrderVoidedParen(orderRef)
+            : orderRef,
       ),
       content: SizedBox(
         width: 400,
@@ -277,7 +282,9 @@ class _OrderDetailDialog extends ConsumerWidget {
             for (final line in active)
               ListTile(
                 dense: true,
-                title: Text('${line.qty} x ${line.nameSnapshot}'),
+                title: Text(
+                  context.l10n.repLineQtyName(line.qty, line.nameSnapshot),
+                ),
                 subtitle: line.modifiers.isEmpty
                     ? null
                     : Text(
@@ -288,14 +295,16 @@ class _OrderDetailDialog extends ConsumerWidget {
             const Divider(),
             ListTile(
               dense: true,
-              title: const Text('Total'),
+              title: Text(context.l10n.repTotal),
               trailing: Text(order.total.format()),
             ),
             for (final p in settled)
               ListTile(
                 dense: true,
-                title: Text(domain.paymentMethodLabel(p.method)),
-                subtitle: p.tip.isZero ? null : Text('Tip ${p.tip.format()}'),
+                title: Text(paymentMethodLabel(context, p.method)),
+                subtitle: p.tip.isZero
+                    ? null
+                    : Text(context.l10n.repTipValue(p.tip.format())),
                 trailing: Text(p.amount.format()),
               ),
           ],
@@ -306,19 +315,20 @@ class _OrderDetailDialog extends ConsumerWidget {
           TextButton.icon(
             onPressed: () async {
               final messenger = ScaffoldMessenger.of(context);
+              final l10n = context.l10n;
               await ref
                   .read(printServiceProvider)
                   .printCustomerReceipt(order.id);
               messenger.showSnackBar(
-                const SnackBar(content: Text('Receipt queued.')),
+                SnackBar(content: Text(l10n.repReceiptQueued)),
               );
             },
             icon: const Icon(Icons.print_outlined),
-            label: const Text('Reprint receipt'),
+            label: Text(context.l10n.repReprintReceipt),
           ),
         FilledButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Close'),
+          child: Text(context.l10n.commonClose),
         ),
       ],
     );

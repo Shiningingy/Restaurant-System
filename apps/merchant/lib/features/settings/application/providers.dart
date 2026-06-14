@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
@@ -72,4 +73,26 @@ class TaxRateNotifier extends Notifier<int> {
 
 final taxRateBpProvider = NotifierProvider<TaxRateNotifier, int>(
   TaxRateNotifier.new,
+);
+
+/// The chosen UI language. `null` means follow the system locale; the
+/// merchant overrides it in Settings → Language. Persisted via
+/// [SettingsRepository.appLocaleCode].
+class LocaleController extends Notifier<Locale?> {
+  @override
+  Locale? build() {
+    final code = ref.watch(settingsRepositoryProvider).appLocaleCode;
+    return code == null ? null : Locale(code);
+  }
+
+  Future<void> set(Locale? locale) async {
+    await ref
+        .read(settingsRepositoryProvider)
+        .setAppLocaleCode(locale?.languageCode);
+    state = locale;
+  }
+}
+
+final localePreferenceProvider = NotifierProvider<LocaleController, Locale?>(
+  LocaleController.new,
 );

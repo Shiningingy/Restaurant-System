@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
+import '../../../core/l10n_ext.dart';
 import '../application/providers.dart';
 import 'item_edit_dialog.dart';
 import 'modifier_groups_tab.dart';
@@ -22,11 +23,11 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Menu'),
-          bottom: const TabBar(
+          title: Text(context.l10n.menuTitle),
+          bottom: TabBar(
             tabs: [
-              Tab(text: 'Items'),
-              Tab(text: 'Modifier groups'),
+              Tab(text: context.l10n.menuItems),
+              Tab(text: context.l10n.menuModifierGroups),
             ],
           ),
         ),
@@ -58,9 +59,9 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                         selected: c.id == selectedId,
                         trailing: c.isActive
                             ? null
-                            : const Tooltip(
-                                message: 'Hidden from order screen',
-                                child: Icon(
+                            : Tooltip(
+                                message: context.l10n.menuHiddenFromOrderScreen,
+                                child: const Icon(
                                   Icons.visibility_off_outlined,
                                   size: 18,
                                 ),
@@ -76,7 +77,7 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                 child: OutlinedButton.icon(
                   onPressed: () => _editCategory(context, null),
                   icon: const Icon(Icons.add),
-                  label: const Text('Category'),
+                  label: Text(context.l10n.menuCategory),
                 ),
               ),
             ],
@@ -85,9 +86,7 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
         const VerticalDivider(width: 1),
         Expanded(
           child: selectedId == null
-              ? const Center(
-                  child: Text('Create a category to start your menu.'),
-                )
+              ? Center(child: Text(context.l10n.menuCreateCategoryToStart))
               : _ItemsList(categoryId: selectedId),
         ),
       ],
@@ -104,18 +103,22 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: Text(existing == null ? 'New category' : 'Edit category'),
+          title: Text(
+            existing == null
+                ? context.l10n.menuNewCategory
+                : context.l10n.menuEditCategory,
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: controller,
                 autofocus: true,
-                decoration: const InputDecoration(labelText: 'Name'),
+                decoration: InputDecoration(labelText: context.l10n.menuName),
               ),
               if (existing != null)
                 SwitchListTile(
-                  title: const Text('Visible on order screen'),
+                  title: Text(context.l10n.menuVisibleOnOrderScreen),
                   value: isActive,
                   onChanged: (v) => setState(() => isActive = v),
                 ),
@@ -124,11 +127,11 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
+              child: Text(context.l10n.commonCancel),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Save'),
+              child: Text(context.l10n.commonSave),
             ),
           ],
         ),
@@ -163,10 +166,10 @@ class _ItemsList extends ConsumerWidget {
         onPressed: () =>
             showItemEditDialog(context, ref, categoryId: categoryId),
         icon: const Icon(Icons.add),
-        label: const Text('Item'),
+        label: Text(context.l10n.menuItem),
       ),
       body: items.isEmpty
-          ? const Center(child: Text('No items in this category yet.'))
+          ? Center(child: Text(context.l10n.menuNoItemsInCategory))
           : ListView.builder(
               padding: const EdgeInsets.only(bottom: 88),
               itemCount: items.length,
@@ -176,7 +179,7 @@ class _ItemsList extends ConsumerWidget {
                   title: Text(item.name),
                   subtitle: item.isActive
                       ? null
-                      : const Text('Hidden from order screen'),
+                      : Text(context.l10n.menuHiddenFromOrderScreen),
                   trailing: Text(
                     item.price.format(),
                     style: Theme.of(context).textTheme.titleMedium,

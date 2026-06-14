@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
+import '../../../core/l10n_ext.dart';
 import '../application/providers.dart';
 
 Future<void> showItemEditDialog(
@@ -65,7 +66,11 @@ class _ItemEditDialogState extends State<_ItemEditDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.existing == null ? 'New item' : 'Edit item'),
+      title: Text(
+        widget.existing == null
+            ? context.l10n.menuNewItem
+            : context.l10n.menuEditItem,
+      ),
       content: SizedBox(
         width: 420,
         child: Column(
@@ -75,13 +80,13 @@ class _ItemEditDialogState extends State<_ItemEditDialog> {
             TextField(
               controller: _name,
               autofocus: widget.existing == null,
-              decoration: const InputDecoration(labelText: 'Name'),
+              decoration: InputDecoration(labelText: context.l10n.menuName),
               onChanged: (_) => setState(() {}),
             ),
             TextField(
               controller: _price,
-              decoration: const InputDecoration(
-                labelText: 'Price',
+              decoration: InputDecoration(
+                labelText: context.l10n.menuPrice,
                 prefixText: r'$',
               ),
               keyboardType: const TextInputType.numberWithOptions(
@@ -91,14 +96,14 @@ class _ItemEditDialogState extends State<_ItemEditDialog> {
             ),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Visible on order screen'),
+              title: Text(context.l10n.menuVisibleOnOrderScreen),
               value: _isActive,
               onChanged: (v) => setState(() => _isActive = v),
             ),
             if (widget.allGroups.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(
-                'Modifier groups',
+                context.l10n.menuModifierGroups,
                 style: Theme.of(context).textTheme.titleSmall,
               ),
               const SizedBox(height: 8),
@@ -124,7 +129,7 @@ class _ItemEditDialogState extends State<_ItemEditDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.commonCancel),
         ),
         FilledButton(
           onPressed: _valid
@@ -141,7 +146,7 @@ class _ItemEditDialogState extends State<_ItemEditDialog> {
                   ),
                 )
               : null,
-          child: const Text('Save'),
+          child: Text(context.l10n.commonSave),
         ),
       ],
     );

@@ -27,6 +27,7 @@ class SettingsRepository {
   static const _paperWidthKey = 'paperWidthChars';
   static const _businessNameKey = 'businessName';
   static const _receiptFooterKey = 'receiptFooter';
+  static const _appLocaleKey = 'appLocale';
 
   /// 13% HST (Ontario) as the default — the user configures their own rate.
   static const defaultTaxRateBp = 1300;
@@ -68,4 +69,12 @@ class SettingsRepository {
 
   Future<void> setReceiptFooter(String footer) =>
       prefs.setString(_receiptFooterKey, footer);
+
+  /// Preferred UI language code ('en' / 'zh'), or null to follow the system
+  /// locale.
+  String? get appLocaleCode => prefs.getString(_appLocaleKey);
+
+  Future<void> setAppLocaleCode(String? code) => code == null
+      ? prefs.remove(_appLocaleKey)
+      : prefs.setString(_appLocaleKey, code);
 }

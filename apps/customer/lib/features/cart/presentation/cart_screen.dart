@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/l10n_ext.dart';
 import '../cart.dart';
 import 'checkout_screen.dart';
 
@@ -13,9 +14,9 @@ class CartScreen extends ConsumerWidget {
     final notifier = ref.read(cartProvider.notifier);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Your order')),
+      appBar: AppBar(title: Text(context.l10n.cartTitle)),
       body: cart.isEmpty
-          ? const Center(child: Text('Your cart is empty.'))
+          ? Center(child: Text(context.l10n.cartEmpty))
           : ListView(
               children: [
                 for (var i = 0; i < cart.lines.length; i++)
@@ -41,7 +42,7 @@ class CartScreen extends ConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Total',
+                          context.l10n.cartTotal,
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         Text(
@@ -59,7 +60,7 @@ class CartScreen extends ConsumerWidget {
                             builder: (_) => const CheckoutScreen(),
                           ),
                         ),
-                        child: const Text('Checkout'),
+                        child: Text(context.l10n.cartCheckout),
                       ),
                     ),
                   ],

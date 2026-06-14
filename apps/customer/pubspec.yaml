@@ -11,6 +11,8 @@ resolution: workspace
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   flutter_riverpod: ^3.0.0
   http: ^1.2.0
   intl: ^0.20.0
@@ -25,3 +27,4 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  generate: true

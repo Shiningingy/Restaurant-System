@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
+import '../../../core/l10n_ext.dart';
+import '../../../core/labels.dart';
 import '../../menu/application/providers.dart';
 import '../../payments/application/payment_service.dart';
 import '../../payments/application/providers.dart';
@@ -37,13 +39,13 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: BackButton(onPressed: () => context.go('/orders')),
-        title: Text(_title(order)),
+        title: Text(_title(context, order)),
         actions: [
           if (isOpen)
             TextButton.icon(
               onPressed: () => _voidOrder(context),
               icon: const Icon(Icons.delete_outline),
-              label: const Text('Void order'),
+              label: Text(context.l10n.ordVoidOrder),
             ),
         ],
       ),
@@ -71,12 +73,13 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
     );
   }
 
-  String _title(domain.Order? order) => switch (order?.type) {
-    domain.OrderType.dineIn => 'Dine-in order',
-    domain.OrderType.takeout => 'Takeout order',
-    domain.OrderType.online => 'Online order',
-    null => 'Order',
-  };
+  String _title(BuildContext context, domain.Order? order) =>
+      switch (order?.type) {
+        domain.OrderType.dineIn => context.l10n.ordDineInTitle,
+        domain.OrderType.takeout => context.l10n.ordTakeoutTitle,
+        domain.OrderType.online => context.l10n.ordOnlineTitle,
+        null => context.l10n.ordOrderTitle,
+      };
 
   Future<void> _addItem(domain.MenuItem item) async {
     final menuRepo = ref.read(menuRepositoryProvider);
@@ -105,16 +108,16 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Void this order?'),
-        content: const Text('The order is kept in history as voided.'),
+        title: Text(context.l10n.ordVoidConfirmTitle),
+        content: Text(context.l10n.ordVoidConfirmBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Keep'),
+            child: Text(context.l10n.ordKeep),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Void order'),
+            child: Text(context.l10n.ordVoidOrder),
           ),
         ],
       ),
@@ -145,9 +148,7 @@ class _MenuPicker extends ConsumerWidget {
         .where((c) => c.isActive)
         .toList();
     if (categories.isEmpty) {
-      return const Center(
-        child: Text('No menu yet - add categories and items in Menu.'),
-      );
+      return Center(child: Text(context.l10n.ordNoMenuYet));
     }
     final activeCategoryId = selectedCategoryId ?? categories.first.id;
     final items =
@@ -245,7 +246,7 @@ class _Ticket extends ConsumerWidget {
       children: [
         Expanded(
           child: visibleLines.isEmpty
-              ? const Center(child: Text('Tap menu items to add them.'))
+              ? Center(child: Text(context.l10n.ordTapToAdd))
               : ListView.builder(
                   itemCount: visibleLines.length,
                   itemBuilder: (context, i) {
@@ -262,7 +263,9 @@ class _Ticket extends ConsumerWidget {
                       leading: isOpen
                           ? IconButton(
                               icon: const Icon(Icons.remove_circle_outline),
-                              tooltip: line.qty == 1 ? 'Void line' : 'Decrease',
+                              tooltip: line.qty == 1
+                                  ? context.l10n.ordVoidLine
+                                  : context.l10n.ordDecrease,
                               onPressed: () => line.qty == 1
                                   ? repo.voidLine(line.id)
                                   : repo.setLineQty(line.id, line.qty - 1),
@@ -271,7 +274,7 @@ class _Ticket extends ConsumerWidget {
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text('x${line.qty}'),
+                          Text(context.l10n.ordQtyMultiplier(line.qty)),
                           if (isOpen)
                             IconButton(
                               icon: const Icon(Icons.add_circle_outline),
@@ -296,24 +299,40 @@ class _Ticket extends ConsumerWidget {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              _totalRow(context, 'Subtotal', order.subtotal),
+              _totalRow(context, context.l10n.ordSubtotal, order.subtotal),
               _totalRow(
                 context,
-                'Tax (${(order.taxRateBp / 100).toStringAsFixed(2)}%)',
+                context.l10n.ordTaxPercent(
+                  (order.taxRateBp / 100).toStringAsFixed(2),
+                ),
                 order.tax,
               ),
               const SizedBox(height: 4),
-              _totalRow(context, 'Total', order.total, emphasized: true),
+              _totalRow(
+                context,
+                context.l10n.ordTotal,
+                order.total,
+                emphasized: true,
+              ),
               if (settled.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 for (final p in settled)
                   _totalRow(
                     context,
-                    'Paid - ${domain.paymentMethodLabel(p.method)}'
-                    '${p.tip.isZero ? '' : ' (tip ${p.tip.format()})'}',
+                    context.l10n.ordPaidMethod(
+                          paymentMethodLabel(context, p.method),
+                        ) +
+                        (p.tip.isZero
+                            ? ''
+                            : context.l10n.ordTipSuffix(p.tip.format())),
                     p.amount,
                   ),
-                _totalRow(context, 'Balance due', balance, emphasized: true),
+                _totalRow(
+                  context,
+                  context.l10n.ordBalanceDue,
+                  balance,
+                  emphasized: true,
+                ),
               ],
               const SizedBox(height: 12),
               SizedBox(
@@ -325,8 +344,8 @@ class _Ticket extends ConsumerWidget {
                   icon: const Icon(Icons.print_outlined),
                   label: Text(
                     order.status == domain.OrderStatus.sent
-                        ? 'Reprint kitchen ticket'
-                        : 'Send to kitchen',
+                        ? context.l10n.ordReprintKitchenTicket
+                        : context.l10n.ordSendToKitchen,
                   ),
                 ),
               ),
@@ -340,7 +359,11 @@ class _Ticket extends ConsumerWidget {
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.all(20),
                   ),
-                  child: Text(isOpen ? 'Pay ${balance.format()}' : 'Closed'),
+                  child: Text(
+                    isOpen
+                        ? context.l10n.ordPayAmount(balance.format())
+                        : context.l10n.ordClosed,
+                  ),
                 ),
               ),
             ],
@@ -370,18 +393,17 @@ class _Ticket extends ConsumerWidget {
 
   Future<void> _sendToKitchen(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     if (!ref.read(printerSettingsProvider).isConfigured) {
       messenger.showSnackBar(
-        const SnackBar(
-          content: Text('No printer configured - set one up in Settings.'),
-        ),
+        SnackBar(content: Text(l10n.ordNoPrinterConfigured)),
       );
       return;
     }
     await ref.read(printServiceProvider).printKitchenTicket(order.id);
     await ref.read(orderRepositoryProvider).markSent(order.id);
     messenger.showSnackBar(
-      const SnackBar(content: Text('Kitchen ticket queued.')),
+      SnackBar(content: Text(l10n.ordKitchenTicketQueued)),
     );
   }
 
@@ -391,6 +413,7 @@ class _Ticket extends ConsumerWidget {
     domain.Money balance,
   ) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     final result = await showPaymentSheet(
       context,
       order: order,
@@ -406,22 +429,16 @@ class _Ticket extends ConsumerWidget {
           if (context.mounted) context.go('/orders');
         } else {
           messenger.showSnackBar(
-            const SnackBar(
-              content: Text('Partial payment recorded - order stays open.'),
-            ),
+            SnackBar(content: Text(l10n.ordPartialPaymentRecorded)),
           );
         }
       case PaymentFlowStatus.declined:
-        messenger.showSnackBar(
-          const SnackBar(
-            content: Text('Card declined - not recorded as paid.'),
-          ),
-        );
+        messenger.showSnackBar(SnackBar(content: Text(l10n.ordCardDeclined)));
       case PaymentFlowStatus.cancelled:
         break;
       case PaymentFlowStatus.failed:
         messenger.showSnackBar(
-          SnackBar(content: Text('Payment failed: ${result.message}')),
+          SnackBar(content: Text(l10n.ordPaymentFailed(result.message ?? ''))),
         );
     }
   }

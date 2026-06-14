@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
@@ -8,6 +9,27 @@ import '../drivers/supabase_storefront.dart';
 
 final storefrontConfigRepositoryProvider = Provider<StorefrontConfigRepository>(
   (ref) => StorefrontConfigRepository(ref.watch(sharedPreferencesProvider)),
+);
+
+/// The chosen UI language. `null` means follow the system locale; the
+/// customer overrides it from the app-bar language menu.
+class LocaleController extends Notifier<Locale?> {
+  @override
+  Locale? build() {
+    final code = ref.watch(storefrontConfigRepositoryProvider).appLocaleCode;
+    return code == null ? null : Locale(code);
+  }
+
+  Future<void> set(Locale? locale) async {
+    await ref
+        .read(storefrontConfigRepositoryProvider)
+        .setAppLocaleCode(locale?.languageCode);
+    state = locale;
+  }
+}
+
+final localePreferenceProvider = NotifierProvider<LocaleController, Locale?>(
+  LocaleController.new,
 );
 
 /// The connected storefront config. Refresh with `ref.invalidate` after

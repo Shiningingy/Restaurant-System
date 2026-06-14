@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
+import '../../../core/l10n_ext.dart';
 import '../application/providers.dart';
 
 class ModifierGroupsTab extends ConsumerWidget {
@@ -14,14 +15,10 @@ class ModifierGroupsTab extends ConsumerWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _editGroup(context, ref, null),
         icon: const Icon(Icons.add),
-        label: const Text('Group'),
+        label: Text(context.l10n.modGroup),
       ),
       body: groups.isEmpty
-          ? const Center(
-              child: Text(
-                'Modifier groups (e.g. "Size", "Add-ons") appear here.',
-              ),
-            )
+          ? Center(child: Text(context.l10n.modGroupsEmpty))
           : ListView.builder(
               padding: const EdgeInsets.only(bottom: 88),
               itemCount: groups.length,
@@ -34,7 +31,7 @@ class ModifierGroupsTab extends ConsumerWidget {
                   ),
                   child: ExpansionTile(
                     title: Text(g.name),
-                    subtitle: Text(_requirementLabel(g)),
+                    subtitle: Text(_requirementLabel(context, g)),
                     childrenPadding: const EdgeInsets.only(left: 16, bottom: 8),
                     children: [
                       for (final m in g.modifiers)
@@ -60,17 +57,17 @@ class ModifierGroupsTab extends ConsumerWidget {
                             onPressed: () =>
                                 _editModifier(context, ref, g.id, null),
                             icon: const Icon(Icons.add, size: 18),
-                            label: const Text('Modifier'),
+                            label: Text(context.l10n.modModifier),
                           ),
                           TextButton.icon(
                             onPressed: () => _editGroup(context, ref, g),
                             icon: const Icon(Icons.edit_outlined, size: 18),
-                            label: const Text('Edit group'),
+                            label: Text(context.l10n.modEditGroup),
                           ),
                           TextButton.icon(
                             onPressed: () => _deleteGroup(context, ref, g),
                             icon: const Icon(Icons.delete_outline, size: 18),
-                            label: const Text('Delete group'),
+                            label: Text(context.l10n.modDeleteGroup),
                           ),
                         ],
                       ),
@@ -82,14 +79,16 @@ class ModifierGroupsTab extends ConsumerWidget {
     );
   }
 
-  String _requirementLabel(domain.ModifierGroup g) {
+  String _requirementLabel(BuildContext context, domain.ModifierGroup g) {
     if (g.minSelect == 0) {
       return g.maxSelect == 1
-          ? 'Optional, pick one'
-          : 'Optional, up to ${g.maxSelect}';
+          ? context.l10n.modOptionalPickOne
+          : context.l10n.modOptionalUpTo(g.maxSelect);
     }
-    if (g.minSelect == g.maxSelect) return 'Required, pick ${g.minSelect}';
-    return 'Required, pick ${g.minSelect}-${g.maxSelect}';
+    if (g.minSelect == g.maxSelect) {
+      return context.l10n.modRequiredPick(g.minSelect);
+    }
+    return context.l10n.modRequiredPickRange(g.minSelect, g.maxSelect);
   }
 
   Future<void> _editGroup(
@@ -103,15 +102,19 @@ class ModifierGroupsTab extends ConsumerWidget {
     final saved = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(existing == null ? 'New modifier group' : 'Edit group'),
+        title: Text(
+          existing == null
+              ? context.l10n.modNewGroup
+              : context.l10n.modEditGroup,
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: name,
               autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'Name (e.g. Size, Add-ons)',
+              decoration: InputDecoration(
+                labelText: context.l10n.modGroupNameLabel,
               ),
             ),
             Row(
@@ -119,7 +122,9 @@ class ModifierGroupsTab extends ConsumerWidget {
                 Expanded(
                   child: TextField(
                     controller: min,
-                    decoration: const InputDecoration(labelText: 'Min picks'),
+                    decoration: InputDecoration(
+                      labelText: context.l10n.modMinPicks,
+                    ),
                     keyboardType: TextInputType.number,
                   ),
                 ),
@@ -127,7 +132,9 @@ class ModifierGroupsTab extends ConsumerWidget {
                 Expanded(
                   child: TextField(
                     controller: max,
-                    decoration: const InputDecoration(labelText: 'Max picks'),
+                    decoration: InputDecoration(
+                      labelText: context.l10n.modMaxPicks,
+                    ),
                     keyboardType: TextInputType.number,
                   ),
                 ),
@@ -138,11 +145,11 @@ class ModifierGroupsTab extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Save'),
+            child: Text(context.l10n.commonSave),
           ),
         ],
       ),
@@ -182,21 +189,25 @@ class ModifierGroupsTab extends ConsumerWidget {
     final saved = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(existing == null ? 'New modifier' : 'Edit modifier'),
+        title: Text(
+          existing == null
+              ? context.l10n.modNewModifier
+              : context.l10n.modEditModifier,
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: name,
               autofocus: true,
-              decoration: const InputDecoration(labelText: 'Name'),
+              decoration: InputDecoration(labelText: context.l10n.modName),
             ),
             TextField(
               controller: delta,
-              decoration: const InputDecoration(
-                labelText: 'Price change',
+              decoration: InputDecoration(
+                labelText: context.l10n.modPriceChange,
                 prefixText: r'$',
-                helperText: 'Can be negative, e.g. -0.50',
+                helperText: context.l10n.modPriceChangeHelper,
               ),
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
@@ -208,11 +219,11 @@ class ModifierGroupsTab extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Save'),
+            child: Text(context.l10n.commonSave),
           ),
         ],
       ),
@@ -240,18 +251,16 @@ class ModifierGroupsTab extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Delete "${g.name}"?'),
-        content: const Text(
-          'Items lose this group. Past orders are unaffected (they keep snapshots).',
-        ),
+        title: Text(context.l10n.modDeleteGroupConfirm(g.name)),
+        content: Text(context.l10n.modDeleteGroupBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
+            child: Text(context.l10n.commonDelete),
           ),
         ],
       ),

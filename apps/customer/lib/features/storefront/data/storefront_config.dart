@@ -35,10 +35,18 @@ class StorefrontConfigRepository {
   static const _phoneKey = 'customerPhone';
   static const _refreshKey = 'storefrontRefreshToken';
   static const _uidKey = 'storefrontCustomerUid';
+  static const _appLocaleKey = 'appLocale';
 
   final SharedPreferences prefs;
 
   StorefrontConfigRepository(this.prefs);
+
+  /// Preferred UI language code ('en' / 'zh'), or null to follow the system.
+  String? get appLocaleCode => prefs.getString(_appLocaleKey);
+
+  Future<void> setAppLocaleCode(String? code) => code == null
+      ? prefs.remove(_appLocaleKey)
+      : prefs.setString(_appLocaleKey, code);
 
   StorefrontConfig get config => StorefrontConfig(
     url: prefs.getString(_urlKey),

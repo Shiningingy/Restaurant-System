@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
+import '../../../core/l10n_ext.dart';
+
 /// Lets the server pick modifiers for an item, enforcing each group's
 /// min/max selection. Returns the chosen modifiers, or null on cancel.
 Future<List<domain.Modifier>?> showModifierPicker(
@@ -62,7 +64,7 @@ class _ModifierPickerDialogState extends State<_ModifierPickerDialog> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Text(
-                  '${group.name}  (${_requirementLabel(group)})',
+                  '${group.name}  (${_requirementLabel(context, group)})',
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
               ),
@@ -91,7 +93,7 @@ class _ModifierPickerDialogState extends State<_ModifierPickerDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.commonCancel),
         ),
         FilledButton(
           onPressed: _valid
@@ -99,17 +101,19 @@ class _ModifierPickerDialogState extends State<_ModifierPickerDialog> {
                   for (final list in _selected.values) ...list,
                 ])
               : null,
-          child: const Text('Add to order'),
+          child: Text(context.l10n.modAddToOrder),
         ),
       ],
     );
   }
 
-  String _requirementLabel(domain.ModifierGroup g) {
+  String _requirementLabel(BuildContext context, domain.ModifierGroup g) {
     if (g.minSelect == 0) {
-      return g.maxSelect == 1 ? 'optional' : 'up to ${g.maxSelect}';
+      return g.maxSelect == 1
+          ? context.l10n.modOptional
+          : context.l10n.modUpTo(g.maxSelect);
     }
-    if (g.minSelect == g.maxSelect) return 'pick ${g.minSelect}';
-    return 'pick ${g.minSelect}–${g.maxSelect}';
+    if (g.minSelect == g.maxSelect) return context.l10n.modPick(g.minSelect);
+    return context.l10n.modPickRange(g.minSelect, g.maxSelect);
   }
 }

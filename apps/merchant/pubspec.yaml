@@ -13,6 +13,8 @@ dependencies:
   drift_flutter: ^0.3.0
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   flutter_riverpod: ^3.0.0
   go_router: ^17.0.0
   http: ^1.2.0
@@ -30,3 +32,4 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  generate: true

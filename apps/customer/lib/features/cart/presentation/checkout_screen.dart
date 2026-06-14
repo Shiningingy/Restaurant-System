@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
+import '../../../core/l10n_ext.dart';
 import '../../storefront/application/providers.dart';
 import '../../storefront/presentation/status_screen.dart';
 import '../cart.dart';
@@ -51,10 +52,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   }
 
   Future<void> _place() async {
+    final l10n = context.l10n;
     final storefront = ref.read(storefrontProvider);
     if (storefront == null) return;
     if (_name.text.trim().isEmpty) {
-      setState(() => _error = 'Please enter your name.');
+      setState(() => _error = l10n.checkoutNameRequired);
       return;
     }
     final cart = ref.read(cartProvider);
@@ -88,7 +90,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       if (mounted) {
         setState(() {
           _busy = false;
-          _error = 'Could not place the order: $e';
+          _error = l10n.checkoutOrderFailed(e.toString());
         });
       }
     }
@@ -98,26 +100,30 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   Widget build(BuildContext context) {
     final cart = ref.watch(cartProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Checkout')),
+      appBar: AppBar(title: Text(context.l10n.checkoutTitle)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           TextField(
             controller: _name,
-            decoration: const InputDecoration(labelText: 'Your name'),
+            decoration: InputDecoration(
+              labelText: context.l10n.checkoutNameLabel,
+            ),
             textCapitalization: TextCapitalization.words,
           ),
           const SizedBox(height: 12),
           TextField(
             controller: _phone,
-            decoration: const InputDecoration(labelText: 'Phone (optional)'),
+            decoration: InputDecoration(
+              labelText: context.l10n.checkoutPhoneLabel,
+            ),
             keyboardType: TextInputType.phone,
           ),
           const SizedBox(height: 12),
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.schedule),
-            title: const Text('Pickup time'),
+            title: Text(context.l10n.checkoutPickupTime),
             trailing: Text(
               _pickup.format(context),
               style: Theme.of(context).textTheme.titleMedium,
@@ -134,7 +140,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Total', style: Theme.of(context).textTheme.titleMedium),
+              Text(
+                context.l10n.checkoutTotal,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
               Text(
                 cart.total.format(),
                 style: Theme.of(context).textTheme.titleMedium,
@@ -143,7 +152,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Pay at the counter when you pick up.',
+            context.l10n.checkoutPayAtCounter,
             style: Theme.of(context).textTheme.bodySmall,
           ),
           if (_error != null) ...[
@@ -162,7 +171,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     height: 18,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Text('Place preorder'),
+                : Text(context.l10n.checkoutPlacePreorder),
           ),
         ],
       ),

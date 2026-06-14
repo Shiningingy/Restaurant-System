@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
+import '../../../core/l10n_ext.dart';
 import '../application/providers.dart';
 
 /// Live status of a placed preorder, polled from the storefront.
@@ -24,7 +25,7 @@ class StatusScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Your preorder'),
+        title: Text(context.l10n.statusTitle),
         automaticallyImplyLeading: false,
       ),
       body: Center(
@@ -36,22 +37,22 @@ class StatusScreen extends ConsumerWidget {
               Icon(_icon(status), size: 72, color: _color(context, status)),
               const SizedBox(height: 16),
               Text(
-                _headline(status),
+                _headline(context, status),
                 style: Theme.of(context).textTheme.headlineSmall,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
-              Text(_detail(status), textAlign: TextAlign.center),
+              Text(_detail(context, status), textAlign: TextAlign.center),
               const SizedBox(height: 24),
               Text(
-                'Total ${total.format()} - pay at pickup',
+                context.l10n.statusTotalPayAtPickup(total.format()),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 32),
               OutlinedButton(
                 onPressed: () =>
                     Navigator.of(context).popUntil((r) => r.isFirst),
-                child: const Text('Back to menu'),
+                child: Text(context.l10n.statusBackToMenu),
               ),
             ],
           ),
@@ -77,23 +78,25 @@ class StatusScreen extends ConsumerWidget {
         _ => Theme.of(context).colorScheme.primary,
       };
 
-  String _headline(domain.OnlineOrderStatus? s) => switch (s) {
-    null => 'Sending your order...',
-    domain.OnlineOrderStatus.submitted => 'Waiting for the restaurant',
-    domain.OnlineOrderStatus.accepted => 'Accepted - being prepared',
-    domain.OnlineOrderStatus.ready => 'Ready for pickup!',
-    domain.OnlineOrderStatus.pickedUp => 'Picked up - enjoy!',
-    domain.OnlineOrderStatus.rejected => 'Order declined',
+  String _headline(
+    BuildContext context,
+    domain.OnlineOrderStatus? s,
+  ) => switch (s) {
+    null => context.l10n.statusSendingHeadline,
+    domain.OnlineOrderStatus.submitted => context.l10n.statusSubmittedHeadline,
+    domain.OnlineOrderStatus.accepted => context.l10n.statusAcceptedHeadline,
+    domain.OnlineOrderStatus.ready => context.l10n.statusReadyHeadline,
+    domain.OnlineOrderStatus.pickedUp => context.l10n.statusPickedUpHeadline,
+    domain.OnlineOrderStatus.rejected => context.l10n.statusRejectedHeadline,
   };
 
-  String _detail(domain.OnlineOrderStatus? s) => switch (s) {
-    domain.OnlineOrderStatus.submitted =>
-      'The restaurant will confirm your order shortly.',
-    domain.OnlineOrderStatus.accepted =>
-      "We'll let you know when it's ready to collect.",
-    domain.OnlineOrderStatus.ready => 'Head to the counter to pick up and pay.',
-    domain.OnlineOrderStatus.rejected =>
-      'Sorry - the restaurant could not take this order.',
-    _ => '',
-  };
+  String _detail(BuildContext context, domain.OnlineOrderStatus? s) =>
+      switch (s) {
+        domain.OnlineOrderStatus.submitted =>
+          context.l10n.statusSubmittedDetail,
+        domain.OnlineOrderStatus.accepted => context.l10n.statusAcceptedDetail,
+        domain.OnlineOrderStatus.ready => context.l10n.statusReadyDetail,
+        domain.OnlineOrderStatus.rejected => context.l10n.statusRejectedDetail,
+        _ => '',
+      };
 }
