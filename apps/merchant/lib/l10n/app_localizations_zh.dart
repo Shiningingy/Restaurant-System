@@ -1068,4 +1068,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get captureCreateTemplate => '创建模板';
+
+  @override
+  String get captureResetRegions => '重置布局';
 }

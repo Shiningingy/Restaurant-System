@@ -13,6 +13,7 @@ import '../domain/text_recognizer.dart';
 import 'draft_review_screen.dart';
 import 'field_display.dart';
 import 'photo_box_canvas.dart';
+import 'region_layers_bar.dart';
 import 'template_editor_screen.dart';
 import 'template_list_screen.dart';
 
@@ -41,6 +42,12 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
 
   RegionRect _block = kDefaultCaptureBlock;
   bool _showLabels = true;
+
+  /// A working copy of the chosen template's regions. Editable per item during
+  /// the sweep (items vary slightly), seeded from the template and resettable.
+  List<CaptureRegion> _regions = const [];
+  String? _selectedRegionId;
+
   final List<ItemDraft> _drafts = [];
 
   Future<void> _pickPhoto() async {
@@ -80,7 +87,11 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
     final imageBox = PixelBox.ltwh(0, 0, _imageSize!.width, _imageSize!.height);
     final draft = ref
         .read(captureEngineProvider)
-        .buildDraft(_ocr!, _template!, _block.toPixels(imageBox));
+        .buildDraft(
+          _ocr!,
+          _template!.copyWith(regions: _regions),
+          _block.toPixels(imageBox),
+        );
     setState(() {
       if (!draft.isEmpty) _drafts.add(draft);
       // Auto-advance the block down by its own height for the next item.
@@ -90,6 +101,23 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
         width: _block.width,
         height: _block.height,
       );
+    });
+  }
+
+  void _updateRegion(String id, RegionRect rect) {
+    setState(() {
+      _regions = [
+        for (final r in _regions)
+          if (r.id == id) r.copyWith(rect: rect) else r,
+      ];
+    });
+  }
+
+  void _resetRegions() {
+    if (_template == null) return;
+    setState(() {
+      _regions = [..._template!.regions];
+      _selectedRegionId = null;
     });
   }
 
@@ -144,6 +172,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
           _setupBar(context, categories, templates),
           if (_ocrRunning) const LinearProgressIndicator(),
           Expanded(child: _canvasArea(context, templates, ready)),
+          if (ready && _regions.isNotEmpty) _layersBar(context),
         ],
       ),
       floatingActionButton: ready
@@ -186,9 +215,16 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
             ],
             onChanged: (v) => setState(() {
               _template = v;
+              _selectedRegionId = null;
               // Start the block at the size the template was designed with, so
-              // the regions keep their proportions.
-              if (v != null) _block = v.block;
+              // the regions keep their proportions; take a working copy of its
+              // regions for per-item tweaks.
+              if (v != null) {
+                _block = v.block;
+                _regions = [...v.regions];
+              } else {
+                _regions = const [];
+              }
             }),
           ),
           OutlinedButton.icon(
@@ -222,7 +258,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
     if (_template == null) {
       return Center(child: Text(context.l10n.captureSelectTemplateFirst));
     }
-    final colors = captureRegionColors(_template!.regions);
+    final colors = captureRegionColors(_regions);
     return ColoredBox(
       color: Colors.black12,
       child: PhotoBoxCanvas(
@@ -231,8 +267,14 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
         block: _block,
         onBlockChanged: ready ? (b) => setState(() => _block = b) : null,
         showLabels: _showLabels,
+        // Per-item region tweaks during the sweep — items vary slightly.
+        selectedRegionId: _selectedRegionId,
+        onSelectRegion: ready
+            ? (id) => setState(() => _selectedRegionId = id)
+            : null,
+        onRegionChanged: ready ? _updateRegion : null,
         regions: [
-          for (final r in _template!.regions)
+          for (final r in _regions)
             CanvasRegion(
               id: r.id,
               rect: r.rect,
@@ -242,6 +284,34 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                   : r.label,
             ),
         ],
+      ),
+    );
+  }
+
+  /// Layer selector + reset for per-item region tweaks during the sweep.
+  Widget _layersBar(BuildContext context) {
+    final colors = captureRegionColors(_regions);
+    return Material(
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Row(
+          children: [
+            Expanded(
+              child: RegionChips(
+                regions: _regions,
+                colors: colors,
+                selectedId: _selectedRegionId,
+                onSelect: (id) => setState(() => _selectedRegionId = id),
+              ),
+            ),
+            TextButton.icon(
+              onPressed: _resetRegions,
+              icon: const Icon(Icons.restart_alt),
+              label: Text(context.l10n.captureResetRegions),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -2023,6 +2023,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Create a template'**
   String get captureCreateTemplate;
+
+  /// No description provided for @captureResetRegions.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset layout'**
+  String get captureResetRegions;
 }
 
 class _AppLocalizationsDelegate

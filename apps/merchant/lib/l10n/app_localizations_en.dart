@@ -1086,4 +1086,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get captureCreateTemplate => 'Create a template';
+
+  @override
+  String get captureResetRegions => 'Reset layout';
 }

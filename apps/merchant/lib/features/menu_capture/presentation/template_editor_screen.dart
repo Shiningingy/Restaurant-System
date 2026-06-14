@@ -9,6 +9,7 @@ import '../domain/capture_template.dart';
 import '../domain/geometry.dart';
 import 'field_display.dart';
 import 'photo_box_canvas.dart';
+import 'region_layers_bar.dart';
 
 /// Lets the merchant lay out a capture template against a sample photo: drag a
 /// big block over one item, then draw labelled regions inside it. Regions are
@@ -259,29 +260,11 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen> {
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    for (final r in _regions)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: ChoiceChip(
-                          avatar: CircleAvatar(
-                            backgroundColor: colors[r.id],
-                            radius: 8,
-                          ),
-                          label: Text(
-                            r.label.isEmpty
-                                ? captureFieldLabel(context, r.field)
-                                : r.label,
-                          ),
-                          selected: r.id == _selectedId,
-                          onSelected: (_) => setState(() => _selectedId = r.id),
-                        ),
-                      ),
-                  ],
-                ),
+              child: RegionChips(
+                regions: _regions,
+                colors: colors,
+                selectedId: _selectedId,
+                onSelect: (id) => setState(() => _selectedId = id),
               ),
             ),
             if (_selectedId != null)

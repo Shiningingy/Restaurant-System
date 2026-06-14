@@ -335,5 +335,6 @@
   "captureUnsupportedPlatform": "照片导入目前仅支持 Windows。",
   "captureTemplatesShort": "模板",
   "captureLabelsToggle": "标签",
-  "captureCreateTemplate": "创建模板"
+  "captureCreateTemplate": "创建模板",
+  "captureResetRegions": "重置布局"
 }
