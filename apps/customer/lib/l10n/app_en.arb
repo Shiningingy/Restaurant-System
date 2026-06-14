@@ -1,0 +1,75 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "Preorder",
+  "languageMenuTooltip": "Language",
+  "languageSystem": "System default",
+
+  "connectTitle": "Connect to a restaurant",
+  "connectIntro": "Scan or enter the storefront your restaurant gave you to browse the menu and preorder for pickup.",
+  "connectUrlLabel": "Storefront URL",
+  "connectKeyLabel": "Access key",
+  "connectButton": "Connect",
+  "connectErrorEmptyFields": "Enter the restaurant URL and key.",
+
+  "menuTitle": "Menu",
+  "menuDisconnect": "Disconnect",
+  "menuOptionsAvailable": "Options available",
+  "menuEmpty": "This restaurant has no menu published yet.",
+  "menuLoadError": "Couldn't load the menu.\n{error}",
+  "@menuLoadError": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "menuViewCart": "View cart ({count}) — {total}",
+  "@menuViewCart": {
+    "placeholders": { "count": { "type": "int" }, "total": { "type": "String" } }
+  },
+  "menuItemAdded": "Added {name}",
+  "@menuItemAdded": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+
+  "itemPriceDelta": "+{delta}",
+  "@itemPriceDelta": {
+    "placeholders": { "delta": { "type": "String" } }
+  },
+  "itemAdd": "Add — {price}",
+  "@itemAdd": {
+    "placeholders": { "price": { "type": "String" } }
+  },
+
+  "cartTitle": "Your order",
+  "cartEmpty": "Your cart is empty.",
+  "cartTotal": "Total",
+  "cartCheckout": "Checkout",
+
+  "checkoutTitle": "Checkout",
+  "checkoutNameLabel": "Your name",
+  "checkoutPhoneLabel": "Phone (optional)",
+  "checkoutPickupTime": "Pickup time",
+  "checkoutTotal": "Total",
+  "checkoutPayAtCounter": "Pay at the counter when you pick up.",
+  "checkoutNameRequired": "Please enter your name.",
+  "checkoutOrderFailed": "Could not place the order: {error}",
+  "@checkoutOrderFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "checkoutPlacePreorder": "Place preorder",
+
+  "statusTitle": "Your preorder",
+  "statusSendingHeadline": "Sending your order…",
+  "statusSubmittedHeadline": "Waiting for the restaurant",
+  "statusAcceptedHeadline": "Accepted — being prepared",
+  "statusReadyHeadline": "Ready for pickup!",
+  "statusPickedUpHeadline": "Picked up — enjoy!",
+  "statusRejectedHeadline": "Order declined",
+  "statusSubmittedDetail": "The restaurant will confirm your order shortly.",
+  "statusAcceptedDetail": "We'll let you know when it's ready to collect.",
+  "statusReadyDetail": "Head to the counter to pick up and pay.",
+  "statusRejectedDetail": "Sorry — the restaurant could not take this order.",
+  "statusTotalPayAtPickup": "Total {total} — pay at pickup",
+  "@statusTotalPayAtPickup": {
+    "placeholders": { "total": { "type": "String" } }
+  },
+  "statusBackToMenu": "Back to menu"
+}

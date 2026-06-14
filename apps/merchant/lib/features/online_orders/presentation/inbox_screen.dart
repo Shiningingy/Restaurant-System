@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
+import '../../../core/l10n_ext.dart';
 import '../application/providers.dart';
 
 final _pickup = DateFormat('HH:mm');
@@ -18,24 +19,23 @@ class InboxScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Online orders'),
+        title: Text(context.l10n.inboxTitle),
         actions: [
           if (enabled)
             TextButton.icon(
               onPressed: () => _publishMenu(context, ref),
               icon: const Icon(Icons.cloud_upload_outlined),
-              label: const Text('Publish menu'),
+              label: Text(context.l10n.inboxPublishMenu),
             ),
           const SizedBox(width: 8),
         ],
       ),
       body: !enabled
-          ? const Center(
+          ? Center(
               child: Padding(
-                padding: EdgeInsets.all(32),
+                padding: const EdgeInsets.all(32),
                 child: Text(
-                  'Set up your Supabase project in Settings to accept online '
-                  'preorders. The POS works fully without it.',
+                  context.l10n.inboxDisabledHint,
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -44,16 +44,16 @@ class InboxScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(16),
               children: [
                 _Section(
-                  title: 'New preorders',
+                  title: context.l10n.inboxNewPreorders,
                   status: domain.OnlineOrderStatus.submitted,
-                  emptyLabel: 'No new preorders.',
+                  emptyLabel: context.l10n.inboxNoNewPreorders,
                   builder: (order) => _NewOrderCard(order: order),
                 ),
                 const SizedBox(height: 24),
                 _Section(
-                  title: 'Preparing',
+                  title: context.l10n.inboxPreparing,
                   status: domain.OnlineOrderStatus.accepted,
-                  emptyLabel: 'Nothing in progress.',
+                  emptyLabel: context.l10n.inboxNothingInProgress,
                   builder: (order) => _PreparingCard(order: order),
                 ),
               ],
@@ -63,13 +63,14 @@ class InboxScreen extends ConsumerWidget {
 
   Future<void> _publishMenu(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     try {
       await ref.read(inboxServiceProvider).publishMenu();
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Menu published to your storefront.')),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(l10n.inboxMenuPublished)));
     } on Object catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Publish failed: $e')));
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.inboxPublishFailed('$e'))),
+      );
     }
   }
 }
@@ -98,7 +99,7 @@ class _Section extends ConsumerWidget {
         ...switch (orders) {
           AsyncData(:final value) when value.isEmpty => [Text(emptyLabel)],
           AsyncData(:final value) => value.map(builder).toList(),
-          AsyncError(:final error) => [Text('Error: $error')],
+          AsyncError(:final error) => [Text(context.l10n.inboxError('$error'))],
           _ => const [Center(child: CircularProgressIndicator())],
         },
       ],
@@ -123,7 +124,10 @@ class _OrderSummary extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '${order.customerName} - pickup ${_pickup.format(order.requestedPickupAt)}',
+          context.l10n.inboxCustomerPickup(
+            order.customerName,
+            _pickup.format(order.requestedPickupAt),
+          ),
           style: Theme.of(context).textTheme.titleSmall,
         ),
         if (order.customerPhone != null) Text(order.customerPhone!),
@@ -135,7 +139,7 @@ class _OrderSummary extends StatelessWidget {
           ),
         const SizedBox(height: 4),
         Text(
-          'Total ${total.format()} - pay at pickup',
+          context.l10n.inboxTotalPayAtPickup(total.format()),
           style: Theme.of(context).textTheme.bodySmall,
         ),
       ],
@@ -163,12 +167,12 @@ class _NewOrderCard extends ConsumerWidget {
               children: [
                 TextButton(
                   onPressed: () => _reject(context, ref),
-                  child: const Text('Reject'),
+                  child: Text(context.l10n.inboxReject),
                 ),
                 const SizedBox(width: 8),
                 FilledButton(
                   onPressed: () => _accept(context, ref),
-                  child: const Text('Accept'),
+                  child: Text(context.l10n.inboxAccept),
                 ),
               ],
             ),
@@ -180,18 +184,18 @@ class _NewOrderCard extends ConsumerWidget {
 
   Future<void> _accept(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     await ref.read(inboxServiceProvider).accept(order);
     ref.invalidate(onlineOrdersByStatusProvider);
-    messenger.showSnackBar(
-      const SnackBar(content: Text('Accepted - added to orders.')),
-    );
+    messenger.showSnackBar(SnackBar(content: Text(l10n.inboxAcceptedAdded)));
   }
 
   Future<void> _reject(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     await ref.read(inboxServiceProvider).reject(order.id);
     ref.invalidate(onlineOrdersByStatusProvider);
-    messenger.showSnackBar(const SnackBar(content: Text('Preorder rejected.')));
+    messenger.showSnackBar(SnackBar(content: Text(l10n.inboxPreorderRejected)));
   }
 }
 
@@ -215,14 +219,15 @@ class _PreparingCard extends ConsumerWidget {
               child: FilledButton.icon(
                 onPressed: () async {
                   final messenger = ScaffoldMessenger.of(context);
+                  final l10n = context.l10n;
                   await ref.read(inboxServiceProvider).markReady(order.id);
                   ref.invalidate(onlineOrdersByStatusProvider);
                   messenger.showSnackBar(
-                    const SnackBar(content: Text('Customer notified: ready.')),
+                    SnackBar(content: Text(l10n.inboxCustomerNotifiedReady)),
                   );
                 },
                 icon: const Icon(Icons.notifications_active_outlined),
-                label: const Text('Mark ready'),
+                label: Text(context.l10n.inboxMarkReady),
               ),
             ),
           ],

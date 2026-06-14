@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/l10n_ext.dart';
+import '../../../core/language_menu.dart';
 import '../application/providers.dart';
 
 /// First-run screen: the customer connects to a restaurant's storefront
@@ -27,7 +29,7 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
 
   Future<void> _connect() async {
     if (_url.text.trim().isEmpty || _key.text.trim().isEmpty) {
-      setState(() => _error = 'Enter the restaurant URL and key.');
+      setState(() => _error = context.l10n.connectErrorEmptyFields);
       return;
     }
     setState(() {
@@ -43,7 +45,10 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Connect to a restaurant')),
+      appBar: AppBar(
+        title: Text(context.l10n.connectTitle),
+        actions: const [LanguageMenu()],
+      ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 420),
@@ -51,22 +56,21 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
             padding: const EdgeInsets.all(24),
             shrinkWrap: true,
             children: [
-              const Text(
-                'Scan or enter the storefront your restaurant gave you to '
-                'browse the menu and preorder for pickup.',
-              ),
+              Text(context.l10n.connectIntro),
               const SizedBox(height: 24),
               TextField(
                 controller: _url,
-                decoration: const InputDecoration(
-                  labelText: 'Storefront URL',
+                decoration: InputDecoration(
+                  labelText: context.l10n.connectUrlLabel,
                   hintText: 'https://xxxx.supabase.co',
                 ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: _key,
-                decoration: const InputDecoration(labelText: 'Access key'),
+                decoration: InputDecoration(
+                  labelText: context.l10n.connectKeyLabel,
+                ),
                 maxLines: 2,
               ),
               if (_error != null) ...[
@@ -85,7 +89,7 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
                         height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Connect'),
+                    : Text(context.l10n.connectButton),
               ),
             ],
           ),

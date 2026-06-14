@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/l10n_ext.dart';
 import 'features/storefront/application/providers.dart';
 import 'features/storefront/presentation/connect_screen.dart';
 import 'features/storefront/presentation/menu_screen.dart';
+import 'l10n/app_localizations.dart';
 
 class CustomerApp extends ConsumerWidget {
   const CustomerApp({super.key});
@@ -11,7 +13,10 @@ class CustomerApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
-      title: 'Preorder',
+      onGenerateTitle: (context) => context.l10n.appTitle,
+      locale: ref.watch(localePreferenceProvider),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
         useMaterial3: true,

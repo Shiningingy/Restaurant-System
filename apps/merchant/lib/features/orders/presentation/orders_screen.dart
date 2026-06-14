@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
+import '../../../core/l10n_ext.dart';
 import '../../settings/application/providers.dart';
 import '../application/providers.dart';
 
@@ -16,7 +17,7 @@ class OrdersScreen extends ConsumerWidget {
     final tableLabels = {for (final t in tables) t.id: t.label};
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Open Orders')),
+      appBar: AppBar(title: Text(context.l10n.ordersTitle)),
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -25,25 +26,24 @@ class OrdersScreen extends ConsumerWidget {
             heroTag: 'dineIn',
             onPressed: () => _newDineIn(context, ref),
             icon: const Icon(Icons.table_restaurant),
-            label: const Text('Dine-in'),
+            label: Text(context.l10n.orderDineIn),
           ),
           const SizedBox(height: 12),
           FloatingActionButton.extended(
             heroTag: 'takeout',
             onPressed: () => _newOrder(context, ref, domain.OrderType.takeout),
             icon: const Icon(Icons.takeout_dining),
-            label: const Text('Takeout'),
+            label: Text(context.l10n.orderTakeout),
           ),
         ],
       ),
       body: openOrders.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Failed to load orders: $e')),
+        error: (e, _) =>
+            Center(child: Text(context.l10n.ordersLoadFailed('$e'))),
         data: (orders) {
           if (orders.isEmpty) {
-            return const Center(
-              child: Text('No open orders - start a dine-in or takeout order.'),
-            );
+            return Center(child: Text(context.l10n.ordersEmpty));
           }
           return GridView.builder(
             padding: const EdgeInsets.all(16),
@@ -57,10 +57,11 @@ class OrdersScreen extends ConsumerWidget {
             itemBuilder: (context, i) {
               final order = orders[i];
               final title = switch (order.type) {
-                domain.OrderType.dineIn =>
-                  'Table ${tableLabels[order.tableId] ?? '?'}',
-                domain.OrderType.takeout => 'Takeout',
-                domain.OrderType.online => 'Online',
+                domain.OrderType.dineIn => context.l10n.orderTableLabel(
+                  tableLabels[order.tableId] ?? '?',
+                ),
+                domain.OrderType.takeout => context.l10n.orderTakeout,
+                domain.OrderType.online => context.l10n.orderOnline,
               };
               return Card(
                 child: InkWell(
@@ -118,22 +119,20 @@ class OrdersScreen extends ConsumerWidget {
         .where((t) => t.isActive)
         .toList();
     if (tables.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No tables yet - add tables in Settings.'),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.l10n.noTablesYet)));
       return;
     }
     final picked = await showDialog<domain.DiningTable>(
       context: context,
       builder: (context) => SimpleDialog(
-        title: const Text('Pick a table'),
+        title: Text(context.l10n.pickTable),
         children: [
           for (final t in tables)
             SimpleDialogOption(
               onPressed: () => Navigator.pop(context, t),
-              child: Text('Table ${t.label}'),
+              child: Text(context.l10n.orderTableLabel(t.label)),
             ),
         ],
       ),

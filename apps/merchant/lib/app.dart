@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'core/l10n_ext.dart';
+import 'features/settings/application/providers.dart';
+import 'l10n/app_localizations.dart';
 import 'features/menu/presentation/menu_screen.dart';
 import 'features/online_orders/presentation/inbox_screen.dart';
 import 'features/orders/presentation/order_screen.dart';
@@ -68,14 +72,14 @@ GoRouter _createRouter() => GoRouter(
   ],
 );
 
-class MerchantApp extends StatefulWidget {
+class MerchantApp extends ConsumerStatefulWidget {
   const MerchantApp({super.key});
 
   @override
-  State<MerchantApp> createState() => _MerchantAppState();
+  ConsumerState<MerchantApp> createState() => _MerchantAppState();
 }
 
-class _MerchantAppState extends State<MerchantApp> {
+class _MerchantAppState extends ConsumerState<MerchantApp> {
   late final GoRouter _router = _createRouter();
 
   @override
@@ -87,7 +91,10 @@ class _MerchantAppState extends State<MerchantApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Restaurant System',
+      onGenerateTitle: (context) => context.l10n.appTitle,
+      locale: ref.watch(localePreferenceProvider),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
         useMaterial3: true,
@@ -112,31 +119,31 @@ class _HomeShell extends StatelessWidget {
             onDestinationSelected: (i) =>
                 shell.goBranch(i, initialLocation: i == shell.currentIndex),
             labelType: NavigationRailLabelType.all,
-            destinations: const [
+            destinations: [
               NavigationRailDestination(
-                icon: Icon(Icons.receipt_long_outlined),
-                selectedIcon: Icon(Icons.receipt_long),
-                label: Text('Orders'),
+                icon: const Icon(Icons.receipt_long_outlined),
+                selectedIcon: const Icon(Icons.receipt_long),
+                label: Text(context.l10n.navOrders),
               ),
               NavigationRailDestination(
-                icon: Icon(Icons.restaurant_menu_outlined),
-                selectedIcon: Icon(Icons.restaurant_menu),
-                label: Text('Menu'),
+                icon: const Icon(Icons.restaurant_menu_outlined),
+                selectedIcon: const Icon(Icons.restaurant_menu),
+                label: Text(context.l10n.navMenu),
               ),
               NavigationRailDestination(
-                icon: Icon(Icons.inbox_outlined),
-                selectedIcon: Icon(Icons.inbox),
-                label: Text('Inbox'),
+                icon: const Icon(Icons.inbox_outlined),
+                selectedIcon: const Icon(Icons.inbox),
+                label: Text(context.l10n.navInbox),
               ),
               NavigationRailDestination(
-                icon: Icon(Icons.bar_chart_outlined),
-                selectedIcon: Icon(Icons.bar_chart),
-                label: Text('Reports'),
+                icon: const Icon(Icons.bar_chart_outlined),
+                selectedIcon: const Icon(Icons.bar_chart),
+                label: Text(context.l10n.navReports),
               ),
               NavigationRailDestination(
-                icon: Icon(Icons.settings_outlined),
-                selectedIcon: Icon(Icons.settings),
-                label: Text('Settings'),
+                icon: const Icon(Icons.settings_outlined),
+                selectedIcon: const Icon(Icons.settings),
+                label: Text(context.l10n.navSettings),
               ),
             ],
           ),

@@ -1,0 +1,368 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "Restaurant System",
+  "@appTitle": {
+    "description": "Application title shown in the OS task switcher"
+  },
+  "navOrders": "Orders",
+  "navMenu": "Menu",
+  "navInbox": "Inbox",
+  "navReports": "Reports",
+  "navSettings": "Settings",
+
+  "commonCancel": "Cancel",
+  "commonSave": "Save",
+  "commonDelete": "Delete",
+  "commonAdd": "Add",
+  "commonEdit": "Edit",
+  "commonClose": "Close",
+  "commonRemove": "Remove",
+  "commonDone": "Done",
+
+  "orderDineIn": "Dine-in",
+  "orderTakeout": "Takeout",
+  "orderOnline": "Online",
+  "orderTableLabel": "Table {label}",
+  "@orderTableLabel": {
+    "placeholders": { "label": { "type": "String" } }
+  },
+  "payCash": "Cash",
+  "payCard": "Card",
+  "payCardKeyed": "Card (keyed)",
+
+  "ordersTitle": "Open Orders",
+  "ordersEmpty": "No open orders — start a dine-in or takeout order.",
+  "ordersLoadFailed": "Failed to load orders: {error}",
+  "@ordersLoadFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "noTablesYet": "No tables yet — add tables in Settings.",
+  "pickTable": "Pick a table",
+
+  "ordVoidOrder": "Void order",
+  "ordDineInTitle": "Dine-in order",
+  "ordTakeoutTitle": "Takeout order",
+  "ordOnlineTitle": "Online order",
+  "ordOrderTitle": "Order",
+  "ordVoidConfirmTitle": "Void this order?",
+  "ordVoidConfirmBody": "The order is kept in history as voided.",
+  "ordKeep": "Keep",
+  "ordNoMenuYet": "No menu yet — add categories and items in Menu.",
+  "ordTapToAdd": "Tap menu items to add them.",
+  "ordVoidLine": "Void line",
+  "ordDecrease": "Decrease",
+  "ordQtyMultiplier": "x{qty}",
+  "@ordQtyMultiplier": {
+    "placeholders": { "qty": { "type": "int" } }
+  },
+  "ordSubtotal": "Subtotal",
+  "ordTaxPercent": "Tax ({rate}%)",
+  "@ordTaxPercent": {
+    "placeholders": { "rate": { "type": "String" } }
+  },
+  "ordTotal": "Total",
+  "ordPaidMethod": "Paid — {method}",
+  "@ordPaidMethod": {
+    "placeholders": { "method": { "type": "String" } }
+  },
+  "ordTipSuffix": " (tip {tip})",
+  "@ordTipSuffix": {
+    "placeholders": { "tip": { "type": "String" } }
+  },
+  "ordBalanceDue": "Balance due",
+  "ordReprintKitchenTicket": "Reprint kitchen ticket",
+  "ordSendToKitchen": "Send to kitchen",
+  "ordPayAmount": "Pay {amount}",
+  "@ordPayAmount": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "ordClosed": "Closed",
+  "ordNoPrinterConfigured": "No printer configured — set one up in Settings.",
+  "ordKitchenTicketQueued": "Kitchen ticket queued.",
+  "ordPartialPaymentRecorded": "Partial payment recorded — order stays open.",
+  "ordCardDeclined": "Card declined — not recorded as paid.",
+  "ordPaymentFailed": "Payment failed: {message}",
+  "@ordPaymentFailed": {
+    "placeholders": { "message": { "type": "String" } }
+  },
+
+  "menuTitle": "Menu",
+  "menuItems": "Items",
+  "menuModifierGroups": "Modifier groups",
+  "menuHiddenFromOrderScreen": "Hidden from order screen",
+  "menuCategory": "Category",
+  "menuCreateCategoryToStart": "Create a category to start your menu.",
+  "menuNewCategory": "New category",
+  "menuEditCategory": "Edit category",
+  "menuName": "Name",
+  "menuVisibleOnOrderScreen": "Visible on order screen",
+  "menuItem": "Item",
+  "menuNoItemsInCategory": "No items in this category yet.",
+  "menuNewItem": "New item",
+  "menuEditItem": "Edit item",
+  "menuPrice": "Price",
+
+  "modGroup": "Group",
+  "modGroupsEmpty": "Modifier groups (e.g. \"Size\", \"Add-ons\") appear here.",
+  "modModifier": "Modifier",
+  "modEditGroup": "Edit group",
+  "modDeleteGroup": "Delete group",
+  "modOptionalPickOne": "Optional, pick one",
+  "modOptionalUpTo": "Optional, up to {n}",
+  "@modOptionalUpTo": {
+    "placeholders": { "n": { "type": "int" } }
+  },
+  "modRequiredPick": "Required, pick {n}",
+  "@modRequiredPick": {
+    "placeholders": { "n": { "type": "int" } }
+  },
+  "modRequiredPickRange": "Required, pick {min}-{max}",
+  "@modRequiredPickRange": {
+    "placeholders": { "min": { "type": "int" }, "max": { "type": "int" } }
+  },
+  "modNewGroup": "New modifier group",
+  "modGroupNameLabel": "Name (e.g. Size, Add-ons)",
+  "modMinPicks": "Min picks",
+  "modMaxPicks": "Max picks",
+  "modNewModifier": "New modifier",
+  "modEditModifier": "Edit modifier",
+  "modName": "Name",
+  "modPriceChange": "Price change",
+  "modPriceChangeHelper": "Can be negative, e.g. -0.50",
+  "modDeleteGroupConfirm": "Delete \"{name}\"?",
+  "@modDeleteGroupConfirm": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "modDeleteGroupBody": "Items lose this group. Past orders are unaffected (they keep snapshots).",
+  "modAddToOrder": "Add to order",
+  "modOptional": "optional",
+  "modUpTo": "up to {n}",
+  "@modUpTo": {
+    "placeholders": { "n": { "type": "int" } }
+  },
+  "modPick": "pick {n}",
+  "@modPick": {
+    "placeholders": { "n": { "type": "int" } }
+  },
+  "modPickRange": "pick {min}-{max}",
+  "@modPickRange": {
+    "placeholders": { "min": { "type": "int" }, "max": { "type": "int" } }
+  },
+
+  "pmtAmount": "Amount",
+  "pmtTipOptional": "Tip (optional)",
+  "pmtTipFromTerminal": "Tip from terminal (optional)",
+  "pmtEnterValidAmount": "Enter a valid amount.",
+  "pmtEnterValidTip": "Enter a valid tip.",
+  "pmtAmountExceedsBalance": "Amount exceeds the balance ({balance}).",
+  "@pmtAmountExceedsBalance": {
+    "placeholders": { "balance": { "type": "String" } }
+  },
+  "pmtCollect": "Collect {amount}",
+  "@pmtCollect": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "pmtKeyAmountOnTerminal": "Key {amount} on the terminal",
+  "@pmtKeyAmountOnTerminal": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "pmtKeyOnTerminalBody": "Enter the amount on the card terminal, then record the outcome shown on its screen.",
+  "pmtPartialPaymentHint": "Partial payment — the order stays open.",
+  "pmtLowerToSplitHint": "Lower the amount to split the bill.",
+  "pmtDeclined": "Declined",
+  "pmtApproved": "Approved",
+
+  "inboxTitle": "Online orders",
+  "inboxPublishMenu": "Publish menu",
+  "inboxDisabledHint": "Set up your Supabase project in Settings to accept online preorders. The POS works fully without it.",
+  "inboxNewPreorders": "New preorders",
+  "inboxNoNewPreorders": "No new preorders.",
+  "inboxPreparing": "Preparing",
+  "inboxNothingInProgress": "Nothing in progress.",
+  "inboxMenuPublished": "Menu published to your storefront.",
+  "inboxPublishFailed": "Publish failed: {error}",
+  "@inboxPublishFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "inboxError": "Error: {error}",
+  "@inboxError": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "inboxCustomerPickup": "{name} — pickup {time}",
+  "@inboxCustomerPickup": {
+    "placeholders": { "name": { "type": "String" }, "time": { "type": "String" } }
+  },
+  "inboxTotalPayAtPickup": "Total {total} — pay at pickup",
+  "@inboxTotalPayAtPickup": {
+    "placeholders": { "total": { "type": "String" } }
+  },
+  "inboxReject": "Reject",
+  "inboxAccept": "Accept",
+  "inboxAcceptedAdded": "Accepted — added to orders.",
+  "inboxPreorderRejected": "Preorder rejected.",
+  "inboxCustomerNotifiedReady": "Customer notified: ready.",
+  "inboxMarkReady": "Mark ready",
+
+  "repTitle": "Reports",
+  "repPreviousDay": "Previous day",
+  "repNextDay": "Next day",
+  "repCollected": "Collected",
+  "repItemSales": "Item sales",
+  "repItemQty": "{qty}x",
+  "@repItemQty": {
+    "placeholders": { "qty": { "type": "int" } }
+  },
+  "repOrderHistory": "Order history",
+  "repNoClosedOrders": "No closed orders on this day.",
+  "repOrders": "Orders",
+  "repOrdersVoided": "{count} voided",
+  "@repOrdersVoided": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "repGrossSales": "Gross sales",
+  "repSubtotalValue": "Subtotal {amount}",
+  "@repSubtotalValue": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "repTax": "Tax",
+  "repTips": "Tips",
+  "repPaymentsCount": "{count} payments",
+  "@repPaymentsCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "repPaymentsCountTips": "{count} payments — tips {tips}",
+  "@repPaymentsCountTips": {
+    "placeholders": { "count": { "type": "int" }, "tips": { "type": "String" } }
+  },
+  "repTotalCollected": "Total collected",
+  "repOrderVoidedSuffix": "{ref} — voided",
+  "@repOrderVoidedSuffix": {
+    "placeholders": { "ref": { "type": "String" } }
+  },
+  "repOrderVoidedParen": "{ref} (voided)",
+  "@repOrderVoidedParen": {
+    "placeholders": { "ref": { "type": "String" } }
+  },
+  "repLineQtyName": "{qty} x {name}",
+  "@repLineQtyName": {
+    "placeholders": { "qty": { "type": "int" }, "name": { "type": "String" } }
+  },
+  "repTotal": "Total",
+  "repTipValue": "Tip {amount}",
+  "@repTipValue": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "repReceiptQueued": "Receipt queued.",
+  "repReprintReceipt": "Reprint receipt",
+
+  "setLanguage": "Language",
+  "setLanguageSystem": "System default",
+  "setTax": "Tax",
+  "setSalesTaxRate": "Sales tax rate",
+  "setSalesTaxRateSubtitle": "Applied to new orders; existing orders keep their rate.",
+  "setPayments": "Payments",
+  "setCardTerminalManual": "Card terminal: manual entry",
+  "setCardTerminalManualSubtitle": "Staff key the amount on the standalone terminal and record the outcome. Semi-integrated Moneris Go support arrives once the Moneris Cloud API access is set up.",
+  "setPrinting": "Printing",
+  "setTestPrint": "Test print",
+  "setNetworkPrinter": "Network printer",
+  "setPrinterConfigured": "{host}:{port} — {width}mm paper",
+  "@setPrinterConfigured": {
+    "placeholders": { "host": { "type": "String" }, "port": { "type": "int" }, "width": { "type": "String" } }
+  },
+  "setPrinterNotConfigured": "Not configured. ESC/POS over LAN (port 9100).",
+  "setBusinessNameOnReceipts": "Business name on receipts",
+  "setBusinessName": "Business name",
+  "setReceiptFooter": "Receipt footer",
+  "setPrintQueue": "Print queue",
+  "setTables": "Tables",
+  "setTableButton": "Table",
+  "setAddTablesHint": "Add tables to enable dine-in orders.",
+  "setInactive": "Inactive",
+  "setRate": "Rate",
+  "setTestPageSent": "Test page sent to the printer.",
+  "setTestPrintFailed": "Test print failed: {message}",
+  "@setTestPrintFailed": {
+    "placeholders": { "message": { "type": "String" } }
+  },
+  "setPrinterIp": "Printer IP address",
+  "setPrinterIpHelper": "Leave empty to disable printing.",
+  "setPort": "Port",
+  "setPaper58": "58mm paper",
+  "setPaper80": "80mm paper",
+  "setNewTable": "New table",
+  "setEditTable": "Edit table",
+  "setTableLabelHint": "Label (e.g. 1, 2, Patio A)",
+  "setActive": "Active",
+  "setJobKitchenTicket": "Kitchen ticket",
+  "setJobCustomerReceipt": "Customer receipt",
+  "setJobTestPage": "Test page",
+  "setJobQueued": "Queued",
+  "setJobPrinting": "Printing…",
+  "setJobPrinted": "Printed",
+  "setJobFailed": "Failed",
+  "setJobStatusError": "{status} — {error}",
+  "@setJobStatusError": {
+    "placeholders": { "status": { "type": "String" }, "error": { "type": "String" } }
+  },
+  "setRetry": "Retry",
+  "setDiscard": "Discard",
+  "setCloudSync": "Cloud sync",
+  "setCloudBackingUp": "Backing up to your Supabase",
+  "setCloudNotConfigured": "Not configured",
+  "setCloudConfiguredSubtitle": "{url}\nOptional — the POS works fully offline.",
+  "@setCloudConfiguredSubtitle": {
+    "placeholders": { "url": { "type": "String" } }
+  },
+  "setCloudNotConfiguredSubtitle": "Back up and sync to your own Supabase project. Optional; the POS works fully offline without it.",
+  "setSetUp": "Set up",
+  "setSignedInAs": "Signed in as {email}",
+  "@setSignedInAs": {
+    "placeholders": { "email": { "type": "String" } }
+  },
+  "setSignInRequired": "Restaurant sign-in required",
+  "setSignedInSubtitle": "Sync and online orders use this secure login.",
+  "setSignInRequiredSubtitle": "Cloud features need your restaurant Supabase login so your data stays private. (Customers never get it.)",
+  "setSignOut": "Sign out",
+  "setSignIn": "Sign in",
+  "setLastSynced": "Last synced {time}",
+  "@setLastSynced": {
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "setSyncNow": "Sync now",
+  "setRestoreFromCloud": "Restore from cloud",
+  "setRestaurantSignIn": "Restaurant sign-in",
+  "setSignInBody": "Sign in with the Supabase user you created for this restaurant. This keeps your data private from customers.",
+  "setEmail": "Email",
+  "setPassword": "Password",
+  "setSignedInMsg": "Signed in.",
+  "setSignInFailed": "Sign-in failed: {error}",
+  "@setSignInFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "setSignedOutMsg": "Signed out.",
+  "setSyncedMsg": "Synced: {pulled} in, {pushed} out.",
+  "@setSyncedMsg": {
+    "placeholders": { "pulled": { "type": "int" }, "pushed": { "type": "int" } }
+  },
+  "setSyncFailed": "Sync failed: {error}",
+  "@setSyncFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "setRestoreTitle": "Restore from cloud?",
+  "setRestoreBody": "Pulls the full history from your Supabase and applies it to this device. Use this on a new or wiped tablet. Existing local data is merged (last write wins), never wiped.",
+  "setRestore": "Restore",
+  "setRestoredMsg": "Restored {pulled} changes from the cloud.",
+  "@setRestoredMsg": {
+    "placeholders": { "pulled": { "type": "int" } }
+  },
+  "setRestoreFailed": "Restore failed: {error}",
+  "@setRestoreFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "setYourSupabaseProject": "Your Supabase project",
+  "setSupabaseBody": "Enter your project URL and anon (public) key. Create a \"sync_changes\" table first — see the setup SQL in the docs. Leave the URL empty to turn sync off.",
+  "setProjectUrl": "Project URL",
+  "setAnonKey": "Anon key"
+}

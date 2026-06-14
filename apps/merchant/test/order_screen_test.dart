@@ -5,6 +5,7 @@ import 'package:merchant/app.dart';
 import 'package:merchant/core/providers.dart';
 import 'package:merchant/features/orders/data/order_repository.dart';
 import 'package:merchant/features/orders/presentation/order_screen.dart';
+import 'package:merchant/l10n/app_localizations.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -33,7 +34,12 @@ void main() {
           databaseProvider.overrideWithValue(db),
           sharedPreferencesProvider.overrideWithValue(prefs),
         ],
-        child: MaterialApp(home: OrderScreen(orderId: orderId)),
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: OrderScreen(orderId: orderId),
+        ),
       ),
     );
     await tester.pump(const Duration(milliseconds: 300));
@@ -165,7 +171,7 @@ void main() {
     await tester.tap(find.text('Cash'));
     await pumpUntilFound(
       tester,
-      find.text('No open orders - start a dine-in or takeout order.'),
+      find.text('No open orders — start a dine-in or takeout order.'),
     );
     expect(find.text('Send to kitchen'), findsNothing);
 

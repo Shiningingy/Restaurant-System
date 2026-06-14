@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
+import '../../../core/l10n_ext.dart';
+import '../../../core/language_menu.dart';
 import '../../cart/cart.dart';
 import '../../cart/presentation/cart_screen.dart';
 import '../application/providers.dart';
@@ -17,14 +19,15 @@ class MenuScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(menuAsync.value?.restaurantName ?? 'Menu'),
+        title: Text(menuAsync.value?.restaurantName ?? context.l10n.menuTitle),
         actions: [
           IconButton(
-            tooltip: 'Disconnect',
+            tooltip: context.l10n.menuDisconnect,
             icon: const Icon(Icons.logout),
             onPressed: () =>
                 ref.read(storefrontConfigProvider.notifier).disconnect(),
           ),
+          const LanguageMenu(),
         ],
       ),
       body: menuAsync.when(
@@ -33,16 +36,14 @@ class MenuScreen extends ConsumerWidget {
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Text(
-              "Couldn't load the menu.\n$e",
+              context.l10n.menuLoadError(e.toString()),
               textAlign: TextAlign.center,
             ),
           ),
         ),
         data: (menu) {
           if (menu == null || menu.categories.isEmpty) {
-            return const Center(
-              child: Text('This restaurant has no menu published yet.'),
-            );
+            return Center(child: Text(context.l10n.menuEmpty));
           }
           return RefreshIndicator(
             onRefresh: () async => ref.invalidate(menuProvider),
@@ -61,7 +62,7 @@ class MenuScreen extends ConsumerWidget {
                       title: Text(item.name),
                       subtitle: item.modifierGroups.isEmpty
                           ? null
-                          : const Text('Options available'),
+                          : Text(context.l10n.menuOptionsAvailable),
                       trailing: Text(item.price.format()),
                       onTap: () => _addItem(context, ref, item),
                     ),
@@ -82,7 +83,10 @@ class MenuScreen extends ConsumerWidget {
                     MaterialPageRoute<void>(builder: (_) => const CartScreen()),
                   ),
                   child: Text(
-                    'View cart (${cart.itemCount}) - ${cart.total.format()}',
+                    context.l10n.menuViewCart(
+                      cart.itemCount,
+                      cart.total.format(),
+                    ),
                   ),
                 ),
               ),
@@ -95,6 +99,7 @@ class MenuScreen extends ConsumerWidget {
     WidgetRef ref,
     domain.PublishedItem item,
   ) async {
+    final l10n = context.l10n;
     final CartLine? line;
     if (item.modifierGroups.isEmpty) {
       line = CartLine(item: item);
@@ -106,7 +111,7 @@ class MenuScreen extends ConsumerWidget {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Added ${line.item.name}'),
+          content: Text(l10n.menuItemAdded(line.item.name)),
           duration: const Duration(seconds: 1),
         ),
       );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
+import '../../../core/l10n_ext.dart';
 import '../application/payment_service.dart';
 import '../application/providers.dart';
 
@@ -54,13 +55,14 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
   (domain.Money, domain.Money)? _validate() {
     final amount = domain.Money.tryParse(_amount.text);
     if (amount == null || amount.isZero || amount.isNegative) {
-      setState(() => _error = 'Enter a valid amount.');
+      setState(() => _error = context.l10n.pmtEnterValidAmount);
       return null;
     }
     if (amount > widget.balance) {
       setState(
-        () =>
-            _error = 'Amount exceeds the balance (${widget.balance.format()}).',
+        () => _error = context.l10n.pmtAmountExceedsBalance(
+          widget.balance.format(),
+        ),
       );
       return null;
     }
@@ -68,7 +70,7 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
         ? domain.Money.zero
         : domain.Money.tryParse(_tip.text);
     if (tip == null || tip.isNegative) {
-      setState(() => _error = 'Enter a valid tip.');
+      setState(() => _error = context.l10n.pmtEnterValidTip);
       return null;
     }
     return (amount, tip);
@@ -116,20 +118,17 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
       return await showDialog<domain.PaymentResult>(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text('Key ${amount.format()} on the terminal'),
+          title: Text(context.l10n.pmtKeyAmountOnTerminal(amount.format())),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Enter the amount on the card terminal, then record '
-                'the outcome shown on its screen.',
-              ),
+              Text(context.l10n.pmtKeyOnTerminalBody),
               const SizedBox(height: 16),
               TextField(
                 controller: tipController,
-                decoration: const InputDecoration(
-                  labelText: 'Tip from terminal (optional)',
+                decoration: InputDecoration(
+                  labelText: context.l10n.pmtTipFromTerminal,
                   prefixText: r'$',
                 ),
                 keyboardType: const TextInputType.numberWithOptions(
@@ -141,7 +140,7 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: Text(context.l10n.commonCancel),
             ),
             TextButton(
               onPressed: () => Navigator.pop(
@@ -151,7 +150,7 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
                   amount: amount,
                 ),
               ),
-              child: const Text('Declined'),
+              child: Text(context.l10n.pmtDeclined),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(
@@ -164,7 +163,7 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
                       domain.Money.zero,
                 ),
               ),
-              child: const Text('Approved'),
+              child: Text(context.l10n.pmtApproved),
             ),
           ],
         ),
@@ -180,7 +179,7 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
         domain.Money.tryParse(_amount.text) != widget.balance &&
         domain.Money.tryParse(_amount.text) != null;
     return AlertDialog(
-      title: Text('Collect ${widget.balance.format()}'),
+      title: Text(context.l10n.pmtCollect(widget.balance.format())),
       content: SizedBox(
         width: 360,
         child: Column(
@@ -191,11 +190,11 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
               controller: _amount,
               autofocus: true,
               decoration: InputDecoration(
-                labelText: 'Amount',
+                labelText: context.l10n.pmtAmount,
                 prefixText: r'$',
                 helperText: partial
-                    ? 'Partial payment - the order stays open.'
-                    : 'Lower the amount to split the bill.',
+                    ? context.l10n.pmtPartialPaymentHint
+                    : context.l10n.pmtLowerToSplitHint,
               ),
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
@@ -205,8 +204,8 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
             const SizedBox(height: 12),
             TextField(
               controller: _tip,
-              decoration: const InputDecoration(
-                labelText: 'Tip (optional)',
+              decoration: InputDecoration(
+                labelText: context.l10n.pmtTipOptional,
                 prefixText: r'$',
               ),
               keyboardType: const TextInputType.numberWithOptions(
@@ -227,17 +226,17 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
       actions: [
         TextButton(
           onPressed: _busy ? null : () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(context.l10n.commonCancel),
         ),
         OutlinedButton.icon(
           onPressed: _busy ? null : _card,
           icon: const Icon(Icons.credit_card_outlined),
-          label: const Text('Card'),
+          label: Text(context.l10n.payCard),
         ),
         FilledButton.icon(
           onPressed: _busy ? null : _cash,
           icon: const Icon(Icons.payments_outlined),
-          label: const Text('Cash'),
+          label: Text(context.l10n.payCash),
         ),
       ],
     );

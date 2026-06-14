@@ -60,7 +60,7 @@ void main() {
     );
     await pumpUntilFound(
       tester,
-      find.text('No open orders - start a dine-in or takeout order.'),
+      find.text('No open orders — start a dine-in or takeout order.'),
     );
 
     await tester.tap(find.text('Reports'));
