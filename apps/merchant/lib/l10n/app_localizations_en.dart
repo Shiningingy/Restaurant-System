@@ -783,4 +783,113 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setAnonKey => 'Anon key';
+
+  @override
+  String get navAdmin => 'Admin';
+
+  @override
+  String get roleOwner => 'Owner';
+
+  @override
+  String get roleManager => 'Manager';
+
+  @override
+  String get roleServer => 'Server';
+
+  @override
+  String get roleSignIn => 'Sign in';
+
+  @override
+  String get roleSwitchUser => 'Switch user';
+
+  @override
+  String get roleSignOut => 'Sign out';
+
+  @override
+  String get roleNoStaffYet => 'No staff set up yet';
+
+  @override
+  String get roleAccessRequired => 'Manager access required';
+
+  @override
+  String get pinEnterTitle => 'Enter PIN';
+
+  @override
+  String get pinFieldLabel => '4-digit PIN';
+
+  @override
+  String get pinIncorrect => 'Incorrect PIN';
+
+  @override
+  String get pinUnlock => 'Unlock';
+
+  @override
+  String get adminStaffSection => 'Staff & roles';
+
+  @override
+  String get adminAddStaff => 'Add staff';
+
+  @override
+  String get adminManageStaffOwnerOnly => 'Only an owner can manage staff.';
+
+  @override
+  String get adminNewStaff => 'New staff';
+
+  @override
+  String get adminEditStaff => 'Edit staff';
+
+  @override
+  String get adminStaffName => 'Name';
+
+  @override
+  String get adminStaffRole => 'Role';
+
+  @override
+  String get adminStaffNameRequired => 'Enter a name.';
+
+  @override
+  String get adminStaffPinRequired => 'Set a 4-digit PIN.';
+
+  @override
+  String get adminStaffPinKeepHint => 'Leave blank to keep the current PIN.';
+
+  @override
+  String get adminCannotDeleteLastOwner => 'Can\'t remove the last owner.';
+
+  @override
+  String adminRemoveStaffConfirm(String name) {
+    return 'Remove $name?';
+  }
+
+  @override
+  String get adminBootstrapTitle => 'Set up staff access';
+
+  @override
+  String get adminBootstrapBody =>
+      'Create the first owner account to turn on role-based access. Until then, everyone has full access.';
+
+  @override
+  String get adminCreateFirstOwner => 'Create the first owner';
+
+  @override
+  String get adminManagementSection => 'Management';
+
+  @override
+  String get adminComingSoon => 'Coming soon';
+
+  @override
+  String get adminOnlineAuth => 'Online authorizations';
+
+  @override
+  String get adminOnlineAuthBody =>
+      'When connected to your backend, high-risk actions can require a one-time passcode sent to the owner.';
+
+  @override
+  String get adminDiscounts => 'Discounts & comps';
+
+  @override
+  String get adminEndOfDay => 'End-of-day cash count';
+
+  @override
+  String get adminExport => 'Export data';
 }

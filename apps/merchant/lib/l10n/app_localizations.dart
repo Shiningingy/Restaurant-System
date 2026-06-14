@@ -1447,6 +1447,216 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Anon key'**
   String get setAnonKey;
+
+  /// No description provided for @navAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin'**
+  String get navAdmin;
+
+  /// No description provided for @roleOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get roleOwner;
+
+  /// No description provided for @roleManager.
+  ///
+  /// In en, this message translates to:
+  /// **'Manager'**
+  String get roleManager;
+
+  /// No description provided for @roleServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Server'**
+  String get roleServer;
+
+  /// No description provided for @roleSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get roleSignIn;
+
+  /// No description provided for @roleSwitchUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch user'**
+  String get roleSwitchUser;
+
+  /// No description provided for @roleSignOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get roleSignOut;
+
+  /// No description provided for @roleNoStaffYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No staff set up yet'**
+  String get roleNoStaffYet;
+
+  /// No description provided for @roleAccessRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Manager access required'**
+  String get roleAccessRequired;
+
+  /// No description provided for @pinEnterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter PIN'**
+  String get pinEnterTitle;
+
+  /// No description provided for @pinFieldLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'4-digit PIN'**
+  String get pinFieldLabel;
+
+  /// No description provided for @pinIncorrect.
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect PIN'**
+  String get pinIncorrect;
+
+  /// No description provided for @pinUnlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock'**
+  String get pinUnlock;
+
+  /// No description provided for @adminStaffSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff & roles'**
+  String get adminStaffSection;
+
+  /// No description provided for @adminAddStaff.
+  ///
+  /// In en, this message translates to:
+  /// **'Add staff'**
+  String get adminAddStaff;
+
+  /// No description provided for @adminManageStaffOwnerOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Only an owner can manage staff.'**
+  String get adminManageStaffOwnerOnly;
+
+  /// No description provided for @adminNewStaff.
+  ///
+  /// In en, this message translates to:
+  /// **'New staff'**
+  String get adminNewStaff;
+
+  /// No description provided for @adminEditStaff.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit staff'**
+  String get adminEditStaff;
+
+  /// No description provided for @adminStaffName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get adminStaffName;
+
+  /// No description provided for @adminStaffRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get adminStaffRole;
+
+  /// No description provided for @adminStaffNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name.'**
+  String get adminStaffNameRequired;
+
+  /// No description provided for @adminStaffPinRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a 4-digit PIN.'**
+  String get adminStaffPinRequired;
+
+  /// No description provided for @adminStaffPinKeepHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave blank to keep the current PIN.'**
+  String get adminStaffPinKeepHint;
+
+  /// No description provided for @adminCannotDeleteLastOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t remove the last owner.'**
+  String get adminCannotDeleteLastOwner;
+
+  /// No description provided for @adminRemoveStaffConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name}?'**
+  String adminRemoveStaffConfirm(String name);
+
+  /// No description provided for @adminBootstrapTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up staff access'**
+  String get adminBootstrapTitle;
+
+  /// No description provided for @adminBootstrapBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Create the first owner account to turn on role-based access. Until then, everyone has full access.'**
+  String get adminBootstrapBody;
+
+  /// No description provided for @adminCreateFirstOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Create the first owner'**
+  String get adminCreateFirstOwner;
+
+  /// No description provided for @adminManagementSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Management'**
+  String get adminManagementSection;
+
+  /// No description provided for @adminComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon'**
+  String get adminComingSoon;
+
+  /// No description provided for @adminOnlineAuth.
+  ///
+  /// In en, this message translates to:
+  /// **'Online authorizations'**
+  String get adminOnlineAuth;
+
+  /// No description provided for @adminOnlineAuthBody.
+  ///
+  /// In en, this message translates to:
+  /// **'When connected to your backend, high-risk actions can require a one-time passcode sent to the owner.'**
+  String get adminOnlineAuthBody;
+
+  /// No description provided for @adminDiscounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Discounts & comps'**
+  String get adminDiscounts;
+
+  /// No description provided for @adminEndOfDay.
+  ///
+  /// In en, this message translates to:
+  /// **'End-of-day cash count'**
+  String get adminEndOfDay;
+
+  /// No description provided for @adminExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export data'**
+  String get adminExport;
 }
 
 class _AppLocalizationsDelegate
