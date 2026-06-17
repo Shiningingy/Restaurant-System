@@ -5,8 +5,8 @@ import 'package:merchant/core/db/database.dart';
 import 'package:merchant/features/menu/data/menu_repository.dart';
 import 'package:merchant/features/orders/data/order_repository.dart';
 import 'package:merchant/features/payments/data/payment_repository.dart';
-import 'package:merchant/features/sync/data/sync_codec.dart';
-import 'package:merchant/features/sync/data/sync_journal.dart';
+import 'package:merchant/core/sync/sync_codec.dart';
+import 'package:merchant/core/sync/sync_journal.dart';
 import 'package:restaurant_domain/restaurant_domain.dart';
 
 import 'helpers/test_db.dart';

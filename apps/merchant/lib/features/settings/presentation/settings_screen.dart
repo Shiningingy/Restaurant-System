@@ -5,12 +5,12 @@ import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../../core/db/database.dart';
 import '../../../core/l10n_ext.dart';
+import '../../../core/settings/providers.dart';
+import '../../../core/settings/settings_repository.dart';
 import '../../../core/supabase_auth.dart';
 import '../../printing/application/providers.dart';
 import '../../sync/application/providers.dart';
 import '../../sync/data/sync_settings.dart';
-import '../application/providers.dart';
-import '../data/settings_repository.dart';
 
 final _dateTimeFormat = DateFormat('yyyy-MM-dd HH:mm');
 

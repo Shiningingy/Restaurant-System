@@ -11,7 +11,7 @@ import '../../payments/application/payment_service.dart';
 import '../../payments/application/providers.dart';
 import '../../payments/presentation/payment_sheet.dart';
 import '../../printing/application/providers.dart';
-import '../../settings/application/providers.dart';
+import '../../../core/settings/providers.dart';
 import '../application/providers.dart';
 import 'modifier_picker_dialog.dart';
 

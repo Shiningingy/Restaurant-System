@@ -2,8 +2,8 @@ import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../orders/data/order_repository.dart';
 import '../../payments/data/payment_repository.dart';
-import '../../settings/data/settings_repository.dart';
-import '../../settings/data/tables_repository.dart';
+import '../../../core/settings/settings_repository.dart';
+import '../../../core/settings/tables_repository.dart';
 import '../data/print_job_repository.dart';
 
 /// Renders tickets, queues them, and drains the queue against the

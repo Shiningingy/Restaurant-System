@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
-import '../../../core/db/database.dart';
+import '../db/database.dart';
 
 /// Entity names used on the wire. Each is a self-contained aggregate:
 /// [menuItem] carries its modifier-group ids, [order] carries its lines

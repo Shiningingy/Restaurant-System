@@ -6,8 +6,8 @@ import 'package:merchant/features/orders/data/order_repository.dart';
 import 'package:merchant/features/payments/data/payment_repository.dart';
 import 'package:merchant/features/printing/application/print_service.dart';
 import 'package:merchant/features/printing/data/print_job_repository.dart';
-import 'package:merchant/features/settings/data/settings_repository.dart';
-import 'package:merchant/features/settings/data/tables_repository.dart';
+import 'package:merchant/core/settings/settings_repository.dart';
+import 'package:merchant/core/settings/tables_repository.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 import 'package:shared_preferences/shared_preferences.dart';
 

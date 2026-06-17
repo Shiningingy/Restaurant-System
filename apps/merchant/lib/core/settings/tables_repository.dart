@@ -1,9 +1,9 @@
 import 'package:drift/drift.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
-import '../../../core/db/database.dart';
-import '../../sync/data/sync_codec.dart';
-import '../../sync/data/sync_journal.dart';
+import '../db/database.dart';
+import '../sync/sync_codec.dart';
+import '../sync/sync_journal.dart';
 
 class TablesRepository {
   final AppDatabase db;

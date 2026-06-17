@@ -2,10 +2,10 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
-import '../../../core/providers.dart';
-import '../../sync/application/providers.dart';
-import '../data/settings_repository.dart';
-import '../data/tables_repository.dart';
+import '../providers.dart';
+import '../sync/providers.dart';
+import 'settings_repository.dart';
+import 'tables_repository.dart';
 
 final settingsRepositoryProvider = Provider<SettingsRepository>(
   (ref) => SettingsRepository(ref.watch(sharedPreferencesProvider)),

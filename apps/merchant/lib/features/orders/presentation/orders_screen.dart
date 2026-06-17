@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../../core/l10n_ext.dart';
-import '../../settings/application/providers.dart';
+import '../../../core/settings/providers.dart';
 import '../application/providers.dart';
 
 class OrdersScreen extends ConsumerWidget {

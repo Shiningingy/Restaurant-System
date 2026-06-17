@@ -3,7 +3,7 @@ import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../menu/application/providers.dart';
 import '../../orders/application/providers.dart';
-import '../../settings/application/providers.dart';
+import '../../../core/settings/providers.dart';
 import '../../sync/application/providers.dart';
 import '../data/menu_publisher.dart';
 import '../drivers/noop_online_order_channel.dart';

@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
-import '../data/sync_codec.dart';
-import '../data/sync_journal.dart';
+import '../../../core/sync/sync_codec.dart';
+import '../../../core/sync/sync_journal.dart';
 import '../data/sync_settings.dart';
 
 /// Result of a sync cycle, for the Settings UI.

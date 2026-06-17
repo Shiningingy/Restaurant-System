@@ -8,7 +8,7 @@ import 'package:merchant/features/online_orders/application/inbox_service.dart';
 import 'package:merchant/features/online_orders/data/menu_publisher.dart';
 import 'package:merchant/features/online_orders/drivers/supabase_online_order_channel.dart';
 import 'package:merchant/features/orders/data/order_repository.dart';
-import 'package:merchant/features/settings/data/settings_repository.dart';
+import 'package:merchant/core/settings/settings_repository.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 import 'package:shared_preferences/shared_preferences.dart';
 

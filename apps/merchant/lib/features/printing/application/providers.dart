@@ -4,7 +4,7 @@ import '../../../core/db/database.dart';
 import '../../../core/providers.dart';
 import '../../orders/application/providers.dart';
 import '../../payments/application/providers.dart';
-import '../../settings/application/providers.dart';
+import '../../../core/settings/providers.dart';
 import '../data/print_job_repository.dart';
 import '../drivers/escpos_network_driver.dart';
 import 'print_service.dart';

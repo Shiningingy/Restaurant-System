@@ -6,7 +6,7 @@ import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 import '../../orders/application/providers.dart';
 import '../../payments/application/providers.dart';
 import '../../printing/application/providers.dart';
-import '../../settings/application/providers.dart';
+import '../../../core/settings/providers.dart';
 import '../../../core/l10n_ext.dart';
 import '../../../core/labels.dart';
 import '../application/providers.dart';
