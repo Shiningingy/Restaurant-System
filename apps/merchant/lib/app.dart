@@ -7,7 +7,7 @@ import 'features/admin/application/providers.dart';
 import 'features/admin/domain/staff.dart';
 import 'features/admin/presentation/admin_screen.dart';
 import 'features/admin/presentation/role_indicator.dart';
-import 'features/settings/application/providers.dart';
+import 'core/settings/providers.dart';
 import 'l10n/app_localizations.dart';
 import 'features/menu/presentation/menu_screen.dart';
 import 'features/online_orders/presentation/inbox_screen.dart';

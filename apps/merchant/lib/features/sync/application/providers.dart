@@ -3,8 +3,7 @@ import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../../core/providers.dart';
 import '../../../core/supabase_auth.dart';
-import '../data/sync_codec.dart';
-import '../data/sync_journal.dart';
+import '../../../core/sync/providers.dart';
 import '../data/sync_settings.dart';
 import '../drivers/noop_sync_backend.dart';
 import '../drivers/supabase_sync_backend.dart';
@@ -41,16 +40,6 @@ final supabaseAuthProvider = Provider<SupabaseAuth?>((ref) {
 /// Token callback for the cloud drivers (null when signed out → drivers
 /// fall back to the anon key, which RLS will rightly restrict).
 Future<String?> Function()? _bearer(SupabaseAuth? auth) => auth?.accessToken;
-
-/// One shared journal for the whole app, so its monotonic change clock is
-/// global — every repository writes through this instance.
-final syncJournalProvider = Provider<SyncJournal>(
-  (ref) => SyncJournal(ref.watch(databaseProvider)),
-);
-
-final syncCodecProvider = Provider<SyncCodec>(
-  (ref) => SyncCodec(ref.watch(databaseProvider)),
-);
 
 final syncServiceProvider = Provider<SyncService>((ref) {
   final settings = ref.watch(syncSettingsProvider);

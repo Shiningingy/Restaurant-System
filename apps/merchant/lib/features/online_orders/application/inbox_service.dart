@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../orders/data/order_repository.dart';
-import '../../settings/data/settings_repository.dart';
+import '../../../core/settings/settings_repository.dart';
 import '../data/menu_publisher.dart';
 import '../drivers/supabase_online_order_channel.dart';
 

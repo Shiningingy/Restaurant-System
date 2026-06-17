@@ -14,15 +14,47 @@ apps/customer        Menu browsing + preorder for pickup (Phase 6). Talks to
 
 Dependency resolution is a single pub workspace (root `pubspec.yaml`).
 
+## Tiers inside an app
+
+Each app is `lib/core/` + `lib/features/<feature>/`. Dependencies flow **down**
+these tiers; there are no cycles.
+
+```
+packages/domain   Pure-Dart entities, value types, the four ports. Knows nothing
+                  about Flutter, Drift, or the apps.
+core/             Shared infrastructure every feature may use:
+                  • core/db        — the Drift database + tables
+                  • core/sync      — the always-on journaling kernel
+                                     (SyncJournal + SyncCodec, with providers)
+                  • core/settings  — device settings & table config
+                                     (SettingsRepository, TablesRepository, providers)
+                  • core/providers, core/supabase_auth, core/l10n_ext, widgets…
+features/<x>/     A vertical slice (menu, orders, payments, printing, reports,
+                  online_orders, menu_capture, sync, settings…).
+```
+
+`core/` depends only on `packages/domain` (and infra packages); it never imports
+a feature. The optional **cloud sync feature** (`features/sync`: `SyncService`,
+the backends, `SyncSettings`) builds *on top of* the `core/sync` kernel — the
+kernel journals every write whether or not a cloud is configured.
+
 ## Layering rule
 
-Within each feature folder: `presentation → application → data → domain/core`.
+Within each feature folder: `presentation → application → data → domain`, and any
+layer may use `core/` + `packages/domain`.
 
-- `presentation/` — widgets, screens; no business logic.
+- `presentation/` — widgets, screens. **The composition layer:** a screen may read
+  another feature's providers to assemble a workflow (e.g. the order screen drives
+  `printing` and `payments`). This is the only place cross-feature wiring belongs.
 - `application/` — Riverpod providers/controllers; orchestrates use cases.
 - `data/` — repositories over Drift; maps rows ⇄ entities.
-- Features never import each other's internals. Cross-feature access goes
-  through interfaces in `packages/domain`, resolved via Riverpod providers.
+- **`application` and `data` never import another feature's `application`/`data`.**
+  They depend only on `core/`, `packages/domain`, and their own feature. A composite
+  feature that genuinely needs another's data (e.g. `printing` rendering an `order`)
+  depends *downward* on a core/leaf feature, never sideways or up — so the
+  application/data graph stays an acyclic, downward DAG.
+- Hardware/cloud boundaries cross through the four `packages/domain` ports
+  (below), resolved via Riverpod providers selected by settings.
 
 ## The four ports (hardware/cloud abstraction)
 

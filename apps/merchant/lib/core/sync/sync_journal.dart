@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
-import '../../../core/db/database.dart';
+import '../db/database.dart';
 import 'sync_codec.dart';
 
 /// Records every local write to a synced entity in the [SyncLog] table,

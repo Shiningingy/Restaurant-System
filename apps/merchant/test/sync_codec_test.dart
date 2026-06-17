@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:merchant/features/menu/data/menu_repository.dart';
-import 'package:merchant/features/sync/data/sync_codec.dart';
+import 'package:merchant/core/sync/sync_codec.dart';
 import 'package:restaurant_domain/restaurant_domain.dart';
 
 import 'helpers/test_db.dart';

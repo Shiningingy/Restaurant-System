@@ -4,10 +4,10 @@ import 'package:merchant/features/menu/data/menu_repository.dart';
 import 'package:merchant/features/orders/data/order_repository.dart';
 import 'package:merchant/features/payments/data/payment_repository.dart';
 import 'package:merchant/features/reports/data/reports_repository.dart';
-import 'package:merchant/features/settings/data/tables_repository.dart';
+import 'package:merchant/core/settings/tables_repository.dart';
 import 'package:merchant/features/sync/application/sync_service.dart';
-import 'package:merchant/features/sync/data/sync_codec.dart';
-import 'package:merchant/features/sync/data/sync_journal.dart';
+import 'package:merchant/core/sync/sync_codec.dart';
+import 'package:merchant/core/sync/sync_journal.dart';
 import 'package:merchant/features/sync/data/sync_settings.dart';
 import 'package:restaurant_domain/restaurant_domain.dart';
 

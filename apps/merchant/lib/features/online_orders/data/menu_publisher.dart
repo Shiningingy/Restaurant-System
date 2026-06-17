@@ -1,7 +1,7 @@
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../menu/data/menu_repository.dart';
-import '../../settings/data/settings_repository.dart';
+import '../../../core/settings/settings_repository.dart';
 
 /// Builds the [domain.PublishedMenu] the customer app browses, from the
 /// merchant's live menu. Only active categories and items are published.
