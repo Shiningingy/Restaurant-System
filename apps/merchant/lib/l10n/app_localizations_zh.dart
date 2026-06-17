@@ -1071,4 +1071,19 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get captureResetRegions => '重置布局';
+
+  @override
+  String get setSecondNameSection => '第二名称显示';
+
+  @override
+  String get setSecondNameHint => '可选的第二名称（如本地语言名称）显示在何处。';
+
+  @override
+  String get setSecondNameOrderScreen => '在点单界面';
+
+  @override
+  String get setSecondNameKitchen => '在厨房小票';
+
+  @override
+  String get setSecondNameReceipt => '在顾客收据';
 }

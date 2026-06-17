@@ -2029,6 +2029,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reset layout'**
   String get captureResetRegions;
+
+  /// No description provided for @setSecondNameSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Second name display'**
+  String get setSecondNameSection;
+
+  /// No description provided for @setSecondNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Where the optional second (e.g. native-language) name appears.'**
+  String get setSecondNameHint;
+
+  /// No description provided for @setSecondNameOrderScreen.
+  ///
+  /// In en, this message translates to:
+  /// **'On order screen'**
+  String get setSecondNameOrderScreen;
+
+  /// No description provided for @setSecondNameKitchen.
+  ///
+  /// In en, this message translates to:
+  /// **'On kitchen ticket'**
+  String get setSecondNameKitchen;
+
+  /// No description provided for @setSecondNameReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'On customer receipt'**
+  String get setSecondNameReceipt;
 }
 
 class _AppLocalizationsDelegate

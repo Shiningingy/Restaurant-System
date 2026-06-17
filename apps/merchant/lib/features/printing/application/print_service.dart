@@ -116,12 +116,14 @@ class PrintService {
     final tableLabel = order.tableId == null
         ? null
         : await tables.labelFor(order.tableId!);
+    final nameDisplay = settings.nameDisplay;
     if (kitchen) {
       return domain.buildKitchenTicket(
         order: order,
         lines: lines,
         tableLabel: tableLabel,
         printedAt: DateTime.now(),
+        showSecondName: nameDisplay.kitchenTicket,
       );
     }
     return domain.buildCustomerReceipt(
@@ -130,6 +132,7 @@ class PrintService {
       config: settings.receiptConfig,
       payments: await payments.paymentsForOrder(orderId),
       tableLabel: tableLabel,
+      showSecondName: nameDisplay.receipt,
     );
   }
 

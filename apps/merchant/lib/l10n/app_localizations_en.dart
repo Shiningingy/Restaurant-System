@@ -1089,4 +1089,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get captureResetRegions => 'Reset layout';
+
+  @override
+  String get setSecondNameSection => 'Second name display';
+
+  @override
+  String get setSecondNameHint =>
+      'Where the optional second (e.g. native-language) name appears.';
+
+  @override
+  String get setSecondNameOrderScreen => 'On order screen';
+
+  @override
+  String get setSecondNameKitchen => 'On kitchen ticket';
+
+  @override
+  String get setSecondNameReceipt => 'On customer receipt';
 }

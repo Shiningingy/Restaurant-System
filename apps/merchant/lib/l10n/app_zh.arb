@@ -336,5 +336,10 @@
   "captureTemplatesShort": "模板",
   "captureLabelsToggle": "标签",
   "captureCreateTemplate": "创建模板",
-  "captureResetRegions": "重置布局"
+  "captureResetRegions": "重置布局",
+  "setSecondNameSection": "第二名称显示",
+  "setSecondNameHint": "可选的第二名称（如本地语言名称）显示在何处。",
+  "setSecondNameOrderScreen": "在点单界面",
+  "setSecondNameKitchen": "在厨房小票",
+  "setSecondNameReceipt": "在顾客收据"
 }

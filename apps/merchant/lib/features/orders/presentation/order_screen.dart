@@ -156,6 +156,7 @@ class _MenuPicker extends ConsumerWidget {
         (ref.watch(itemsInCategoryProvider(activeCategoryId)).value ?? const [])
             .where((i) => i.isActive)
             .toList();
+    final showSecondary = ref.watch(nameDisplayProvider).orderScreen;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -209,7 +210,8 @@ class _MenuPicker extends ConsumerWidget {
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              if (item.nameSecondary != null &&
+                              if (showSecondary &&
+                                  item.nameSecondary != null &&
                                   item.nameSecondary!.isNotEmpty)
                                 Text(
                                   item.nameSecondary!,
@@ -257,6 +259,7 @@ class _Ticket extends ConsumerWidget {
     final payments = ref.watch(orderPaymentsProvider(order.id)).value ?? [];
     final settled = domain.settledPayments(payments).toList();
     final balance = domain.balanceDue(total: order.total, payments: payments);
+    final showSecondary = ref.watch(nameDisplayProvider).orderScreen;
 
     return Column(
       children: [
@@ -272,6 +275,7 @@ class _Ticket extends ConsumerWidget {
                         code: line.codeSnapshot,
                         name: line.nameSnapshot,
                         nameSecondary: line.nameSecondarySnapshot,
+                        showSecondary: showSecondary,
                       ),
                       subtitle: line.modifiers.isEmpty
                           ? null

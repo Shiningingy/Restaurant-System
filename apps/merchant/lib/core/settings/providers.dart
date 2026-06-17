@@ -96,3 +96,17 @@ class LocaleController extends Notifier<Locale?> {
 final localePreferenceProvider = NotifierProvider<LocaleController, Locale?>(
   LocaleController.new,
 );
+
+class NameDisplayNotifier extends Notifier<NameDisplay> {
+  @override
+  NameDisplay build() => ref.watch(settingsRepositoryProvider).nameDisplay;
+
+  Future<void> save(NameDisplay value) async {
+    await ref.read(settingsRepositoryProvider).setNameDisplay(value);
+    state = value;
+  }
+}
+
+final nameDisplayProvider = NotifierProvider<NameDisplayNotifier, NameDisplay>(
+  NameDisplayNotifier.new,
+);

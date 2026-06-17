@@ -477,5 +477,10 @@
   "captureTemplatesShort": "Templates",
   "captureLabelsToggle": "Labels",
   "captureCreateTemplate": "Create a template",
-  "captureResetRegions": "Reset layout"
+  "captureResetRegions": "Reset layout",
+  "setSecondNameSection": "Second name display",
+  "setSecondNameHint": "Where the optional second (e.g. native-language) name appears.",
+  "setSecondNameOrderScreen": "On order screen",
+  "setSecondNameKitchen": "On kitchen ticket",
+  "setSecondNameReceipt": "On customer receipt"
 }

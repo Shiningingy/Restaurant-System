@@ -40,6 +40,13 @@ kotlin {
     }
 }
 
+dependencies {
+    // Chinese OCR model for google_mlkit_text_recognition (not pulled in by
+    // default; the Chinese recognizer also reads Latin, so bilingual menus need
+    // a single pass). See features/menu_capture/data/mlkit_text_recognizer.dart.
+    implementation("com.google.mlkit:text-recognition-chinese:16.0.1")
+}
+
 flutter {
     source = "../.."
 }

@@ -18,6 +18,30 @@ class PrinterSettings {
   bool get isConfigured => host != null && host!.isNotEmpty;
 }
 
+/// Where the optional bilingual second name is shown. Defaults match the
+/// original behaviour: on the order screen and kitchen ticket, not the receipt.
+class NameDisplay {
+  final bool orderScreen;
+  final bool kitchenTicket;
+  final bool receipt;
+
+  const NameDisplay({
+    this.orderScreen = true,
+    this.kitchenTicket = true,
+    this.receipt = false,
+  });
+
+  NameDisplay copyWith({
+    bool? orderScreen,
+    bool? kitchenTicket,
+    bool? receipt,
+  }) => NameDisplay(
+    orderScreen: orderScreen ?? this.orderScreen,
+    kitchenTicket: kitchenTicket ?? this.kitchenTicket,
+    receipt: receipt ?? this.receipt,
+  );
+}
+
 /// App settings stored in shared_preferences. Orders snapshot the tax
 /// rate at creation, so changing it here never rewrites history.
 class SettingsRepository {
@@ -28,6 +52,9 @@ class SettingsRepository {
   static const _businessNameKey = 'businessName';
   static const _receiptFooterKey = 'receiptFooter';
   static const _appLocaleKey = 'appLocale';
+  static const _secondNameOrderKey = 'secondNameOrderScreen';
+  static const _secondNameKitchenKey = 'secondNameKitchen';
+  static const _secondNameReceiptKey = 'secondNameReceipt';
 
   /// 13% HST (Ontario) as the default — the user configures their own rate.
   static const defaultTaxRateBp = 1300;
@@ -77,4 +104,17 @@ class SettingsRepository {
   Future<void> setAppLocaleCode(String? code) => code == null
       ? prefs.remove(_appLocaleKey)
       : prefs.setString(_appLocaleKey, code);
+
+  /// Per-surface visibility of the bilingual second name.
+  NameDisplay get nameDisplay => NameDisplay(
+    orderScreen: prefs.getBool(_secondNameOrderKey) ?? true,
+    kitchenTicket: prefs.getBool(_secondNameKitchenKey) ?? true,
+    receipt: prefs.getBool(_secondNameReceiptKey) ?? false,
+  );
+
+  Future<void> setNameDisplay(NameDisplay value) async {
+    await prefs.setBool(_secondNameOrderKey, value.orderScreen);
+    await prefs.setBool(_secondNameKitchenKey, value.kitchenTicket);
+    await prefs.setBool(_secondNameReceiptKey, value.receipt);
+  }
 }
