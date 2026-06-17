@@ -10,18 +10,25 @@ class ItemNameLines extends StatelessWidget {
   final String? nameSecondary;
   final TextStyle? style;
 
+  /// Whether to render the second name line (when present). The merchant can
+  /// turn this off for the order screen in Settings; the menu-management list
+  /// always passes true.
+  final bool showSecondary;
+
   const ItemNameLines({
     super.key,
     required this.name,
     this.code,
     this.nameSecondary,
     this.style,
+    this.showSecondary = true,
   });
 
   @override
   Widget build(BuildContext context) {
     final hasCode = code != null && code!.isNotEmpty;
-    final hasSecondary = nameSecondary != null && nameSecondary!.isNotEmpty;
+    final hasSecondary =
+        showSecondary && nameSecondary != null && nameSecondary!.isNotEmpty;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,

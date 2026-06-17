@@ -62,6 +62,7 @@ TicketDoc buildKitchenTicket({
   required List<OrderLine> lines,
   String? tableLabel,
   DateTime? printedAt,
+  bool showSecondName = true,
 }) {
   final active =
       lines.where((l) => l.status == OrderLineStatus.active).toList();
@@ -77,7 +78,8 @@ TicketDoc buildKitchenTicket({
         '${line.qty} x ${_codePrefix(line)}${line.nameSnapshot}',
         style: TicketStyle.big,
       ),
-      if (line.nameSecondarySnapshot != null &&
+      if (showSecondName &&
+          line.nameSecondarySnapshot != null &&
           line.nameSecondarySnapshot!.isNotEmpty)
         TicketText('     ${line.nameSecondarySnapshot}',
             style: TicketStyle.big),
@@ -102,6 +104,7 @@ TicketDoc buildCustomerReceipt({
   required ReceiptConfig config,
   List<Payment> payments = const [],
   String? tableLabel,
+  bool showSecondName = false,
 }) {
   final active =
       lines.where((l) => l.status == OrderLineStatus.active).toList();
@@ -124,6 +127,10 @@ TicketDoc buildCustomerReceipt({
         '${line.qty} x ${_codePrefix(line)}${line.nameSnapshot}',
         line.lineTotal.format(),
       ),
+      if (showSecondName &&
+          line.nameSecondarySnapshot != null &&
+          line.nameSecondarySnapshot!.isNotEmpty)
+        TicketText('     ${line.nameSecondarySnapshot}'),
       for (final m in line.modifiers)
         TicketRow(
           '   ${m.nameSnapshot}',

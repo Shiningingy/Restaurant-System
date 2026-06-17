@@ -25,6 +25,7 @@ class SettingsScreen extends ConsumerWidget {
     final receiptConfig = ref.watch(receiptConfigProvider);
     final printJobs = ref.watch(printJobsProvider).value ?? const [];
     final localePref = ref.watch(localePreferenceProvider);
+    final nameDisplay = ref.watch(nameDisplayProvider);
 
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.navSettings)),
@@ -40,6 +41,39 @@ class SettingsScreen extends ConsumerWidget {
             title: Text(context.l10n.setLanguage),
             subtitle: Text(_languageLabel(context, localePref)),
             onTap: () => _editLanguage(context, ref, localePref),
+          ),
+          const Divider(height: 32),
+          Text(
+            context.l10n.setSecondNameSection,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 4, bottom: 4),
+            child: Text(
+              context.l10n.setSecondNameHint,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+          SwitchListTile(
+            title: Text(context.l10n.setSecondNameOrderScreen),
+            value: nameDisplay.orderScreen,
+            onChanged: (v) => ref
+                .read(nameDisplayProvider.notifier)
+                .save(nameDisplay.copyWith(orderScreen: v)),
+          ),
+          SwitchListTile(
+            title: Text(context.l10n.setSecondNameKitchen),
+            value: nameDisplay.kitchenTicket,
+            onChanged: (v) => ref
+                .read(nameDisplayProvider.notifier)
+                .save(nameDisplay.copyWith(kitchenTicket: v)),
+          ),
+          SwitchListTile(
+            title: Text(context.l10n.setSecondNameReceipt),
+            value: nameDisplay.receipt,
+            onChanged: (v) => ref
+                .read(nameDisplayProvider.notifier)
+                .save(nameDisplay.copyWith(receipt: v)),
           ),
           const Divider(height: 32),
           Text(

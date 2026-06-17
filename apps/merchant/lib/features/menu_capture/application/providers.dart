@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers.dart';
 import '../data/capture_template_store.dart';
+import '../data/mlkit_text_recognizer.dart';
 import '../data/windows_text_recognizer.dart';
 import '../domain/capture_template.dart';
 import '../domain/text_recognizer.dart';
@@ -13,14 +14,13 @@ final captureEngineProvider = Provider<CaptureEngine>(
   (ref) => const CaptureEngine(),
 );
 
-/// The platform OCR engine. Windows desktop uses Windows.Media.Ocr today; the
-/// ML Kit mobile engine is a follow-up. Overridden with a fake in tests.
+/// The platform OCR engine: Windows.Media.Ocr on desktop, ML Kit on
+/// Android/iOS — both behind the [TextRecognizer] port. Overridden with a fake
+/// in tests.
 final textRecognizerProvider = Provider<TextRecognizer>((ref) {
   if (Platform.isWindows) return WindowsTextRecognizer();
-  throw UnsupportedError(
-    'On-device OCR is currently wired for Windows only; the mobile (ML Kit) '
-    'engine is a follow-up.',
-  );
+  if (Platform.isAndroid || Platform.isIOS) return MlkitTextRecognizer();
+  throw UnsupportedError('On-device OCR is not wired for this platform.');
 });
 
 final captureTemplateStoreProvider = Provider<CaptureTemplateStore>(

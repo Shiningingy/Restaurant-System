@@ -5,6 +5,7 @@ import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 import '../../../core/l10n_ext.dart';
 import '../../menu/application/providers.dart' as menu;
 import '../data/image_region_cropper.dart';
+import '../domain/code_sequencer.dart';
 import '../domain/geometry.dart';
 import '../domain/item_draft.dart';
 
@@ -79,11 +80,17 @@ class _DraftReviewScreenState extends ConsumerState<DraftReviewScreen> {
     final existing = await repo.watchItemsInCategory(widget.categoryId).first;
     var sortOrder = existing.length;
     var saved = 0;
+    // Keep codes unique across the batch and the category (AX1, AX2 — not AX1, AX1).
+    final usedCodes = {
+      for (final item in existing)
+        if (item.code != null && item.code!.isNotEmpty) item.code!,
+    };
 
     for (final row in _rows) {
       final name = row.name.text.trim();
-      final code = row.code.text.trim();
+      final code = nextUniqueCode(row.code.text.trim(), usedCodes);
       if (name.isEmpty && code.isEmpty) continue; // nothing identifiable
+      if (code.isNotEmpty) usedCodes.add(code);
 
       final id = domain.newId();
       await repo.upsertItem(
