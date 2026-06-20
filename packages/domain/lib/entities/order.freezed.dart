@@ -22,9 +22,19 @@ mixin _$Order {
   /// Tax rate in basis points (1300 = 13%), snapshotted at creation so a
   /// settings change never rewrites an existing order.
   int get taxRateBp;
+
+  /// Service-fee rate in basis points, snapshotted at creation like
+  /// [taxRateBp] so a settings change never rewrites an existing order.
+  int get serviceFeeBp;
   String? get tableId;
   DateTime? get closedAt;
   Money get subtotal;
+
+  /// Discount applied to the order (off the subtotal, before tax).
+  Money get discount;
+
+  /// Service fee charged on the discounted subtotal.
+  Money get serviceFee;
   Money get tax;
   Money get total;
   String? get note;
@@ -48,23 +58,43 @@ mixin _$Order {
                 other.createdAt == createdAt) &&
             (identical(other.taxRateBp, taxRateBp) ||
                 other.taxRateBp == taxRateBp) &&
+            (identical(other.serviceFeeBp, serviceFeeBp) ||
+                other.serviceFeeBp == serviceFeeBp) &&
             (identical(other.tableId, tableId) || other.tableId == tableId) &&
             (identical(other.closedAt, closedAt) ||
                 other.closedAt == closedAt) &&
             (identical(other.subtotal, subtotal) ||
                 other.subtotal == subtotal) &&
+            (identical(other.discount, discount) ||
+                other.discount == discount) &&
+            (identical(other.serviceFee, serviceFee) ||
+                other.serviceFee == serviceFee) &&
             (identical(other.tax, tax) || other.tax == tax) &&
             (identical(other.total, total) || other.total == total) &&
             (identical(other.note, note) || other.note == note));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, id, type, status, createdAt,
-      taxRateBp, tableId, closedAt, subtotal, tax, total, note);
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      type,
+      status,
+      createdAt,
+      taxRateBp,
+      serviceFeeBp,
+      tableId,
+      closedAt,
+      subtotal,
+      discount,
+      serviceFee,
+      tax,
+      total,
+      note);
 
   @override
   String toString() {
-    return 'Order(id: $id, type: $type, status: $status, createdAt: $createdAt, taxRateBp: $taxRateBp, tableId: $tableId, closedAt: $closedAt, subtotal: $subtotal, tax: $tax, total: $total, note: $note)';
+    return 'Order(id: $id, type: $type, status: $status, createdAt: $createdAt, taxRateBp: $taxRateBp, serviceFeeBp: $serviceFeeBp, tableId: $tableId, closedAt: $closedAt, subtotal: $subtotal, discount: $discount, serviceFee: $serviceFee, tax: $tax, total: $total, note: $note)';
   }
 }
 
@@ -79,9 +109,12 @@ abstract mixin class $OrderCopyWith<$Res> {
       OrderStatus status,
       DateTime createdAt,
       int taxRateBp,
+      int serviceFeeBp,
       String? tableId,
       DateTime? closedAt,
       Money subtotal,
+      Money discount,
+      Money serviceFee,
       Money tax,
       Money total,
       String? note});
@@ -104,9 +137,12 @@ class _$OrderCopyWithImpl<$Res> implements $OrderCopyWith<$Res> {
     Object? status = null,
     Object? createdAt = null,
     Object? taxRateBp = null,
+    Object? serviceFeeBp = null,
     Object? tableId = freezed,
     Object? closedAt = freezed,
     Object? subtotal = null,
+    Object? discount = null,
+    Object? serviceFee = null,
     Object? tax = null,
     Object? total = null,
     Object? note = freezed,
@@ -132,6 +168,10 @@ class _$OrderCopyWithImpl<$Res> implements $OrderCopyWith<$Res> {
           ? _self.taxRateBp
           : taxRateBp // ignore: cast_nullable_to_non_nullable
               as int,
+      serviceFeeBp: null == serviceFeeBp
+          ? _self.serviceFeeBp
+          : serviceFeeBp // ignore: cast_nullable_to_non_nullable
+              as int,
       tableId: freezed == tableId
           ? _self.tableId
           : tableId // ignore: cast_nullable_to_non_nullable
@@ -143,6 +183,14 @@ class _$OrderCopyWithImpl<$Res> implements $OrderCopyWith<$Res> {
       subtotal: null == subtotal
           ? _self.subtotal
           : subtotal // ignore: cast_nullable_to_non_nullable
+              as Money,
+      discount: null == discount
+          ? _self.discount
+          : discount // ignore: cast_nullable_to_non_nullable
+              as Money,
+      serviceFee: null == serviceFee
+          ? _self.serviceFee
+          : serviceFee // ignore: cast_nullable_to_non_nullable
               as Money,
       tax: null == tax
           ? _self.tax
@@ -259,9 +307,12 @@ extension OrderPatterns on Order {
             OrderStatus status,
             DateTime createdAt,
             int taxRateBp,
+            int serviceFeeBp,
             String? tableId,
             DateTime? closedAt,
             Money subtotal,
+            Money discount,
+            Money serviceFee,
             Money tax,
             Money total,
             String? note)?
@@ -277,9 +328,12 @@ extension OrderPatterns on Order {
             _that.status,
             _that.createdAt,
             _that.taxRateBp,
+            _that.serviceFeeBp,
             _that.tableId,
             _that.closedAt,
             _that.subtotal,
+            _that.discount,
+            _that.serviceFee,
             _that.tax,
             _that.total,
             _that.note);
@@ -309,9 +363,12 @@ extension OrderPatterns on Order {
             OrderStatus status,
             DateTime createdAt,
             int taxRateBp,
+            int serviceFeeBp,
             String? tableId,
             DateTime? closedAt,
             Money subtotal,
+            Money discount,
+            Money serviceFee,
             Money tax,
             Money total,
             String? note)
@@ -326,9 +383,12 @@ extension OrderPatterns on Order {
             _that.status,
             _that.createdAt,
             _that.taxRateBp,
+            _that.serviceFeeBp,
             _that.tableId,
             _that.closedAt,
             _that.subtotal,
+            _that.discount,
+            _that.serviceFee,
             _that.tax,
             _that.total,
             _that.note);
@@ -357,9 +417,12 @@ extension OrderPatterns on Order {
             OrderStatus status,
             DateTime createdAt,
             int taxRateBp,
+            int serviceFeeBp,
             String? tableId,
             DateTime? closedAt,
             Money subtotal,
+            Money discount,
+            Money serviceFee,
             Money tax,
             Money total,
             String? note)?
@@ -374,9 +437,12 @@ extension OrderPatterns on Order {
             _that.status,
             _that.createdAt,
             _that.taxRateBp,
+            _that.serviceFeeBp,
             _that.tableId,
             _that.closedAt,
             _that.subtotal,
+            _that.discount,
+            _that.serviceFee,
             _that.tax,
             _that.total,
             _that.note);
@@ -395,9 +461,12 @@ class _Order implements Order {
       required this.status,
       required this.createdAt,
       required this.taxRateBp,
+      this.serviceFeeBp = 0,
       this.tableId,
       this.closedAt,
       this.subtotal = Money.zero,
+      this.discount = Money.zero,
+      this.serviceFee = Money.zero,
       this.tax = Money.zero,
       this.total = Money.zero,
       this.note});
@@ -415,6 +484,12 @@ class _Order implements Order {
   /// settings change never rewrites an existing order.
   @override
   final int taxRateBp;
+
+  /// Service-fee rate in basis points, snapshotted at creation like
+  /// [taxRateBp] so a settings change never rewrites an existing order.
+  @override
+  @JsonKey()
+  final int serviceFeeBp;
   @override
   final String? tableId;
   @override
@@ -422,6 +497,16 @@ class _Order implements Order {
   @override
   @JsonKey()
   final Money subtotal;
+
+  /// Discount applied to the order (off the subtotal, before tax).
+  @override
+  @JsonKey()
+  final Money discount;
+
+  /// Service fee charged on the discounted subtotal.
+  @override
+  @JsonKey()
+  final Money serviceFee;
   @override
   @JsonKey()
   final Money tax;
@@ -451,23 +536,43 @@ class _Order implements Order {
                 other.createdAt == createdAt) &&
             (identical(other.taxRateBp, taxRateBp) ||
                 other.taxRateBp == taxRateBp) &&
+            (identical(other.serviceFeeBp, serviceFeeBp) ||
+                other.serviceFeeBp == serviceFeeBp) &&
             (identical(other.tableId, tableId) || other.tableId == tableId) &&
             (identical(other.closedAt, closedAt) ||
                 other.closedAt == closedAt) &&
             (identical(other.subtotal, subtotal) ||
                 other.subtotal == subtotal) &&
+            (identical(other.discount, discount) ||
+                other.discount == discount) &&
+            (identical(other.serviceFee, serviceFee) ||
+                other.serviceFee == serviceFee) &&
             (identical(other.tax, tax) || other.tax == tax) &&
             (identical(other.total, total) || other.total == total) &&
             (identical(other.note, note) || other.note == note));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, id, type, status, createdAt,
-      taxRateBp, tableId, closedAt, subtotal, tax, total, note);
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      type,
+      status,
+      createdAt,
+      taxRateBp,
+      serviceFeeBp,
+      tableId,
+      closedAt,
+      subtotal,
+      discount,
+      serviceFee,
+      tax,
+      total,
+      note);
 
   @override
   String toString() {
-    return 'Order(id: $id, type: $type, status: $status, createdAt: $createdAt, taxRateBp: $taxRateBp, tableId: $tableId, closedAt: $closedAt, subtotal: $subtotal, tax: $tax, total: $total, note: $note)';
+    return 'Order(id: $id, type: $type, status: $status, createdAt: $createdAt, taxRateBp: $taxRateBp, serviceFeeBp: $serviceFeeBp, tableId: $tableId, closedAt: $closedAt, subtotal: $subtotal, discount: $discount, serviceFee: $serviceFee, tax: $tax, total: $total, note: $note)';
   }
 }
 
@@ -483,9 +588,12 @@ abstract mixin class _$OrderCopyWith<$Res> implements $OrderCopyWith<$Res> {
       OrderStatus status,
       DateTime createdAt,
       int taxRateBp,
+      int serviceFeeBp,
       String? tableId,
       DateTime? closedAt,
       Money subtotal,
+      Money discount,
+      Money serviceFee,
       Money tax,
       Money total,
       String? note});
@@ -508,9 +616,12 @@ class __$OrderCopyWithImpl<$Res> implements _$OrderCopyWith<$Res> {
     Object? status = null,
     Object? createdAt = null,
     Object? taxRateBp = null,
+    Object? serviceFeeBp = null,
     Object? tableId = freezed,
     Object? closedAt = freezed,
     Object? subtotal = null,
+    Object? discount = null,
+    Object? serviceFee = null,
     Object? tax = null,
     Object? total = null,
     Object? note = freezed,
@@ -536,6 +647,10 @@ class __$OrderCopyWithImpl<$Res> implements _$OrderCopyWith<$Res> {
           ? _self.taxRateBp
           : taxRateBp // ignore: cast_nullable_to_non_nullable
               as int,
+      serviceFeeBp: null == serviceFeeBp
+          ? _self.serviceFeeBp
+          : serviceFeeBp // ignore: cast_nullable_to_non_nullable
+              as int,
       tableId: freezed == tableId
           ? _self.tableId
           : tableId // ignore: cast_nullable_to_non_nullable
@@ -547,6 +662,14 @@ class __$OrderCopyWithImpl<$Res> implements _$OrderCopyWith<$Res> {
       subtotal: null == subtotal
           ? _self.subtotal
           : subtotal // ignore: cast_nullable_to_non_nullable
+              as Money,
+      discount: null == discount
+          ? _self.discount
+          : discount // ignore: cast_nullable_to_non_nullable
+              as Money,
+      serviceFee: null == serviceFee
+          ? _self.serviceFee
+          : serviceFee // ignore: cast_nullable_to_non_nullable
               as Money,
       tax: null == tax
           ? _self.tax

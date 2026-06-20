@@ -26,6 +26,9 @@ mixin _$MenuItem {
   /// Optional second name line (e.g. a native-language name), shown stacked
   /// under [name]. Language-agnostic — both lines always show together.
   String? get nameSecondary;
+
+  /// Optional longer description (ingredients, notes) shown on the menu.
+  String? get description;
   String? get sku;
   int get sortOrder;
   bool get isActive;
@@ -57,6 +60,8 @@ mixin _$MenuItem {
             (identical(other.code, code) || other.code == code) &&
             (identical(other.nameSecondary, nameSecondary) ||
                 other.nameSecondary == nameSecondary) &&
+            (identical(other.description, description) ||
+                other.description == description) &&
             (identical(other.sku, sku) || other.sku == sku) &&
             (identical(other.sortOrder, sortOrder) ||
                 other.sortOrder == sortOrder) &&
@@ -77,6 +82,7 @@ mixin _$MenuItem {
       price,
       code,
       nameSecondary,
+      description,
       sku,
       sortOrder,
       isActive,
@@ -85,7 +91,7 @@ mixin _$MenuItem {
 
   @override
   String toString() {
-    return 'MenuItem(id: $id, categoryId: $categoryId, name: $name, price: $price, code: $code, nameSecondary: $nameSecondary, sku: $sku, sortOrder: $sortOrder, isActive: $isActive, modifierGroupIds: $modifierGroupIds, attributes: $attributes)';
+    return 'MenuItem(id: $id, categoryId: $categoryId, name: $name, price: $price, code: $code, nameSecondary: $nameSecondary, description: $description, sku: $sku, sortOrder: $sortOrder, isActive: $isActive, modifierGroupIds: $modifierGroupIds, attributes: $attributes)';
   }
 }
 
@@ -101,6 +107,7 @@ abstract mixin class $MenuItemCopyWith<$Res> {
       Money price,
       String? code,
       String? nameSecondary,
+      String? description,
       String? sku,
       int sortOrder,
       bool isActive,
@@ -126,6 +133,7 @@ class _$MenuItemCopyWithImpl<$Res> implements $MenuItemCopyWith<$Res> {
     Object? price = null,
     Object? code = freezed,
     Object? nameSecondary = freezed,
+    Object? description = freezed,
     Object? sku = freezed,
     Object? sortOrder = null,
     Object? isActive = null,
@@ -156,6 +164,10 @@ class _$MenuItemCopyWithImpl<$Res> implements $MenuItemCopyWith<$Res> {
       nameSecondary: freezed == nameSecondary
           ? _self.nameSecondary
           : nameSecondary // ignore: cast_nullable_to_non_nullable
+              as String?,
+      description: freezed == description
+          ? _self.description
+          : description // ignore: cast_nullable_to_non_nullable
               as String?,
       sku: freezed == sku
           ? _self.sku
@@ -281,6 +293,7 @@ extension MenuItemPatterns on MenuItem {
             Money price,
             String? code,
             String? nameSecondary,
+            String? description,
             String? sku,
             int sortOrder,
             bool isActive,
@@ -299,6 +312,7 @@ extension MenuItemPatterns on MenuItem {
             _that.price,
             _that.code,
             _that.nameSecondary,
+            _that.description,
             _that.sku,
             _that.sortOrder,
             _that.isActive,
@@ -331,6 +345,7 @@ extension MenuItemPatterns on MenuItem {
             Money price,
             String? code,
             String? nameSecondary,
+            String? description,
             String? sku,
             int sortOrder,
             bool isActive,
@@ -348,6 +363,7 @@ extension MenuItemPatterns on MenuItem {
             _that.price,
             _that.code,
             _that.nameSecondary,
+            _that.description,
             _that.sku,
             _that.sortOrder,
             _that.isActive,
@@ -379,6 +395,7 @@ extension MenuItemPatterns on MenuItem {
             Money price,
             String? code,
             String? nameSecondary,
+            String? description,
             String? sku,
             int sortOrder,
             bool isActive,
@@ -396,6 +413,7 @@ extension MenuItemPatterns on MenuItem {
             _that.price,
             _that.code,
             _that.nameSecondary,
+            _that.description,
             _that.sku,
             _that.sortOrder,
             _that.isActive,
@@ -417,6 +435,7 @@ class _MenuItem implements MenuItem {
       required this.price,
       this.code,
       this.nameSecondary,
+      this.description,
       this.sku,
       this.sortOrder = 0,
       this.isActive = true,
@@ -443,6 +462,10 @@ class _MenuItem implements MenuItem {
   /// under [name]. Language-agnostic — both lines always show together.
   @override
   final String? nameSecondary;
+
+  /// Optional longer description (ingredients, notes) shown on the menu.
+  @override
+  final String? description;
   @override
   final String? sku;
   @override
@@ -500,6 +523,8 @@ class _MenuItem implements MenuItem {
             (identical(other.code, code) || other.code == code) &&
             (identical(other.nameSecondary, nameSecondary) ||
                 other.nameSecondary == nameSecondary) &&
+            (identical(other.description, description) ||
+                other.description == description) &&
             (identical(other.sku, sku) || other.sku == sku) &&
             (identical(other.sortOrder, sortOrder) ||
                 other.sortOrder == sortOrder) &&
@@ -520,6 +545,7 @@ class _MenuItem implements MenuItem {
       price,
       code,
       nameSecondary,
+      description,
       sku,
       sortOrder,
       isActive,
@@ -528,7 +554,7 @@ class _MenuItem implements MenuItem {
 
   @override
   String toString() {
-    return 'MenuItem(id: $id, categoryId: $categoryId, name: $name, price: $price, code: $code, nameSecondary: $nameSecondary, sku: $sku, sortOrder: $sortOrder, isActive: $isActive, modifierGroupIds: $modifierGroupIds, attributes: $attributes)';
+    return 'MenuItem(id: $id, categoryId: $categoryId, name: $name, price: $price, code: $code, nameSecondary: $nameSecondary, description: $description, sku: $sku, sortOrder: $sortOrder, isActive: $isActive, modifierGroupIds: $modifierGroupIds, attributes: $attributes)';
   }
 }
 
@@ -546,6 +572,7 @@ abstract mixin class _$MenuItemCopyWith<$Res>
       Money price,
       String? code,
       String? nameSecondary,
+      String? description,
       String? sku,
       int sortOrder,
       bool isActive,
@@ -571,6 +598,7 @@ class __$MenuItemCopyWithImpl<$Res> implements _$MenuItemCopyWith<$Res> {
     Object? price = null,
     Object? code = freezed,
     Object? nameSecondary = freezed,
+    Object? description = freezed,
     Object? sku = freezed,
     Object? sortOrder = null,
     Object? isActive = null,
@@ -601,6 +629,10 @@ class __$MenuItemCopyWithImpl<$Res> implements _$MenuItemCopyWith<$Res> {
       nameSecondary: freezed == nameSecondary
           ? _self.nameSecondary
           : nameSecondary // ignore: cast_nullable_to_non_nullable
+              as String?,
+      description: freezed == description
+          ? _self.description
+          : description // ignore: cast_nullable_to_non_nullable
               as String?,
       sku: freezed == sku
           ? _self.sku

@@ -36,6 +36,9 @@ class MenuItems extends Table {
 
   /// Optional second name line (e.g. a native-language name).
   TextColumn get nameSecondary => text().nullable()();
+
+  /// Optional longer description (ingredients, notes) shown on the menu.
+  TextColumn get description => text().nullable()();
   TextColumn get sku => text().nullable()();
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
@@ -122,7 +125,12 @@ class Orders extends Table {
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get closedAt => dateTime().nullable()();
   IntColumn get taxRateBp => integer()();
+  IntColumn get serviceFeeBp => integer().withDefault(const Constant(0))();
   IntColumn get subtotal => integer().map(const MoneyConverter())();
+  IntColumn get discount =>
+      integer().map(const MoneyConverter()).withDefault(const Constant(0))();
+  IntColumn get serviceFee =>
+      integer().map(const MoneyConverter()).withDefault(const Constant(0))();
   IntColumn get tax => integer().map(const MoneyConverter())();
   IntColumn get total => integer().map(const MoneyConverter())();
   TextColumn get note => text().nullable()();

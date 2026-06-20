@@ -251,6 +251,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get checkoutSubtotal => 'Subtotal';
+
+  @override
+  String get checkoutEstimatedTax => 'Estimated tax';
+
+  @override
+  String get checkoutEstimateNote =>
+      'Tax is estimated; the restaurant confirms the final total. Pay at the counter when you pick up.';
+
+  @override
   String get checkoutTotal => 'Total';
 
   @override

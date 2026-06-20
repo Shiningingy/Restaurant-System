@@ -88,6 +88,17 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   int get _minutesLead => ref.read(menuProvider).value?.pickupLeadMinutes ?? 0;
 
+  int get _taxRateBp => ref.read(menuProvider).value?.taxRateBp ?? 0;
+
+  /// Estimated tax on the current cart (basis points). The merchant applies
+  /// the real tax on its side; this is only a heads-up for the customer.
+  domain.Money get _estimatedTax {
+    if (_taxRateBp <= 0) return domain.Money.zero;
+    final cents = (ref.read(cartProvider).total.cents * _taxRateBp / 10000)
+        .round();
+    return domain.Money(cents);
+  }
+
   Future<void> _place() async {
     final l10n = context.l10n;
     final storefront = ref.read(storefrontProvider);
@@ -191,22 +202,28 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             onTap: _pickTime,
           ),
           const Divider(height: 32),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                context.l10n.checkoutTotal,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              Text(
-                cart.total.format(),
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ],
+          if (_taxRateBp > 0) ...[
+            _AmountRow(
+              label: context.l10n.checkoutSubtotal,
+              amount: cart.total.format(),
+            ),
+            const SizedBox(height: 4),
+            _AmountRow(
+              label: context.l10n.checkoutEstimatedTax,
+              amount: _estimatedTax.format(),
+            ),
+            const SizedBox(height: 4),
+          ],
+          _AmountRow(
+            label: context.l10n.checkoutTotal,
+            amount: (cart.total + _estimatedTax).format(),
+            emphasize: true,
           ),
           const SizedBox(height: 4),
           Text(
-            context.l10n.checkoutPayAtCounter,
+            _taxRateBp > 0
+                ? context.l10n.checkoutEstimateNote
+                : context.l10n.checkoutPayAtCounter,
             style: Theme.of(context).textTheme.bodySmall,
           ),
           if (_error != null) ...[
@@ -229,6 +246,33 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// A label on the left, amount on the right; emphasized for the grand total.
+class _AmountRow extends StatelessWidget {
+  final String label;
+  final String amount;
+  final bool emphasize;
+
+  const _AmountRow({
+    required this.label,
+    required this.amount,
+    this.emphasize = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final style = emphasize
+        ? Theme.of(context).textTheme.titleMedium
+        : Theme.of(context).textTheme.bodyMedium;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: style),
+        Text(amount, style: style),
+      ],
     );
   }
 }

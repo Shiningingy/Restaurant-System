@@ -241,6 +241,15 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get checkoutSubtotal => '小计';
+
+  @override
+  String get checkoutEstimatedTax => '预估税费';
+
+  @override
+  String get checkoutEstimateNote => '税费为预估值，最终金额以餐厅为准。取餐时在柜台支付。';
+
+  @override
   String get checkoutTotal => '合计';
 
   @override

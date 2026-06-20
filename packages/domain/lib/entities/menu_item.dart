@@ -20,6 +20,9 @@ abstract class MenuItem with _$MenuItem {
     /// Optional second name line (e.g. a native-language name), shown stacked
     /// under [name]. Language-agnostic — both lines always show together.
     String? nameSecondary,
+
+    /// Optional longer description (ingredients, notes) shown on the menu.
+    String? description,
     String? sku,
     @Default(0) int sortOrder,
     @Default(true) bool isActive,

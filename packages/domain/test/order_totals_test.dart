@@ -48,6 +48,41 @@ void main() {
       expect(t.tax, Money.zero);
       expect(t.total, const Money(750));
     });
+
+    test('discount comes off before tax', () {
+      // $20.00 subtotal, $2.00 discount -> $18.00 taxable; 13% = 234c.
+      final t = OrderTotals.compute(
+        lines: [_line(cents: 2000)],
+        taxRateBp: 1300,
+        discount: const Money(200),
+      );
+      expect(t.subtotal, const Money(2000));
+      expect(t.discount, const Money(200));
+      expect(t.tax, const Money(234));
+      expect(t.total, const Money(2034)); // 1800 + 234
+    });
+
+    test('service fee is charged on the discounted subtotal', () {
+      // $10.00 subtotal, no discount, 10% service fee = 100c, 13% tax = 130c.
+      final t = OrderTotals.compute(
+        lines: [_line(cents: 1000)],
+        taxRateBp: 1300,
+        serviceFeeBp: 1000,
+      );
+      expect(t.serviceFee, const Money(100));
+      expect(t.tax, const Money(130));
+      expect(t.total, const Money(1230)); // 1000 + 130 + 100
+    });
+
+    test('discount is capped at the subtotal', () {
+      final t = OrderTotals.compute(
+        lines: [_line(cents: 500)],
+        taxRateBp: 1300,
+        discount: const Money(9999),
+      );
+      expect(t.discount, const Money(500));
+      expect(t.total, Money.zero);
+    });
   });
 
   group('OrderTotals.lineTotal', () {

@@ -30,6 +30,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get commonCancel => '取消';
 
   @override
+  String get commonApply => '应用';
+
+  @override
   String get commonSave => '保存';
 
   @override
@@ -138,6 +141,26 @@ class AppLocalizationsZh extends AppLocalizations {
   String ordTaxPercent(String rate) {
     return '税 ($rate%)';
   }
+
+  @override
+  String ordServiceFeePercent(String rate) {
+    return '服务费 ($rate%)';
+  }
+
+  @override
+  String get ordDiscount => '折扣';
+
+  @override
+  String get ordDiscountPercent => '折扣百分比';
+
+  @override
+  String get ordAddDiscount => '添加折扣';
+
+  @override
+  String get ordEditDiscount => '修改折扣';
+
+  @override
+  String get ordRemoveDiscount => '移除';
 
   @override
   String get ordTotal => '合计';
@@ -582,6 +605,30 @@ class AppLocalizationsZh extends AppLocalizations {
   String get setSalesTaxRateSubtitle => '适用于新订单；已有订单保留其税率。';
 
   @override
+  String get setCheckout => '结账';
+
+  @override
+  String get setServiceFee => '服务费';
+
+  @override
+  String get setServiceFeeHint => '对每笔订单收取。0% 表示不收取。';
+
+  @override
+  String get setDiscountPresets => '折扣预设';
+
+  @override
+  String get setDiscountPresetsNone => '未设置';
+
+  @override
+  String get setDiscountPresetsHint => '以逗号分隔的百分比，例如 5、10、15';
+
+  @override
+  String get setDiscountThreshold => '无需经理的折扣上限';
+
+  @override
+  String get setDiscountThresholdHint => '更大的折扣需要经理 PIN。';
+
+  @override
   String get setOnlineOrdering => '在线点餐';
 
   @override
@@ -976,6 +1023,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get itemNameSecondaryLabel => '第二名称（可选）';
 
   @override
+  String get itemDescriptionLabel => '描述（可选）';
+
+  @override
   String get itemFieldsSection => '自定义字段';
 
   @override
@@ -1176,4 +1226,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get setSecondNameReceipt => '在顾客收据';
+
+  @override
+  String get setSecondNameLanguage => '第二名称语言';
+
+  @override
+  String get setSecondNameLanguageHint => '当顾客的应用为该语言时，会优先显示此名称。';
+
+  @override
+  String get setSecondNameLanguageNone => '未设置';
 }

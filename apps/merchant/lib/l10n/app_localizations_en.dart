@@ -30,6 +30,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonCancel => 'Cancel';
 
   @override
+  String get commonApply => 'Apply';
+
+  @override
   String get commonSave => 'Save';
 
   @override
@@ -139,6 +142,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String ordTaxPercent(String rate) {
     return 'Tax ($rate%)';
   }
+
+  @override
+  String ordServiceFeePercent(String rate) {
+    return 'Service fee ($rate%)';
+  }
+
+  @override
+  String get ordDiscount => 'Discount';
+
+  @override
+  String get ordDiscountPercent => 'Discount percent';
+
+  @override
+  String get ordAddDiscount => 'Add discount';
+
+  @override
+  String get ordEditDiscount => 'Edit discount';
+
+  @override
+  String get ordRemoveDiscount => 'Remove';
 
   @override
   String get ordTotal => 'Total';
@@ -593,6 +616,31 @@ class AppLocalizationsEn extends AppLocalizations {
       'Applied to new orders; existing orders keep their rate.';
 
   @override
+  String get setCheckout => 'Checkout';
+
+  @override
+  String get setServiceFee => 'Service fee';
+
+  @override
+  String get setServiceFeeHint => 'Charged on every order. 0% for none.';
+
+  @override
+  String get setDiscountPresets => 'Discount presets';
+
+  @override
+  String get setDiscountPresetsNone => 'None set';
+
+  @override
+  String get setDiscountPresetsHint =>
+      'Comma-separated percentages, e.g. 5, 10, 15';
+
+  @override
+  String get setDiscountThreshold => 'Discount without manager';
+
+  @override
+  String get setDiscountThresholdHint => 'Larger discounts need a manager PIN.';
+
+  @override
   String get setOnlineOrdering => 'Online ordering';
 
   @override
@@ -995,6 +1043,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get itemNameSecondaryLabel => 'Second name (optional)';
 
   @override
+  String get itemDescriptionLabel => 'Description (optional)';
+
+  @override
   String get itemFieldsSection => 'Custom fields';
 
   @override
@@ -1200,4 +1251,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setSecondNameReceipt => 'On customer receipt';
+
+  @override
+  String get setSecondNameLanguage => 'Second name language';
+
+  @override
+  String get setSecondNameLanguageHint =>
+      'Customers see this name first when their app is in this language.';
+
+  @override
+  String get setSecondNameLanguageNone => 'Not set';
 }

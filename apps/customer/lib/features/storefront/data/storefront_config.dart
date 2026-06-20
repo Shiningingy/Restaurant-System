@@ -309,6 +309,26 @@ class StorefrontConfigRepository {
     await _persist(list, active);
   }
 
+  /// Backfills the merchant's name for a storefront (e.g. learned from the
+  /// published menu after connecting without one). No-op on a blank name.
+  Future<void> setStorefrontName(String id, String name) async {
+    final clean = name.trim();
+    if (clean.isEmpty) return;
+    final list = storefronts.map((s) {
+      if (s.id != id) return s;
+      return SavedStorefront(
+        id: s.id,
+        url: s.url,
+        anonKey: s.anonKey,
+        name: clean,
+        nickname: s.nickname,
+        sessionRefreshToken: s.sessionRefreshToken,
+        customerUid: s.customerUid,
+      );
+    }).toList();
+    await _persist(list, activeStorefrontId);
+  }
+
   /// Sets (or clears, when blank) the customer's nickname for a restaurant.
   /// Built fresh rather than via copyWith so an empty nickname truly clears.
   Future<void> renameStorefront(String id, String? nickname) async {

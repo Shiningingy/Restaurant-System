@@ -28,6 +28,7 @@ class MenuPublisher {
             id: item.id,
             name: item.name,
             nameSecondary: item.nameSecondary,
+            description: item.description,
             price: item.price,
             modifierGroups: [
               for (final g in groups)
@@ -62,6 +63,8 @@ class MenuPublisher {
     return domain.PublishedMenu(
       restaurantName: settings.receiptConfig.businessName,
       pickupLeadMinutes: settings.pickupLeadMinutes,
+      taxRateBp: settings.taxRateBp,
+      secondNameLanguage: settings.secondNameLanguage,
       categories: categories,
     );
   }

@@ -84,6 +84,9 @@
   "@checkoutPickupTooSoon": {
     "placeholders": { "minutes": { "type": "int" } }
   },
+  "checkoutSubtotal": "小计",
+  "checkoutEstimatedTax": "预估税费",
+  "checkoutEstimateNote": "税费为预估值，最终金额以餐厅为准。取餐时在柜台支付。",
   "checkoutTotal": "合计",
   "checkoutPayAtCounter": "取餐时在柜台支付。",
   "checkoutNameRequired": "请输入您的姓名。",

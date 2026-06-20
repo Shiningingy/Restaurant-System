@@ -84,6 +84,9 @@ class PublishedItem {
   /// Optional second-language name (e.g. 中文) shown to customers who switch
   /// the app language. Null when the merchant's menu has no second name.
   final String? nameSecondary;
+
+  /// Optional longer description (ingredients, notes) shown under the item.
+  final String? description;
   final Money price;
   final List<PublishedModifierGroup> modifierGroups;
 
@@ -92,6 +95,7 @@ class PublishedItem {
     required this.name,
     required this.price,
     this.nameSecondary,
+    this.description,
     this.modifierGroups = const [],
   });
 
@@ -99,6 +103,7 @@ class PublishedItem {
         'id': id,
         'name': name,
         if (nameSecondary != null) 'nameSecondary': nameSecondary,
+        if (description != null) 'description': description,
         'price': price.cents,
         'modifierGroups': modifierGroups.map((g) => g.toJson()).toList(),
       };
@@ -107,6 +112,7 @@ class PublishedItem {
         id: j['id'] as String,
         name: j['name'] as String,
         nameSecondary: j['nameSecondary'] as String?,
+        description: j['description'] as String?,
         price: Money(j['price'] as int),
         modifierGroups: (j['modifierGroups'] as List? ?? const [])
             .cast<Map<String, dynamic>>()
@@ -153,21 +159,38 @@ class PublishedMenu {
   /// Defaults to 0 for menus published before this field existed.
   final int pickupLeadMinutes;
 
+  /// The restaurant's tax rate in basis points (e.g. 1300 = 13%), so the
+  /// customer app can show an *estimated* tax + total before pickup. The
+  /// merchant still applies tax authoritatively on its side. 0 if unpublished.
+  final int taxRateBp;
+
+  /// The language code (e.g. 'zh') the item second names are written in, set by
+  /// the merchant. When the customer's app language matches, the second name is
+  /// shown as the primary line. Null/empty → just stack both, name first.
+  final String? secondNameLanguage;
+
   const PublishedMenu({
     required this.restaurantName,
     required this.categories,
     this.pickupLeadMinutes = 0,
+    this.taxRateBp = 0,
+    this.secondNameLanguage,
   });
 
   Map<String, dynamic> toJson() => {
         'restaurantName': restaurantName,
         'pickupLeadMinutes': pickupLeadMinutes,
+        'taxRateBp': taxRateBp,
+        if (secondNameLanguage != null)
+          'secondNameLanguage': secondNameLanguage,
         'categories': categories.map((c) => c.toJson()).toList(),
       };
 
   factory PublishedMenu.fromJson(Map<String, dynamic> j) => PublishedMenu(
         restaurantName: j['restaurantName'] as String? ?? '',
         pickupLeadMinutes: j['pickupLeadMinutes'] as int? ?? 0,
+        taxRateBp: j['taxRateBp'] as int? ?? 0,
+        secondNameLanguage: j['secondNameLanguage'] as String?,
         categories: (j['categories'] as List)
             .cast<Map<String, dynamic>>()
             .map(PublishedCategory.fromJson)

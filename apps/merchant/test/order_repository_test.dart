@@ -279,4 +279,31 @@ void main() {
       },
     );
   });
+
+  group('discount and service fee', () {
+    test('service fee is snapshotted and charged; discount comes off before '
+        'tax', () async {
+      final orderId = await orders.createOrder(
+        type: OrderType.takeout,
+        taxRateBp: 1300,
+        serviceFeeBp: 1000, // 10%
+      );
+      await orders.addLine(orderId: orderId, item: fries, qty: 2); // $7.00
+
+      var order = (await orders.watchOrder(orderId).first)!;
+      // 7.00 + 10% fee (0.70) + 13% tax (0.91) = 8.61
+      expect(order.subtotal, const Money(700));
+      expect(order.serviceFee, const Money(70));
+      expect(order.tax, const Money(91));
+      expect(order.total, const Money(861));
+
+      await orders.setDiscount(orderId, const Money(100)); // $1.00 off
+      order = (await orders.watchOrder(orderId).first)!;
+      // discounted 6.00 -> fee 0.60, tax 0.78, total 7.38
+      expect(order.discount, const Money(100));
+      expect(order.serviceFee, const Money(60));
+      expect(order.tax, const Money(78));
+      expect(order.total, const Money(738));
+    });
+  });
 }

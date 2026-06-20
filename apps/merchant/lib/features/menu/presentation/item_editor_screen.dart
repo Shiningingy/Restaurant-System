@@ -42,6 +42,7 @@ class _ItemEditorScreenState extends ConsumerState<ItemEditorScreen> {
   final _code = TextEditingController();
   final _name = TextEditingController();
   final _nameSecondary = TextEditingController();
+  final _description = TextEditingController();
   final _price = TextEditingController();
   bool _isActive = true;
   final Set<String> _groupIds = {};
@@ -70,6 +71,7 @@ class _ItemEditorScreenState extends ConsumerState<ItemEditorScreen> {
       _code.text = item.code ?? '';
       _name.text = item.name;
       _nameSecondary.text = item.nameSecondary ?? '';
+      _description.text = item.description ?? '';
       _price.text = (item.price.cents / 100).toStringAsFixed(2);
       _isActive = item.isActive;
       _sortOrder = item.sortOrder;
@@ -86,6 +88,7 @@ class _ItemEditorScreenState extends ConsumerState<ItemEditorScreen> {
     _code.dispose();
     _name.dispose();
     _nameSecondary.dispose();
+    _description.dispose();
     _price.dispose();
     for (final a in _attrs) {
       a.dispose();
@@ -112,6 +115,7 @@ class _ItemEditorScreenState extends ConsumerState<ItemEditorScreen> {
     price: _parsedPrice!,
     code: _clean(_code),
     nameSecondary: _clean(_nameSecondary),
+    description: _clean(_description),
     sortOrder: _sortOrder,
     isActive: _isActive,
     modifierGroupIds: _groupIds.toList(),
@@ -203,6 +207,14 @@ class _ItemEditorScreenState extends ConsumerState<ItemEditorScreen> {
                   decoration: InputDecoration(
                     labelText: context.l10n.itemNameSecondaryLabel,
                   ),
+                ),
+                TextField(
+                  controller: _description,
+                  decoration: InputDecoration(
+                    labelText: context.l10n.itemDescriptionLabel,
+                  ),
+                  maxLines: 2,
+                  textCapitalization: TextCapitalization.sentences,
                 ),
                 TextField(
                   controller: _price,

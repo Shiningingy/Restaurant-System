@@ -111,6 +111,69 @@ final nameDisplayProvider = NotifierProvider<NameDisplayNotifier, NameDisplay>(
   NameDisplayNotifier.new,
 );
 
+/// The language the item second names are written in (e.g. 'zh'), or null. Sent
+/// with the published menu so the customer app can surface the matching name.
+class SecondNameLanguageNotifier extends Notifier<String?> {
+  @override
+  String? build() => ref.watch(settingsRepositoryProvider).secondNameLanguage;
+
+  Future<void> set(String? code) async {
+    await ref.read(settingsRepositoryProvider).setSecondNameLanguage(code);
+    ref.invalidateSelf();
+  }
+}
+
+final secondNameLanguageProvider =
+    NotifierProvider<SecondNameLanguageNotifier, String?>(
+      SecondNameLanguageNotifier.new,
+    );
+
+/// Checkout pricing: a service fee charged on every order, and the discount
+/// presets + the cap staff may discount without a manager.
+class CheckoutPricing {
+  final int serviceFeeBp;
+  final List<int> discountPresetsBp;
+  final int discountThresholdBp;
+
+  const CheckoutPricing({
+    required this.serviceFeeBp,
+    required this.discountPresetsBp,
+    required this.discountThresholdBp,
+  });
+}
+
+class CheckoutPricingNotifier extends Notifier<CheckoutPricing> {
+  @override
+  CheckoutPricing build() {
+    final r = ref.watch(settingsRepositoryProvider);
+    return CheckoutPricing(
+      serviceFeeBp: r.serviceFeeBp,
+      discountPresetsBp: r.discountPresetsBp,
+      discountThresholdBp: r.discountThresholdBp,
+    );
+  }
+
+  Future<void> setServiceFeeBp(int bp) async {
+    await ref.read(settingsRepositoryProvider).setServiceFeeBp(bp);
+    ref.invalidateSelf();
+  }
+
+  Future<void> setDiscountPresetsBp(List<int> presets) async {
+    await ref.read(settingsRepositoryProvider).setDiscountPresetsBp(presets);
+    ref.invalidateSelf();
+  }
+
+  Future<void> setDiscountThresholdBp(int bp) async {
+    await ref.read(settingsRepositoryProvider).setDiscountThresholdBp(bp);
+    ref.invalidateSelf();
+  }
+}
+
+final checkoutPricingProvider =
+    NotifierProvider<CheckoutPricingNotifier, CheckoutPricing>(
+      CheckoutPricingNotifier.new,
+    );
+
 /// Online-ordering preferences: how soon a pickup can be requested, and
 /// whether to chime when a new order lands.
 class OnlineOrderSettings {

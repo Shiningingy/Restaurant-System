@@ -19,6 +19,15 @@ class MenuScreen extends ConsumerWidget {
     final menuAsync = ref.watch(menuProvider);
     final cart = ref.watch(cartProvider);
 
+    // Once the menu loads, learn the restaurant's name for the wallet if we
+    // didn't get one at connect time (idempotent — no-op once set).
+    ref.listen(menuProvider, (_, next) {
+      final menu = next.value;
+      if (menu != null) {
+        ref.read(walletProvider.notifier).backfillActiveName(menu.restaurantName);
+      }
+    });
+
     return Scaffold(
       appBar: AppBar(
         title: Text(menuAsync.value?.restaurantName ?? context.l10n.menuTitle),
@@ -70,13 +79,11 @@ class MenuScreen extends ConsumerWidget {
                   ),
                   for (final item in category.items)
                     ListTile(
-                      title: ItemName(
-                        name: item.name,
-                        nameSecondary: item.nameSecondary,
-                      ),
-                      subtitle: item.modifierGroups.isEmpty
-                          ? null
-                          : Text(context.l10n.menuOptionsAvailable),
+                      isThreeLine:
+                          item.description != null &&
+                          item.description!.isNotEmpty,
+                      title: _itemName(context, menu, item),
+                      subtitle: _itemSubtitle(context, item),
                       trailing: Text(item.price.format()),
                       onTap: () => _addItem(context, ref, item),
                     ),
@@ -105,6 +112,47 @@ class MenuScreen extends ConsumerWidget {
                 ),
               ),
             ),
+    );
+  }
+
+  /// Shows the item name, surfacing the second name as the primary line when
+  /// the app's language matches the merchant-set second-name language.
+  Widget _itemName(
+    BuildContext context,
+    domain.PublishedMenu menu,
+    domain.PublishedItem item,
+  ) {
+    final lang = menu.secondNameLanguage;
+    final second = item.nameSecondary;
+    final swap =
+        lang != null &&
+        lang.isNotEmpty &&
+        second != null &&
+        second.isNotEmpty &&
+        Localizations.localeOf(context).languageCode == lang;
+    return ItemName(
+      name: swap ? second : item.name,
+      nameSecondary: swap ? item.name : second,
+    );
+  }
+
+  /// The item's description (when present) plus an "options available" hint,
+  /// or null when there's neither.
+  Widget? _itemSubtitle(BuildContext context, domain.PublishedItem item) {
+    final desc = item.description?.trim();
+    final hasDesc = desc != null && desc.isNotEmpty;
+    final hasOptions = item.modifierGroups.isNotEmpty;
+    if (!hasDesc && !hasOptions) return null;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (hasDesc) Text(desc, maxLines: 2, overflow: TextOverflow.ellipsis),
+        if (hasOptions)
+          Text(
+            context.l10n.menuOptionsAvailable,
+            style: Theme.of(context).textTheme.labelSmall,
+          ),
+      ],
     );
   }
 
