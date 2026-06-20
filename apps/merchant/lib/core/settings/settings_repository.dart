@@ -55,10 +55,17 @@ class SettingsRepository {
   static const _secondNameOrderKey = 'secondNameOrderScreen';
   static const _secondNameKitchenKey = 'secondNameKitchen';
   static const _secondNameReceiptKey = 'secondNameReceipt';
+  static const _pickupLeadKey = 'pickupLeadMinutes';
+  static const _newOrderSoundKey = 'newOrderSound';
 
   /// 13% HST (Ontario) as the default — the user configures their own rate.
   static const defaultTaxRateBp = 1300;
   static const defaultPrinterPort = 9100;
+
+  /// Soonest a customer can ask to pick up, measured from order time. The
+  /// customer app enforces this when choosing a pickup time (it's published
+  /// with the menu); 15 minutes is a sane default for a small kitchen.
+  static const defaultPickupLeadMinutes = 15;
 
   final SharedPreferences prefs;
 
@@ -117,4 +124,18 @@ class SettingsRepository {
     await prefs.setBool(_secondNameKitchenKey, value.kitchenTicket);
     await prefs.setBool(_secondNameReceiptKey, value.receipt);
   }
+
+  /// Minimum lead time (minutes) before a requested pickup. Published with
+  /// the menu so the customer app can't ask for an impossible time.
+  int get pickupLeadMinutes =>
+      prefs.getInt(_pickupLeadKey) ?? defaultPickupLeadMinutes;
+
+  Future<void> setPickupLeadMinutes(int minutes) =>
+      prefs.setInt(_pickupLeadKey, minutes);
+
+  /// Whether to play an alert sound when a new online order arrives.
+  bool get newOrderSound => prefs.getBool(_newOrderSoundKey) ?? true;
+
+  Future<void> setNewOrderSound(bool on) =>
+      prefs.setBool(_newOrderSoundKey, on);
 }

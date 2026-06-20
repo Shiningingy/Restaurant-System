@@ -17,11 +17,17 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   late final TextEditingController _name;
   late final TextEditingController _phone;
-  TimeOfDay _pickup = TimeOfDay.now().replacing(
-    hour: (TimeOfDay.now().hour + (TimeOfDay.now().minute > 30 ? 1 : 0)) % 24,
-  );
+
+  /// The full pickup moment the customer chose. Initialised in [initState] to
+  /// the earliest the restaurant allows (now + its published lead time).
+  late DateTime _pickupAt;
   bool _busy = false;
   String? _error;
+
+  /// Earliest pickup the restaurant accepts: now + the menu's lead minutes.
+  DateTime get _earliest => DateTime.now().add(
+    Duration(minutes: ref.read(menuProvider).value?.pickupLeadMinutes ?? 0),
+  );
 
   @override
   void initState() {
@@ -29,6 +35,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final config = ref.read(storefrontConfigProvider);
     _name = TextEditingController(text: config.customerName ?? '');
     _phone = TextEditingController(text: config.customerPhone ?? '');
+    // Default to the soonest allowed time, rounded up to the next 5 minutes.
+    final soonest = _earliest;
+    final rounded = soonest.add(
+      Duration(minutes: (5 - soonest.minute % 5) % 5),
+    );
+    _pickupAt = rounded;
   }
 
   @override
@@ -38,18 +50,41 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     super.dispose();
   }
 
-  DateTime get _pickupDateTime {
+  DateTime get _pickupDateTime => _pickupAt;
+
+  Future<void> _pickTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(_pickupAt),
+      helpText: context.l10n.checkoutPickupTime,
+    );
+    if (picked == null) return;
     final now = DateTime.now();
     var when = DateTime(
       now.year,
       now.month,
       now.day,
-      _pickup.hour,
-      _pickup.minute,
+      picked.hour,
+      picked.minute,
     );
+    // A time already past today means they mean tomorrow.
     if (when.isBefore(now)) when = when.add(const Duration(days: 1));
-    return when;
+    final earliest = _earliest;
+    if (when.isBefore(earliest)) {
+      // Too soon — snap to the earliest the restaurant allows and explain.
+      setState(() {
+        _pickupAt = earliest;
+        _error = context.l10n.checkoutPickupTooSoon(_minutesLead);
+      });
+      return;
+    }
+    setState(() {
+      _pickupAt = when;
+      _error = null;
+    });
   }
+
+  int get _minutesLead => ref.read(menuProvider).value?.pickupLeadMinutes ?? 0;
 
   Future<void> _place() async {
     final l10n = context.l10n;
@@ -124,17 +159,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.schedule),
             title: Text(context.l10n.checkoutPickupTime),
+            subtitle: _minutesLead > 0
+                ? Text(context.l10n.checkoutPickupLead(_minutesLead))
+                : null,
             trailing: Text(
-              _pickup.format(context),
+              TimeOfDay.fromDateTime(_pickupAt).format(context),
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            onTap: () async {
-              final picked = await showTimePicker(
-                context: context,
-                initialTime: _pickup,
-              );
-              if (picked != null) setState(() => _pickup = picked);
-            },
+            onTap: _pickTime,
           ),
           const Divider(height: 32),
           Row(

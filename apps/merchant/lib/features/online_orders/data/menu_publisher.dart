@@ -61,6 +61,7 @@ class MenuPublisher {
     }
     return domain.PublishedMenu(
       restaurantName: settings.receiptConfig.businessName,
+      pickupLeadMinutes: settings.pickupLeadMinutes,
       categories: categories,
     );
   }

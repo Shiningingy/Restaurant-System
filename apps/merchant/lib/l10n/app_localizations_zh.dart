@@ -565,6 +565,29 @@ class AppLocalizationsZh extends AppLocalizations {
   String get setSalesTaxRateSubtitle => '适用于新订单；已有订单保留其税率。';
 
   @override
+  String get setOnlineOrdering => '在线点餐';
+
+  @override
+  String get setPickupLead => '最短取餐时间';
+
+  @override
+  String get setPickupLeadSubtitle => '顾客最早可要求的取餐时间。随菜单一起发送。';
+
+  @override
+  String setPickupLeadValue(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes 分钟',
+      zero: '无限制',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get setNewOrderSound => '新订单提示音';
+
+  @override
   String get setPayments => '支付';
 
   @override

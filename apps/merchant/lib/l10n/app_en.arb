@@ -277,6 +277,14 @@
   "setTax": "Tax",
   "setSalesTaxRate": "Sales tax rate",
   "setSalesTaxRateSubtitle": "Applied to new orders; existing orders keep their rate.",
+  "setOnlineOrdering": "Online ordering",
+  "setPickupLead": "Minimum pickup time",
+  "setPickupLeadSubtitle": "Soonest a customer can ask to pick up. Sent with the menu.",
+  "setPickupLeadValue": "{minutes, plural, =0{No minimum} =1{1 min} other{{minutes} min}}",
+  "@setPickupLeadValue": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "setNewOrderSound": "Alert sound on new order",
   "setPayments": "Payments",
   "setCardTerminalManual": "Card terminal: manual entry",
   "setCardTerminalManualSubtitle": "Staff key the amount on the standalone terminal and record the outcome. Semi-integrated Moneris Go support arrives once the Moneris Cloud API access is set up.",

@@ -209,6 +209,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checkoutPickupTime => 'Pickup time';
 
   @override
+  String checkoutPickupLead(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: 'Ready about $minutes minutes after ordering at the earliest',
+      one: 'Ready about 1 minute after ordering at the earliest',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String checkoutPickupTooSoon(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other:
+          'That\'s too soon — pickup is at least $minutes minutes away. Set to the earliest time.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get checkoutTotal => 'Total';
 
   @override

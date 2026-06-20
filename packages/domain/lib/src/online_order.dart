@@ -148,15 +148,26 @@ class PublishedMenu {
   final String restaurantName;
   final List<PublishedCategory> categories;
 
-  const PublishedMenu({required this.restaurantName, required this.categories});
+  /// Soonest the customer may request pickup, in minutes from now. The
+  /// customer app enforces this so it never asks for an impossible time.
+  /// Defaults to 0 for menus published before this field existed.
+  final int pickupLeadMinutes;
+
+  const PublishedMenu({
+    required this.restaurantName,
+    required this.categories,
+    this.pickupLeadMinutes = 0,
+  });
 
   Map<String, dynamic> toJson() => {
         'restaurantName': restaurantName,
+        'pickupLeadMinutes': pickupLeadMinutes,
         'categories': categories.map((c) => c.toJson()).toList(),
       };
 
   factory PublishedMenu.fromJson(Map<String, dynamic> j) => PublishedMenu(
         restaurantName: j['restaurantName'] as String? ?? '',
+        pickupLeadMinutes: j['pickupLeadMinutes'] as int? ?? 0,
         categories: (j['categories'] as List)
             .cast<Map<String, dynamic>>()
             .map(PublishedCategory.fromJson)

@@ -91,6 +91,8 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => _editTaxRate(context, ref, taxRateBp),
           ),
           const Divider(height: 32),
+          _OnlineOrderingSection(settings: ref.watch(onlineOrderSettingsProvider)),
+          const Divider(height: 32),
           Text(
             context.l10n.setPayments,
             style: Theme.of(context).textTheme.titleMedium,
@@ -531,6 +533,68 @@ class _PrintJobTile extends ConsumerWidget {
             )
           : null,
     );
+  }
+}
+
+/// Online-ordering preferences: minimum pickup lead time (published with the
+/// menu so customers can't ask for an impossible time) and a new-order chime.
+class _OnlineOrderingSection extends ConsumerWidget {
+  final OnlineOrderSettings settings;
+
+  const _OnlineOrderingSection({required this.settings});
+
+  static const _leadChoices = [0, 5, 10, 15, 20, 30, 45, 60];
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          context.l10n.setOnlineOrdering,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        ListTile(
+          leading: const Icon(Icons.timer_outlined),
+          title: Text(context.l10n.setPickupLead),
+          subtitle: Text(context.l10n.setPickupLeadSubtitle),
+          trailing: Text(
+            context.l10n.setPickupLeadValue(settings.pickupLeadMinutes),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          onTap: () => _editLead(context, ref),
+        ),
+        SwitchListTile(
+          secondary: const Icon(Icons.notifications_active_outlined),
+          title: Text(context.l10n.setNewOrderSound),
+          value: settings.newOrderSound,
+          onChanged: (v) =>
+              ref.read(onlineOrderSettingsProvider.notifier).setNewOrderSound(v),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _editLead(BuildContext context, WidgetRef ref) async {
+    final picked = await showDialog<int>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text(context.l10n.setPickupLead),
+        children: [
+          for (final m in _leadChoices)
+            ListTile(
+              title: Text(context.l10n.setPickupLeadValue(m)),
+              trailing: m == settings.pickupLeadMinutes
+                  ? const Icon(Icons.check)
+                  : null,
+              onTap: () => Navigator.pop(context, m),
+            ),
+        ],
+      ),
+    );
+    if (picked != null) {
+      await ref.read(onlineOrderSettingsProvider.notifier).setPickupLead(picked);
+    }
   }
 }
 

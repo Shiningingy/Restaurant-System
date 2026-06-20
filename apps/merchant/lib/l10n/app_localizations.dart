@@ -1064,6 +1064,36 @@ abstract class AppLocalizations {
   /// **'Applied to new orders; existing orders keep their rate.'**
   String get setSalesTaxRateSubtitle;
 
+  /// No description provided for @setOnlineOrdering.
+  ///
+  /// In en, this message translates to:
+  /// **'Online ordering'**
+  String get setOnlineOrdering;
+
+  /// No description provided for @setPickupLead.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum pickup time'**
+  String get setPickupLead;
+
+  /// No description provided for @setPickupLeadSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Soonest a customer can ask to pick up. Sent with the menu.'**
+  String get setPickupLeadSubtitle;
+
+  /// No description provided for @setPickupLeadValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes, plural, =0{No minimum} =1{1 min} other{{minutes} min}}'**
+  String setPickupLeadValue(int minutes);
+
+  /// No description provided for @setNewOrderSound.
+  ///
+  /// In en, this message translates to:
+  /// **'Alert sound on new order'**
+  String get setNewOrderSound;
+
   /// No description provided for @setPayments.
   ///
   /// In en, this message translates to:

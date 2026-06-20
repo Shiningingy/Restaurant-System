@@ -458,6 +458,18 @@ abstract class AppLocalizations {
   /// **'Pickup time'**
   String get checkoutPickupTime;
 
+  /// No description provided for @checkoutPickupLead.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes, plural, =1{Ready about 1 minute after ordering at the earliest} other{Ready about {minutes} minutes after ordering at the earliest}}'**
+  String checkoutPickupLead(int minutes);
+
+  /// No description provided for @checkoutPickupTooSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes, plural, other{That\'s too soon — pickup is at least {minutes} minutes away. Set to the earliest time.}}'**
+  String checkoutPickupTooSoon(int minutes);
+
   /// No description provided for @checkoutTotal.
   ///
   /// In en, this message translates to:

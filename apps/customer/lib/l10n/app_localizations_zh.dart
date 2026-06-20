@@ -203,6 +203,26 @@ class AppLocalizationsZh extends AppLocalizations {
   String get checkoutPickupTime => '取餐时间';
 
   @override
+  String checkoutPickupLead(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '下单后最快约 $minutes 分钟可取餐',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String checkoutPickupTooSoon(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '时间太早——取餐至少需 $minutes 分钟。已设为最早可取时间。',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get checkoutTotal => '合计';
 
   @override

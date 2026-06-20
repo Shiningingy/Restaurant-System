@@ -575,6 +575,31 @@ class AppLocalizationsEn extends AppLocalizations {
       'Applied to new orders; existing orders keep their rate.';
 
   @override
+  String get setOnlineOrdering => 'Online ordering';
+
+  @override
+  String get setPickupLead => 'Minimum pickup time';
+
+  @override
+  String get setPickupLeadSubtitle =>
+      'Soonest a customer can ask to pick up. Sent with the menu.';
+
+  @override
+  String setPickupLeadValue(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes min',
+      one: '1 min',
+      zero: 'No minimum',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get setNewOrderSound => 'Alert sound on new order';
+
+  @override
   String get setPayments => 'Payments';
 
   @override

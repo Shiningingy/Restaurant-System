@@ -91,6 +91,14 @@
   "checkoutNameLabel": "Your name",
   "checkoutPhoneLabel": "Phone (optional)",
   "checkoutPickupTime": "Pickup time",
+  "checkoutPickupLead": "{minutes, plural, =1{Ready about 1 minute after ordering at the earliest} other{Ready about {minutes} minutes after ordering at the earliest}}",
+  "@checkoutPickupLead": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "checkoutPickupTooSoon": "{minutes, plural, other{That's too soon — pickup is at least {minutes} minutes away. Set to the earliest time.}}",
+  "@checkoutPickupTooSoon": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
   "checkoutTotal": "Total",
   "checkoutPayAtCounter": "Pay at the counter when you pick up.",
   "checkoutNameRequired": "Please enter your name.",

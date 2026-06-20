@@ -70,6 +70,14 @@
   "checkoutNameLabel": "您的姓名",
   "checkoutPhoneLabel": "电话（可选）",
   "checkoutPickupTime": "取餐时间",
+  "checkoutPickupLead": "{minutes, plural, other{下单后最快约 {minutes} 分钟可取餐}}",
+  "@checkoutPickupLead": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "checkoutPickupTooSoon": "{minutes, plural, other{时间太早——取餐至少需 {minutes} 分钟。已设为最早可取时间。}}",
+  "@checkoutPickupTooSoon": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
   "checkoutTotal": "合计",
   "checkoutPayAtCounter": "取餐时在柜台支付。",
   "checkoutNameRequired": "请输入您的姓名。",
