@@ -329,4 +329,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get orderStatusRejected => 'Declined';
+
+  @override
+  String get orderNotifyAccepted =>
+      'Your order was accepted and is being prepared.';
+
+  @override
+  String get orderNotifyReady => 'Your order is ready for pickup!';
+
+  @override
+  String get orderNotifyTimeProposed =>
+      'The restaurant suggested a new pickup time — tap to review.';
+
+  @override
+  String get orderNotifyRejected => 'Your order was declined.';
 }

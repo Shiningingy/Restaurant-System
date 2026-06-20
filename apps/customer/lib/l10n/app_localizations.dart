@@ -649,6 +649,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Declined'**
   String get orderStatusRejected;
+
+  /// No description provided for @orderNotifyAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Your order was accepted and is being prepared.'**
+  String get orderNotifyAccepted;
+
+  /// No description provided for @orderNotifyReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Your order is ready for pickup!'**
+  String get orderNotifyReady;
+
+  /// No description provided for @orderNotifyTimeProposed.
+  ///
+  /// In en, this message translates to:
+  /// **'The restaurant suggested a new pickup time — tap to review.'**
+  String get orderNotifyTimeProposed;
+
+  /// No description provided for @orderNotifyRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Your order was declined.'**
+  String get orderNotifyRejected;
 }
 
 class _AppLocalizationsDelegate

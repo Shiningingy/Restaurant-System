@@ -112,5 +112,10 @@
   "orderStatusAccepted": "备餐中",
   "orderStatusReady": "可取餐",
   "orderStatusPickedUp": "已取餐",
-  "orderStatusRejected": "已拒绝"
+  "orderStatusRejected": "已拒绝",
+
+  "orderNotifyAccepted": "您的订单已被接受，正在备餐。",
+  "orderNotifyReady": "您的订单已经可以取餐了！",
+  "orderNotifyTimeProposed": "餐厅建议了新的取餐时间——点击查看。",
+  "orderNotifyRejected": "您的订单已被拒绝。"
 }

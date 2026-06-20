@@ -139,5 +139,10 @@
   "orderStatusAccepted": "Preparing",
   "orderStatusReady": "Ready",
   "orderStatusPickedUp": "Picked up",
-  "orderStatusRejected": "Declined"
+  "orderStatusRejected": "Declined",
+
+  "orderNotifyAccepted": "Your order was accepted and is being prepared.",
+  "orderNotifyReady": "Your order is ready for pickup!",
+  "orderNotifyTimeProposed": "The restaurant suggested a new pickup time — tap to review.",
+  "orderNotifyRejected": "Your order was declined."
 }

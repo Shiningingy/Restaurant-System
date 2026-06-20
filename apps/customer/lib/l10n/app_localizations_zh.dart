@@ -317,4 +317,16 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get orderStatusRejected => '已拒绝';
+
+  @override
+  String get orderNotifyAccepted => '您的订单已被接受，正在备餐。';
+
+  @override
+  String get orderNotifyReady => '您的订单已经可以取餐了！';
+
+  @override
+  String get orderNotifyTimeProposed => '餐厅建议了新的取餐时间——点击查看。';
+
+  @override
+  String get orderNotifyRejected => '您的订单已被拒绝。';
 }
