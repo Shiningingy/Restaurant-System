@@ -34,6 +34,10 @@
   "profileNameLabel": "姓名或昵称",
   "profilePhoneLabel": "电话（可选）",
   "profileEmailLabel": "电子邮箱（可选）",
+  "profileNotifySection": "订单准备好时通知我",
+  "profileNotifyHint": "仅在餐厅已开启邮件/短信通知时有效。",
+  "profileNotifyEmail": "通过电子邮件",
+  "profileNotifySms": "通过短信",
   "profileSave": "保存",
   "profileSaved": "已保存",
 

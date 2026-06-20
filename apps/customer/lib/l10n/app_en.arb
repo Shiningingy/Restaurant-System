@@ -37,6 +37,10 @@
   "profileNameLabel": "Name or nickname",
   "profilePhoneLabel": "Phone (optional)",
   "profileEmailLabel": "Email (optional)",
+  "profileNotifySection": "Notify me when my order is ready",
+  "profileNotifyHint": "Only works if the restaurant has turned on email/SMS notifications.",
+  "profileNotifyEmail": "By email",
+  "profileNotifySms": "By text message",
   "profileSave": "Save",
   "profileSaved": "Saved",
 

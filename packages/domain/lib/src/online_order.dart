@@ -248,6 +248,13 @@ class PreorderLine {
 class PreorderSubmission {
   final String customerName;
   final String? customerPhone;
+  final String? customerEmail;
+
+  /// How the customer wants to hear the order is ready. Carried on the order
+  /// so the restaurant's notify Edge Function knows whether/where to send
+  /// (it never sends unless asked). Defaults to off.
+  final bool notifyByEmail;
+  final bool notifyBySms;
   final DateTime requestedPickupAt;
   final List<PreorderLine> lines;
   final String? note;
@@ -257,6 +264,9 @@ class PreorderSubmission {
     required this.requestedPickupAt,
     required this.lines,
     this.customerPhone,
+    this.customerEmail,
+    this.notifyByEmail = false,
+    this.notifyBySms = false,
     this.note,
   });
 
@@ -265,6 +275,9 @@ class PreorderSubmission {
   Map<String, dynamic> toJson() => {
         'customerName': customerName,
         'customerPhone': customerPhone,
+        'customerEmail': customerEmail,
+        'notifyByEmail': notifyByEmail,
+        'notifyBySms': notifyBySms,
         'requestedPickupAt': requestedPickupAt.toIso8601String(),
         'lines': lines.map((l) => l.toJson()).toList(),
         'note': note,
@@ -274,6 +287,9 @@ class PreorderSubmission {
       PreorderSubmission(
         customerName: j['customerName'] as String,
         customerPhone: j['customerPhone'] as String?,
+        customerEmail: j['customerEmail'] as String?,
+        notifyByEmail: j['notifyByEmail'] as bool? ?? false,
+        notifyBySms: j['notifyBySms'] as bool? ?? false,
         requestedPickupAt: DateTime.parse(j['requestedPickupAt'] as String),
         lines: (j['lines'] as List)
             .cast<Map<String, dynamic>>()

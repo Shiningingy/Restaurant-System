@@ -104,6 +104,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileEmailLabel => 'Email (optional)';
 
   @override
+  String get profileNotifySection => 'Notify me when my order is ready';
+
+  @override
+  String get profileNotifyHint =>
+      'Only works if the restaurant has turned on email/SMS notifications.';
+
+  @override
+  String get profileNotifyEmail => 'By email';
+
+  @override
+  String get profileNotifySms => 'By text message';
+
+  @override
   String get profileSave => 'Save';
 
   @override

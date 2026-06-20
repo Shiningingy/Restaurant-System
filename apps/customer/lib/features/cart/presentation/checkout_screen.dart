@@ -102,9 +102,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       _error = null;
     });
     try {
+      final profile = ref.read(walletProvider).profile;
       final submission = domain.PreorderSubmission(
         customerName: _name.text.trim(),
         customerPhone: _phone.text.trim().isEmpty ? null : _phone.text.trim(),
+        customerEmail: profile.email,
+        notifyByEmail:
+            profile.notifyByEmail && (profile.email?.isNotEmpty ?? false),
+        notifyBySms: profile.notifyBySms && _phone.text.trim().isNotEmpty,
         requestedPickupAt: _pickupDateTime,
         lines: cart.lines.map((l) => l.toPreorderLine()).toList(),
       );
@@ -114,16 +119,18 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       );
       final active = ref.read(walletProvider).active;
       if (active != null) {
-        await ref.read(orderHistoryProvider.notifier).add(
-          PlacedOrder(
-            orderId: orderId,
-            storefrontId: active.id,
-            restaurantLabel: active.label,
-            totalCents: submission.total.cents,
-            placedAt: DateTime.now(),
-            status: domain.OnlineOrderStatus.submitted,
-          ),
-        );
+        await ref
+            .read(orderHistoryProvider.notifier)
+            .add(
+              PlacedOrder(
+                orderId: orderId,
+                storefrontId: active.id,
+                restaurantLabel: active.label,
+                totalCents: submission.total.cents,
+                placedAt: DateTime.now(),
+                status: domain.OnlineOrderStatus.submitted,
+              ),
+            );
       }
       await ref
           .read(walletProvider.notifier)

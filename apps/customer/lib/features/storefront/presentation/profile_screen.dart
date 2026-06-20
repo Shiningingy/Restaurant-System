@@ -18,6 +18,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   late final TextEditingController _name;
   late final TextEditingController _phone;
   late final TextEditingController _email;
+  late bool _notifyByEmail;
+  late bool _notifyBySms;
 
   @override
   void initState() {
@@ -26,6 +28,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     _name = TextEditingController(text: profile.name ?? '');
     _phone = TextEditingController(text: profile.phone ?? '');
     _email = TextEditingController(text: profile.email ?? '');
+    _notifyByEmail = profile.notifyByEmail;
+    _notifyBySms = profile.notifyBySms;
   }
 
   @override
@@ -45,6 +49,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             name: _name.text.trim(),
             phone: _phone.text.trim(),
             email: _email.text.trim(),
+            notifyByEmail: _notifyByEmail,
+            notifyBySms: _notifyBySms,
           ),
         );
     if (!mounted) return;
@@ -88,6 +94,27 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               labelText: context.l10n.profileEmailLabel,
             ),
             keyboardType: TextInputType.emailAddress,
+          ),
+          const Divider(height: 32),
+          Text(
+            context.l10n.profileNotifySection,
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          Text(
+            context.l10n.profileNotifyHint,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(context.l10n.profileNotifyEmail),
+            value: _notifyByEmail,
+            onChanged: (v) => setState(() => _notifyByEmail = v),
+          ),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(context.l10n.profileNotifySms),
+            value: _notifyBySms,
+            onChanged: (v) => setState(() => _notifyBySms = v),
           ),
           const SizedBox(height: 24),
           FilledButton(onPressed: _save, child: Text(context.l10n.profileSave)),

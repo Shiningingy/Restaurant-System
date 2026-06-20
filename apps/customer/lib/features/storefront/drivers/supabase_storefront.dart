@@ -83,6 +83,9 @@ class SupabaseStorefront {
               'customer_uid': ?customerUid,
               'customer_name': sub.customerName,
               'customer_phone': sub.customerPhone,
+              'customer_email': sub.customerEmail,
+              'notify_by_email': sub.notifyByEmail,
+              'notify_by_sms': sub.notifyBySms,
               'lines': sub.lines.map((l) => l.toJson()).toList(),
               'requested_pickup_at': sub.requestedPickupAt
                   .toUtc()

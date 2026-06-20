@@ -101,6 +101,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get profileEmailLabel => '电子邮箱（可选）';
 
   @override
+  String get profileNotifySection => '订单准备好时通知我';
+
+  @override
+  String get profileNotifyHint => '仅在餐厅已开启邮件/短信通知时有效。';
+
+  @override
+  String get profileNotifyEmail => '通过电子邮件';
+
+  @override
+  String get profileNotifySms => '通过短信';
+
+  @override
   String get profileSave => '保存';
 
   @override

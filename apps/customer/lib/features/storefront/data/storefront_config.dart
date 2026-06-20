@@ -10,19 +10,38 @@ class CustomerProfile {
   final String? phone;
   final String? email;
 
-  const CustomerProfile({this.name, this.phone, this.email});
+  /// Whether the customer wants a "ready" message by email / SMS. Sent only
+  /// if the restaurant has deployed its notify Edge Function with a provider
+  /// key (docs/EMAIL_SMS_NOTIFICATIONS.md); the app never sends directly.
+  final bool notifyByEmail;
+  final bool notifyBySms;
+
+  const CustomerProfile({
+    this.name,
+    this.phone,
+    this.email,
+    this.notifyByEmail = false,
+    this.notifyBySms = false,
+  });
 
   bool get isEmpty =>
       (name == null || name!.isEmpty) &&
       (phone == null || phone!.isEmpty) &&
       (email == null || email!.isEmpty);
 
-  CustomerProfile copyWith({String? name, String? phone, String? email}) =>
-      CustomerProfile(
-        name: name ?? this.name,
-        phone: phone ?? this.phone,
-        email: email ?? this.email,
-      );
+  CustomerProfile copyWith({
+    String? name,
+    String? phone,
+    String? email,
+    bool? notifyByEmail,
+    bool? notifyBySms,
+  }) => CustomerProfile(
+    name: name ?? this.name,
+    phone: phone ?? this.phone,
+    email: email ?? this.email,
+    notifyByEmail: notifyByEmail ?? this.notifyByEmail,
+    notifyBySms: notifyBySms ?? this.notifyBySms,
+  );
 }
 
 /// One restaurant the customer has collected in their wallet — its Supabase
@@ -158,6 +177,8 @@ class StorefrontConfigRepository {
   static const _nameKey = 'customerName';
   static const _phoneKey = 'customerPhone';
   static const _emailKey = 'customerEmail';
+  static const _notifyEmailKey = 'customerNotifyByEmail';
+  static const _notifySmsKey = 'customerNotifyBySms';
   static const _appLocaleKey = 'appLocale';
 
   // Pre-wallet single-storefront keys, migrated forward on first write.
@@ -182,6 +203,8 @@ class StorefrontConfigRepository {
     name: prefs.getString(_nameKey),
     phone: prefs.getString(_phoneKey),
     email: prefs.getString(_emailKey),
+    notifyByEmail: prefs.getBool(_notifyEmailKey) ?? false,
+    notifyBySms: prefs.getBool(_notifySmsKey) ?? false,
   );
 
   /// Every restaurant in the wallet. Reads forward from the new list, or
@@ -328,6 +351,8 @@ class StorefrontConfigRepository {
     await _setOrRemove(_nameKey, p.name);
     await _setOrRemove(_phoneKey, p.phone);
     await _setOrRemove(_emailKey, p.email);
+    await prefs.setBool(_notifyEmailKey, p.notifyByEmail);
+    await prefs.setBool(_notifySmsKey, p.notifyBySms);
   }
 
   /// Remembers the name/phone the customer typed at checkout for next time.

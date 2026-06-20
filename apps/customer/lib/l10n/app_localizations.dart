@@ -278,6 +278,30 @@ abstract class AppLocalizations {
   /// **'Email (optional)'**
   String get profileEmailLabel;
 
+  /// No description provided for @profileNotifySection.
+  ///
+  /// In en, this message translates to:
+  /// **'Notify me when my order is ready'**
+  String get profileNotifySection;
+
+  /// No description provided for @profileNotifyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Only works if the restaurant has turned on email/SMS notifications.'**
+  String get profileNotifyHint;
+
+  /// No description provided for @profileNotifyEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'By email'**
+  String get profileNotifyEmail;
+
+  /// No description provided for @profileNotifySms.
+  ///
+  /// In en, this message translates to:
+  /// **'By text message'**
+  String get profileNotifySms;
+
   /// No description provided for @profileSave.
   ///
   /// In en, this message translates to:
