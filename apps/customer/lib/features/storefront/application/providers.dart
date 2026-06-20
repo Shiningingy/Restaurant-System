@@ -51,16 +51,27 @@ class WalletNotifier extends Notifier<Wallet> {
     required String anonKey,
     String? name,
   }) async {
-    final auth = SupabaseAuth(url: url, anonKey: anonKey);
+    // Prepend https:// when missing, else Uri.parse yields no host and every
+    // request throws "No host specified in URI".
+    final normUrl = _normalizeUrl(url);
+    final auth = SupabaseAuth(url: normUrl, anonKey: anonKey);
     final session = await auth.signInAnonymously();
     await _repo.addStorefront(
-      url: url,
+      url: normUrl,
       anonKey: anonKey,
       name: name,
       refreshToken: session.refreshToken,
       uid: session.userId,
     );
     state = _repo.wallet;
+  }
+
+  String _normalizeUrl(String url) {
+    final u = url.trim();
+    if (u.isEmpty) return u;
+    final lower = u.toLowerCase();
+    if (lower.startsWith('http://') || lower.startsWith('https://')) return u;
+    return 'https://$u';
   }
 
   /// Opens an already-saved restaurant (no re-auth — its session is stored).

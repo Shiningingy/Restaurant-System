@@ -73,28 +73,31 @@ class SupabaseStorefront {
     String? customerUid,
   }) async {
     final id = domain.newId();
+    final row = <String, dynamic>{
+      'id': id,
+      'customer_uid': ?customerUid,
+      'customer_name': sub.customerName,
+      'customer_phone': sub.customerPhone,
+      'lines': sub.lines.map((l) => l.toJson()).toList(),
+      'requested_pickup_at': sub.requestedPickupAt.toUtc().toIso8601String(),
+      'submitted_at': DateTime.now().toUtc().toIso8601String(),
+      'status': domain.OnlineOrderStatus.submitted.name,
+      'note': sub.note,
+    };
+    // Only send the email/SMS-notification columns when the customer opted in.
+    // They're optional schema (docs/EMAIL_SMS_NOTIFICATIONS.md); referencing
+    // them otherwise would 400 on a storefront that hasn't added them, breaking
+    // ordering for everyone.
+    if (sub.notifyByEmail || sub.notifyBySms) {
+      row['customer_email'] = sub.customerEmail;
+      row['notify_by_email'] = sub.notifyByEmail;
+      row['notify_by_sms'] = sub.notifyBySms;
+    }
     final resp = await _client
         .post(
           _rest(domain.OnlineOrderingTables.onlineOrders),
           headers: await _authHeaders(),
-          body: jsonEncode([
-            {
-              'id': id,
-              'customer_uid': ?customerUid,
-              'customer_name': sub.customerName,
-              'customer_phone': sub.customerPhone,
-              'customer_email': sub.customerEmail,
-              'notify_by_email': sub.notifyByEmail,
-              'notify_by_sms': sub.notifyBySms,
-              'lines': sub.lines.map((l) => l.toJson()).toList(),
-              'requested_pickup_at': sub.requestedPickupAt
-                  .toUtc()
-                  .toIso8601String(),
-              'submitted_at': DateTime.now().toUtc().toIso8601String(),
-              'status': domain.OnlineOrderStatus.submitted.name,
-              'note': sub.note,
-            },
-          ]),
+          body: jsonEncode([row]),
         )
         .timeout(timeout);
     if (resp.statusCode >= 300) {
@@ -127,10 +130,13 @@ class SupabaseStorefront {
   /// Current status plus the merchant's proposed pickup time (when the
   /// status is timeProposed).
   Future<OrderState> fetchState(String orderId) async {
+    // Select '*' rather than naming proposed_pickup_at: that column is part of
+    // the optional pickup-time-negotiation schema, and naming a missing column
+    // would 400. Absent column simply reads back as null.
     final resp = await _client
         .get(
           _rest(domain.OnlineOrderingTables.onlineOrders, {
-            'select': 'status,proposed_pickup_at',
+            'select': '*',
             'id': 'eq.$orderId',
           }),
           headers: await _authHeaders(),
