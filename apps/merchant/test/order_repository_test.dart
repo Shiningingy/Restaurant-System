@@ -200,4 +200,83 @@ void main() {
     expect(order.taxRateBp, 500);
     expect(order.tax, const Money(18));
   });
+
+  group('adding the same item merges into one line', () {
+    test(
+      'identical item + modifiers stacks qty instead of duplicating',
+      () async {
+        final orderId = await orders.createOrder(
+          type: OrderType.takeout,
+          taxRateBp: 0,
+        );
+        await orders.addLine(
+          orderId: orderId,
+          item: burger,
+          selectedModifiers: [sizeLarge],
+        );
+        await orders.addLine(
+          orderId: orderId,
+          item: burger,
+          selectedModifiers: [sizeLarge],
+        );
+
+        final lines = await orders.watchLines(orderId).first;
+        expect(lines, hasLength(1));
+        expect(lines.single.qty, 2);
+        expect(lines.single.lineTotal, const Money(2400)); // (10.00 + 2.00) * 2
+
+        final order = (await orders.watchOrder(orderId).first)!;
+        expect(order.subtotal, const Money(2400));
+      },
+    );
+
+    test('quantities accumulate across adds', () async {
+      final orderId = await orders.createOrder(
+        type: OrderType.takeout,
+        taxRateBp: 0,
+      );
+      await orders.addLine(orderId: orderId, item: fries, qty: 2);
+      await orders.addLine(orderId: orderId, item: fries);
+
+      final lines = await orders.watchLines(orderId).first;
+      expect(lines, hasLength(1));
+      expect(lines.single.qty, 3);
+      expect(lines.single.lineTotal, const Money(1050)); // 3.50 * 3
+    });
+
+    test('a different note keeps the lines separate', () async {
+      final orderId = await orders.createOrder(
+        type: OrderType.takeout,
+        taxRateBp: 0,
+      );
+      await orders.addLine(orderId: orderId, item: fries, note: 'crispy');
+      await orders.addLine(orderId: orderId, item: fries, note: 'soft');
+
+      final lines = await orders.watchLines(orderId).first;
+      expect(lines, hasLength(2));
+    });
+
+    test(
+      'a voided line is not reused — a re-add starts a fresh line',
+      () async {
+        final orderId = await orders.createOrder(
+          type: OrderType.takeout,
+          taxRateBp: 0,
+        );
+        await orders.addLine(orderId: orderId, item: fries);
+        final first = (await orders.watchLines(orderId).first).single;
+        await orders.voidLine(first.id);
+
+        await orders.addLine(orderId: orderId, item: fries);
+
+        final lines = await orders.watchLines(orderId).first;
+        expect(lines, hasLength(2)); // one voided, one fresh active
+        final active = lines
+            .where((l) => l.status == OrderLineStatus.active)
+            .toList();
+        expect(active, hasLength(1));
+        expect(active.single.qty, 1);
+      },
+    );
+  });
 }
