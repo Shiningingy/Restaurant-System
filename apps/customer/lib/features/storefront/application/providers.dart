@@ -51,16 +51,27 @@ class WalletNotifier extends Notifier<Wallet> {
     required String anonKey,
     String? name,
   }) async {
-    final auth = SupabaseAuth(url: url, anonKey: anonKey);
+    // Prepend https:// when missing, else Uri.parse yields no host and every
+    // request throws "No host specified in URI".
+    final normUrl = _normalizeUrl(url);
+    final auth = SupabaseAuth(url: normUrl, anonKey: anonKey);
     final session = await auth.signInAnonymously();
     await _repo.addStorefront(
-      url: url,
+      url: normUrl,
       anonKey: anonKey,
       name: name,
       refreshToken: session.refreshToken,
       uid: session.userId,
     );
     state = _repo.wallet;
+  }
+
+  String _normalizeUrl(String url) {
+    final u = url.trim();
+    if (u.isEmpty) return u;
+    final lower = u.toLowerCase();
+    if (lower.startsWith('http://') || lower.startsWith('https://')) return u;
+    return 'https://$u';
   }
 
   /// Opens an already-saved restaurant (no re-auth — its session is stored).
@@ -78,6 +89,12 @@ class WalletNotifier extends Notifier<Wallet> {
   /// Forgets a saved restaurant entirely.
   Future<void> remove(String id) async {
     await _repo.removeStorefront(id);
+    state = _repo.wallet;
+  }
+
+  /// Sets (or clears, when blank) the customer's nickname for a restaurant.
+  Future<void> rename(String id, String? nickname) async {
+    await _repo.renameStorefront(id, nickname);
     state = _repo.wallet;
   }
 
@@ -116,7 +133,18 @@ final storefrontConfigProvider = Provider<StorefrontConfig>((ref) {
 final storefrontProvider = Provider<SupabaseStorefront?>((ref) {
   final config = ref.watch(storefrontConfigProvider);
   if (!config.isConnected) return null;
-  final auth = SupabaseAuth(url: config.url!, anonKey: config.anonKey!);
+  final auth = SupabaseAuth(
+    url: config.url!,
+    anonKey: config.anonKey!,
+    // Supabase rotates the refresh token on each refresh. Persist the new one
+    // straight to the repository (not the notifier), so it survives a restart
+    // without rebuilding this provider mid-refresh (which would loop).
+    onSession: (session) =>
+        ref.read(storefrontConfigRepositoryProvider).saveSession(
+          refreshToken: session.refreshToken,
+          uid: session.userId,
+        ),
+  );
   final refresh = config.sessionRefreshToken;
   if (refresh != null) {
     // Restore with a past expiry so the first request refreshes the token.

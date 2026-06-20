@@ -158,17 +158,17 @@ void main() {
     );
     row['status'] = 'ready';
 
-    // watchStatus streams the current status and stops at a terminal one.
+    // watchState streams the current status and stops at a terminal one.
     final seen = <domain.OnlineOrderStatus>[];
-    await for (final s in storefront.watchStatus(
+    await for (final s in storefront.watchState(
       orderId,
       interval: const Duration(milliseconds: 1),
     )) {
-      seen.add(s);
-      if (s == domain.OnlineOrderStatus.ready) {
+      seen.add(s.status);
+      if (s.status == domain.OnlineOrderStatus.ready) {
         row['status'] = 'pickedUp'; // customer collects
       }
-      if (s == domain.OnlineOrderStatus.pickedUp) break;
+      if (s.status == domain.OnlineOrderStatus.pickedUp) break;
     }
     expect(seen, contains(domain.OnlineOrderStatus.ready));
     expect(seen.last, domain.OnlineOrderStatus.pickedUp);

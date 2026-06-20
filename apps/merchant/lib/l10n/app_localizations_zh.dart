@@ -242,6 +242,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get menuPrice => '价格';
 
   @override
+  String get menuDeleteItem => '删除菜品';
+
+  @override
+  String menuDeleteItemConfirm(String name) {
+    return '删除“$name”？此操作无法撤销。';
+  }
+
+  @override
+  String get menuDeleteCategory => '删除分类';
+
+  @override
+  String menuDeleteCategoryConfirm(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '删除“$name”及其下的 $count 个菜品？此操作无法撤销。',
+      zero: '删除“$name”？此操作无法撤销。',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get modGroup => '选项组';
 
   @override
@@ -426,6 +448,23 @@ class AppLocalizationsZh extends AppLocalizations {
   String get inboxAccept => '接受';
 
   @override
+  String get inboxProposeTime => '建议时间';
+
+  @override
+  String get inboxTimeProposed => '已建议新时间——等待顾客确认。';
+
+  @override
+  String get inboxAwaitingApproval => '等待顾客确认';
+
+  @override
+  String get inboxNoneAwaiting => '没有等待顾客确认的订单。';
+
+  @override
+  String inboxProposedWaiting(String time) {
+    return '已建议 $time——等待顾客确认。';
+  }
+
+  @override
   String get inboxAcceptedAdded => '已接受，已添加到订单。';
 
   @override
@@ -541,6 +580,29 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get setSalesTaxRateSubtitle => '适用于新订单；已有订单保留其税率。';
+
+  @override
+  String get setOnlineOrdering => '在线点餐';
+
+  @override
+  String get setPickupLead => '最短取餐时间';
+
+  @override
+  String get setPickupLeadSubtitle => '顾客最早可要求的取餐时间。随菜单一起发送。';
+
+  @override
+  String setPickupLeadValue(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes 分钟',
+      zero: '无限制',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get setNewOrderSound => '新订单提示音';
 
   @override
   String get setPayments => '支付';
@@ -819,13 +881,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get roleAccessRequired => '需要经理权限';
 
   @override
-  String get pinEnterTitle => '输入 PIN';
+  String get pinEnterTitle => '登录';
+
+  @override
+  String get pinNameLabel => '姓名';
 
   @override
   String get pinFieldLabel => '4 位 PIN';
 
   @override
-  String get pinIncorrect => 'PIN 不正确';
+  String get pinIncorrect => '姓名或 PIN 不正确';
 
   @override
   String get pinUnlock => '解锁';

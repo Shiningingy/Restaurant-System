@@ -105,6 +105,19 @@
   "menuNewItem": "New item",
   "menuEditItem": "Edit item",
   "menuPrice": "Price",
+  "menuDeleteItem": "Delete item",
+  "menuDeleteItemConfirm": "Delete \"{name}\"? This can't be undone.",
+  "@menuDeleteItemConfirm": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "menuDeleteCategory": "Delete category",
+  "menuDeleteCategoryConfirm": "{count, plural, =0{Delete \"{name}\"? This can't be undone.} =1{Delete \"{name}\" and its 1 item? This can't be undone.} other{Delete \"{name}\" and its {count} items? This can't be undone.}}",
+  "@menuDeleteCategoryConfirm": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  },
 
   "modGroup": "Group",
   "modGroupsEmpty": "Modifier groups (e.g. \"Size\", \"Add-ons\") appear here.",
@@ -202,6 +215,14 @@
   },
   "inboxReject": "Reject",
   "inboxAccept": "Accept",
+  "inboxProposeTime": "Propose time",
+  "inboxTimeProposed": "New time proposed — waiting for the customer.",
+  "inboxAwaitingApproval": "Awaiting customer approval",
+  "inboxNoneAwaiting": "No orders awaiting customer approval.",
+  "inboxProposedWaiting": "Proposed {time} — waiting for the customer to approve.",
+  "@inboxProposedWaiting": {
+    "placeholders": { "time": { "type": "String" } }
+  },
   "inboxAcceptedAdded": "Accepted — added to orders.",
   "inboxPreorderRejected": "Preorder rejected.",
   "inboxCustomerNotifiedReady": "Customer notified: ready.",
@@ -264,6 +285,14 @@
   "setTax": "Tax",
   "setSalesTaxRate": "Sales tax rate",
   "setSalesTaxRateSubtitle": "Applied to new orders; existing orders keep their rate.",
+  "setOnlineOrdering": "Online ordering",
+  "setPickupLead": "Minimum pickup time",
+  "setPickupLeadSubtitle": "Soonest a customer can ask to pick up. Sent with the menu.",
+  "setPickupLeadValue": "{minutes, plural, =0{No minimum} =1{1 min} other{{minutes} min}}",
+  "@setPickupLeadValue": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "setNewOrderSound": "Alert sound on new order",
   "setPayments": "Payments",
   "setCardTerminalManual": "Card terminal: manual entry",
   "setCardTerminalManualSubtitle": "Staff key the amount on the standalone terminal and record the outcome. Semi-integrated Moneris Go support arrives once the Moneris Cloud API access is set up.",
@@ -382,9 +411,10 @@
   "roleNoStaffYet": "No staff set up yet",
   "roleAccessRequired": "Manager access required",
 
-  "pinEnterTitle": "Enter PIN",
+  "pinEnterTitle": "Sign in",
+  "pinNameLabel": "Name",
   "pinFieldLabel": "4-digit PIN",
-  "pinIncorrect": "Incorrect PIN",
+  "pinIncorrect": "Incorrect name or PIN",
   "pinUnlock": "Unlock",
 
   "adminStaffSection": "Staff & roles",

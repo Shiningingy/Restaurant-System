@@ -110,3 +110,41 @@ class NameDisplayNotifier extends Notifier<NameDisplay> {
 final nameDisplayProvider = NotifierProvider<NameDisplayNotifier, NameDisplay>(
   NameDisplayNotifier.new,
 );
+
+/// Online-ordering preferences: how soon a pickup can be requested, and
+/// whether to chime when a new order lands.
+class OnlineOrderSettings {
+  final int pickupLeadMinutes;
+  final bool newOrderSound;
+
+  const OnlineOrderSettings({
+    required this.pickupLeadMinutes,
+    required this.newOrderSound,
+  });
+}
+
+class OnlineOrderSettingsNotifier extends Notifier<OnlineOrderSettings> {
+  @override
+  OnlineOrderSettings build() {
+    final r = ref.watch(settingsRepositoryProvider);
+    return OnlineOrderSettings(
+      pickupLeadMinutes: r.pickupLeadMinutes,
+      newOrderSound: r.newOrderSound,
+    );
+  }
+
+  Future<void> setPickupLead(int minutes) async {
+    await ref.read(settingsRepositoryProvider).setPickupLeadMinutes(minutes);
+    ref.invalidateSelf();
+  }
+
+  Future<void> setNewOrderSound(bool on) async {
+    await ref.read(settingsRepositoryProvider).setNewOrderSound(on);
+    ref.invalidateSelf();
+  }
+}
+
+final onlineOrderSettingsProvider =
+    NotifierProvider<OnlineOrderSettingsNotifier, OnlineOrderSettings>(
+      OnlineOrderSettingsNotifier.new,
+    );

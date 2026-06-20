@@ -12,6 +12,9 @@
   "connectKeyLabel": "访问密钥",
   "connectNameLabel": "餐厅名称（可选）",
   "connectScanButton": "扫描二维码",
+  "connectUploadQr": "上传二维码图片",
+  "connectQrImageInvalid": "未在该图片中找到餐厅二维码。",
+  "connectEnterManually": "手动输入信息",
   "connectOrDivider": "或手动输入",
   "connectButton": "连接",
   "connectErrorEmptyFields": "请输入餐厅网址和密钥。",
@@ -22,6 +25,8 @@
   "walletAdd": "添加餐厅",
   "walletProfile": "我的信息",
   "walletShare": "分享",
+  "walletRename": "重命名",
+  "walletRenameLabel": "您给这家餐厅起的昵称",
   "walletRemove": "移除",
   "walletRemoveConfirm": "要将 {name} 从您的餐厅中移除吗？",
   "commonCancel": "取消",
@@ -31,6 +36,10 @@
   "profileNameLabel": "姓名或昵称",
   "profilePhoneLabel": "电话（可选）",
   "profileEmailLabel": "电子邮箱（可选）",
+  "profileNotifySection": "订单准备好时通知我",
+  "profileNotifyHint": "仅在餐厅已开启邮件/短信通知时有效。",
+  "profileNotifyEmail": "通过电子邮件",
+  "profileNotifySms": "通过短信",
   "profileSave": "保存",
   "profileSaved": "已保存",
 
@@ -67,6 +76,14 @@
   "checkoutNameLabel": "您的姓名",
   "checkoutPhoneLabel": "电话（可选）",
   "checkoutPickupTime": "取餐时间",
+  "checkoutPickupLead": "{minutes, plural, other{下单后最快约 {minutes} 分钟可取餐}}",
+  "@checkoutPickupLead": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "checkoutPickupTooSoon": "{minutes, plural, other{时间太早——取餐至少需 {minutes} 分钟。已设为最早可取时间。}}",
+  "@checkoutPickupTooSoon": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
   "checkoutTotal": "合计",
   "checkoutPayAtCounter": "取餐时在柜台支付。",
   "checkoutNameRequired": "请输入您的姓名。",
@@ -80,10 +97,31 @@
   "statusReadyHeadline": "可以取餐了！",
   "statusPickedUpHeadline": "已取餐 — 请慢用！",
   "statusRejectedHeadline": "订单已被拒绝",
+  "statusTimeProposedHeadline": "建议了新的取餐时间",
   "statusSubmittedDetail": "餐厅将很快确认您的订单。",
   "statusAcceptedDetail": "准备好取餐时我们会通知您。",
   "statusReadyDetail": "请前往柜台取餐并付款。",
   "statusRejectedDetail": "抱歉 — 餐厅无法接受此订单。",
+  "statusTimeProposedDetail": "餐厅建议改为 {time}。确认以继续，或拒绝以取消。",
+  "@statusTimeProposedDetail": {
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "statusApproveTime": "确认",
+  "statusDeclineTime": "拒绝",
   "statusTotalPayAtPickup": "合计 {total} — 取餐时支付",
-  "statusBackToMenu": "返回菜单"
+  "statusBackToMenu": "返回菜单",
+
+  "ordersTitle": "我的订单",
+  "ordersEmpty": "您在这里下的订单及其状态会显示在此处。",
+  "orderStatusSubmitted": "等待中",
+  "orderStatusTimeProposed": "新时间",
+  "orderStatusAccepted": "备餐中",
+  "orderStatusReady": "可取餐",
+  "orderStatusPickedUp": "已取餐",
+  "orderStatusRejected": "已拒绝",
+
+  "orderNotifyAccepted": "您的订单已被接受，正在备餐。",
+  "orderNotifyReady": "您的订单已经可以取餐了！",
+  "orderNotifyTimeProposed": "餐厅建议了新的取餐时间——点击查看。",
+  "orderNotifyRejected": "您的订单已被拒绝。"
 }

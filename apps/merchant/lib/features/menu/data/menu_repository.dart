@@ -39,6 +39,23 @@ class MenuRepository {
     });
   }
 
+  /// Deletes a category and all of its items (cascade). Hard delete is safe:
+  /// order lines snapshot the item name/price, so order history is untouched.
+  Future<void> deleteCategory(String id) {
+    return db.transaction(() async {
+      final itemIds =
+          await (db.select(db.menuItems)
+                ..where((t) => t.categoryId.equals(id)))
+              .get()
+              .then((rows) => rows.map((r) => r.id).toList());
+      for (final itemId in itemIds) {
+        await _deleteItemTx(itemId);
+      }
+      await (db.delete(db.categories)..where((t) => t.id.equals(id))).go();
+      await journal.recordDelete(SyncEntities.category, id);
+    });
+  }
+
   // --- Menu items ---
 
   Stream<List<domain.MenuItem>> watchItemsInCategory(String categoryId) {
@@ -114,6 +131,29 @@ class MenuRepository {
       }
       await journal.recordUpsert(SyncEntities.menuItem, item.id);
     });
+  }
+
+  /// Deletes a single item (and its modifier-group links, attributes and
+  /// image rows). Hard delete is safe: order lines snapshot the item, so
+  /// order history is untouched. Image files on disk are device-local and
+  /// not synced; their rows go here, the bytes are swept by the image store.
+  Future<void> deleteItem(String id) =>
+      db.transaction(() => _deleteItemTx(id));
+
+  /// The body of [deleteItem] without its own transaction, so [deleteCategory]
+  /// can cascade many items inside one transaction.
+  Future<void> _deleteItemTx(String id) async {
+    await (db.delete(
+      db.menuItemModifierGroups,
+    )..where((t) => t.itemId.equals(id))).go();
+    await (db.delete(
+      db.menuItemAttributes,
+    )..where((t) => t.itemId.equals(id))).go();
+    await (db.delete(
+      db.menuItemImages,
+    )..where((t) => t.itemId.equals(id))).go();
+    await (db.delete(db.menuItems)..where((t) => t.id.equals(id))).go();
+    await journal.recordDelete(SyncEntities.menuItem, id);
   }
 
   Future<List<domain.MenuItemAttribute>> _attributesForItem(

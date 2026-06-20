@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../../core/l10n_ext.dart';
+import '../../../core/widgets/item_name.dart';
 import '../../cart/cart.dart';
 
 /// Lets the customer pick modifiers and a quantity for an item with
@@ -73,8 +74,9 @@ class _ItemSheetState extends State<_ItemSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              widget.item.name,
+            ItemName(
+              name: widget.item.name,
+              nameSecondary: widget.item.nameSecondary,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             Flexible(

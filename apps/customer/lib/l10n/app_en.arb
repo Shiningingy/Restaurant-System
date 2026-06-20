@@ -12,6 +12,9 @@
   "connectKeyLabel": "Access key",
   "connectNameLabel": "Restaurant name (optional)",
   "connectScanButton": "Scan QR code",
+  "connectUploadQr": "Upload QR image",
+  "connectQrImageInvalid": "No restaurant QR code found in that image.",
+  "connectEnterManually": "Enter details manually",
   "connectOrDivider": "or enter it by hand",
   "connectButton": "Connect",
   "connectErrorEmptyFields": "Enter the restaurant URL and key.",
@@ -22,6 +25,8 @@
   "walletAdd": "Add restaurant",
   "walletProfile": "My details",
   "walletShare": "Share",
+  "walletRename": "Rename",
+  "walletRenameLabel": "Your nickname for this restaurant",
   "walletRemove": "Remove",
   "walletRemoveConfirm": "Remove {name} from your restaurants?",
   "@walletRemoveConfirm": {
@@ -34,6 +39,10 @@
   "profileNameLabel": "Name or nickname",
   "profilePhoneLabel": "Phone (optional)",
   "profileEmailLabel": "Email (optional)",
+  "profileNotifySection": "Notify me when my order is ready",
+  "profileNotifyHint": "Only works if the restaurant has turned on email/SMS notifications.",
+  "profileNotifyEmail": "By email",
+  "profileNotifySms": "By text message",
   "profileSave": "Save",
   "profileSaved": "Saved",
 
@@ -88,6 +97,14 @@
   "checkoutNameLabel": "Your name",
   "checkoutPhoneLabel": "Phone (optional)",
   "checkoutPickupTime": "Pickup time",
+  "checkoutPickupLead": "{minutes, plural, =1{Ready about 1 minute after ordering at the earliest} other{Ready about {minutes} minutes after ordering at the earliest}}",
+  "@checkoutPickupLead": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
+  "checkoutPickupTooSoon": "{minutes, plural, other{That's too soon — pickup is at least {minutes} minutes away. Set to the earliest time.}}",
+  "@checkoutPickupTooSoon": {
+    "placeholders": { "minutes": { "type": "int" } }
+  },
   "checkoutTotal": "Total",
   "checkoutPayAtCounter": "Pay at the counter when you pick up.",
   "checkoutNameRequired": "Please enter your name.",
@@ -104,13 +121,34 @@
   "statusReadyHeadline": "Ready for pickup!",
   "statusPickedUpHeadline": "Picked up — enjoy!",
   "statusRejectedHeadline": "Order declined",
+  "statusTimeProposedHeadline": "New pickup time suggested",
   "statusSubmittedDetail": "The restaurant will confirm your order shortly.",
   "statusAcceptedDetail": "We'll let you know when it's ready to collect.",
   "statusReadyDetail": "Head to the counter to pick up and pay.",
   "statusRejectedDetail": "Sorry — the restaurant could not take this order.",
+  "statusTimeProposedDetail": "The restaurant suggested {time} instead. Approve to continue, or decline to cancel.",
+  "@statusTimeProposedDetail": {
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "statusApproveTime": "Approve",
+  "statusDeclineTime": "Decline",
   "statusTotalPayAtPickup": "Total {total} — pay at pickup",
   "@statusTotalPayAtPickup": {
     "placeholders": { "total": { "type": "String" } }
   },
-  "statusBackToMenu": "Back to menu"
+  "statusBackToMenu": "Back to menu",
+
+  "ordersTitle": "My orders",
+  "ordersEmpty": "Orders you place here will show up here, with their status.",
+  "orderStatusSubmitted": "Waiting",
+  "orderStatusTimeProposed": "New time",
+  "orderStatusAccepted": "Preparing",
+  "orderStatusReady": "Ready",
+  "orderStatusPickedUp": "Picked up",
+  "orderStatusRejected": "Declined",
+
+  "orderNotifyAccepted": "Your order was accepted and is being prepared.",
+  "orderNotifyReady": "Your order is ready for pickup!",
+  "orderNotifyTimeProposed": "The restaurant suggested a new pickup time — tap to review.",
+  "orderNotifyRejected": "Your order was declined."
 }

@@ -2,6 +2,8 @@
     <!-- Scanning a restaurant's storefront QR code (mobile_scanner). -->
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
+    <!-- On-device order-status notifications (flutter_local_notifications). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <application
         android:label="customer"
         android:name="${applicationName}"

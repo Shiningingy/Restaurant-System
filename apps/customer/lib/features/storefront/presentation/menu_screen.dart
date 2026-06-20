@@ -4,8 +4,10 @@ import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../../core/l10n_ext.dart';
 import '../../../core/language_menu.dart';
+import '../../../core/widgets/item_name.dart';
 import '../../cart/cart.dart';
 import '../../cart/presentation/cart_screen.dart';
+import '../../orders/presentation/orders_screen.dart';
 import '../application/providers.dart';
 import 'item_sheet.dart';
 
@@ -21,6 +23,13 @@ class MenuScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(menuAsync.value?.restaurantName ?? context.l10n.menuTitle),
         actions: [
+          IconButton(
+            tooltip: context.l10n.ordersTitle,
+            icon: const Icon(Icons.receipt_long_outlined),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const OrdersScreen()),
+            ),
+          ),
           IconButton(
             tooltip: context.l10n.walletTitle,
             icon: const Icon(Icons.storefront_outlined),
@@ -61,7 +70,10 @@ class MenuScreen extends ConsumerWidget {
                   ),
                   for (final item in category.items)
                     ListTile(
-                      title: Text(item.name),
+                      title: ItemName(
+                        name: item.name,
+                        nameSecondary: item.nameSecondary,
+                      ),
                       subtitle: item.modifierGroups.isEmpty
                           ? null
                           : Text(context.l10n.menuOptionsAvailable),

@@ -203,4 +203,81 @@ void main() {
     expect(await menu.watchModifierGroups().first, isEmpty);
     expect((await menu.getItem(item.id))!.modifierGroupIds, isEmpty);
   });
+
+  group('deleting items and categories', () {
+    test('deleting an item removes it and its links/attributes', () async {
+      final cat = Category(id: newId(), name: 'Mains');
+      await menu.upsertCategory(cat);
+      final group = ModifierGroup(id: newId(), name: 'Add-ons');
+      await menu.upsertModifierGroup(group);
+      final item = MenuItem(
+        id: newId(),
+        categoryId: cat.id,
+        name: 'Burger',
+        price: const Money(1000),
+        modifierGroupIds: [group.id],
+        attributes: [
+          MenuItemAttribute(id: newId(), label: 'Spice', value: 'Hot'),
+        ],
+      );
+      await menu.upsertItem(item);
+
+      await menu.deleteItem(item.id);
+
+      expect(await menu.getItem(item.id), isNull);
+      expect(await menu.watchItemsInCategory(cat.id).first, isEmpty);
+      // The modifier group itself survives — only the item's link to it went.
+      expect(await menu.watchModifierGroups().first, hasLength(1));
+    });
+
+    test('deleting a category cascades to all its items', () async {
+      final cat = Category(id: newId(), name: 'Drinks');
+      await menu.upsertCategory(cat);
+      await menu.upsertItem(
+        MenuItem(
+          id: newId(),
+          categoryId: cat.id,
+          name: 'Cola',
+          price: const Money(250),
+        ),
+      );
+      await menu.upsertItem(
+        MenuItem(
+          id: newId(),
+          categoryId: cat.id,
+          name: 'Water',
+          price: const Money(150),
+        ),
+      );
+
+      await menu.deleteCategory(cat.id);
+
+      expect(await menu.watchCategories().first, isEmpty);
+      expect(await menu.watchItemsInCategory(cat.id).first, isEmpty);
+    });
+
+    test('deleting one category leaves other categories untouched', () async {
+      final keep = Category(id: newId(), name: 'Keep', sortOrder: 0);
+      final drop = Category(id: newId(), name: 'Drop', sortOrder: 1);
+      await menu.upsertCategory(keep);
+      await menu.upsertCategory(drop);
+      await menu.upsertItem(
+        MenuItem(
+          id: newId(),
+          categoryId: keep.id,
+          name: 'Stays',
+          price: const Money(100),
+        ),
+      );
+
+      await menu.deleteCategory(drop.id);
+
+      final cats = await menu.watchCategories().first;
+      expect(cats.map((c) => c.name), ['Keep']);
+      expect(
+        (await menu.watchItemsInCategory(keep.id).first).single.name,
+        'Stays',
+      );
+    });
+  });
 }

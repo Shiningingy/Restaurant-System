@@ -51,6 +51,23 @@ void main() {
     expect(await repo.findByPin('9999'), isNull);
   });
 
+  test('findByNameAndPin disambiguates two staff sharing a PIN', () async {
+    // Ann and Bob both chose PIN 1234 — name is what tells them apart.
+    final ann = make('Ann', StaffRole.owner, '1234');
+    final bob = make('Bob', StaffRole.server, '1234');
+    await repo.upsert(ann);
+    await repo.upsert(bob);
+
+    expect((await repo.findByNameAndPin('Ann', '1234'))?.id, ann.id);
+    expect((await repo.findByNameAndPin('Bob', '1234'))?.id, bob.id);
+    // Case-insensitive, space-trimmed.
+    expect((await repo.findByNameAndPin('  bob ', '1234'))?.id, bob.id);
+    // Right name, wrong PIN — rejected.
+    expect(await repo.findByNameAndPin('Ann', '9999'), isNull);
+    // Right PIN, wrong name — rejected.
+    expect(await repo.findByNameAndPin('Cara', '1234'), isNull);
+  });
+
   test('identical PINs hash differently per staff (salted by id)', () {
     final a = StaffRepository.hashPin('id-a', '1234');
     final b = StaffRepository.hashPin('id-b', '1234');

@@ -40,6 +40,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connectScanButton => 'Scan QR code';
 
   @override
+  String get connectUploadQr => 'Upload QR image';
+
+  @override
+  String get connectQrImageInvalid =>
+      'No restaurant QR code found in that image.';
+
+  @override
+  String get connectEnterManually => 'Enter details manually';
+
+  @override
   String get connectOrDivider => 'or enter it by hand';
 
   @override
@@ -68,6 +78,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get walletShare => 'Share';
 
   @override
+  String get walletRename => 'Rename';
+
+  @override
+  String get walletRenameLabel => 'Your nickname for this restaurant';
+
+  @override
   String get walletRemove => 'Remove';
 
   @override
@@ -93,6 +109,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileEmailLabel => 'Email (optional)';
+
+  @override
+  String get profileNotifySection => 'Notify me when my order is ready';
+
+  @override
+  String get profileNotifyHint =>
+      'Only works if the restaurant has turned on email/SMS notifications.';
+
+  @override
+  String get profileNotifyEmail => 'By email';
+
+  @override
+  String get profileNotifySms => 'By text message';
 
   @override
   String get profileSave => 'Save';
@@ -200,6 +229,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checkoutPickupTime => 'Pickup time';
 
   @override
+  String checkoutPickupLead(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: 'Ready about $minutes minutes after ordering at the earliest',
+      one: 'Ready about 1 minute after ordering at the earliest',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String checkoutPickupTooSoon(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other:
+          'That\'s too soon — pickup is at least $minutes minutes away. Set to the earliest time.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get checkoutTotal => 'Total';
 
   @override
@@ -238,6 +289,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statusRejectedHeadline => 'Order declined';
 
   @override
+  String get statusTimeProposedHeadline => 'New pickup time suggested';
+
+  @override
   String get statusSubmittedDetail =>
       'The restaurant will confirm your order shortly.';
 
@@ -253,10 +307,60 @@ class AppLocalizationsEn extends AppLocalizations {
       'Sorry — the restaurant could not take this order.';
 
   @override
+  String statusTimeProposedDetail(String time) {
+    return 'The restaurant suggested $time instead. Approve to continue, or decline to cancel.';
+  }
+
+  @override
+  String get statusApproveTime => 'Approve';
+
+  @override
+  String get statusDeclineTime => 'Decline';
+
+  @override
   String statusTotalPayAtPickup(String total) {
     return 'Total $total — pay at pickup';
   }
 
   @override
   String get statusBackToMenu => 'Back to menu';
+
+  @override
+  String get ordersTitle => 'My orders';
+
+  @override
+  String get ordersEmpty =>
+      'Orders you place here will show up here, with their status.';
+
+  @override
+  String get orderStatusSubmitted => 'Waiting';
+
+  @override
+  String get orderStatusTimeProposed => 'New time';
+
+  @override
+  String get orderStatusAccepted => 'Preparing';
+
+  @override
+  String get orderStatusReady => 'Ready';
+
+  @override
+  String get orderStatusPickedUp => 'Picked up';
+
+  @override
+  String get orderStatusRejected => 'Declined';
+
+  @override
+  String get orderNotifyAccepted =>
+      'Your order was accepted and is being prepared.';
+
+  @override
+  String get orderNotifyReady => 'Your order is ready for pickup!';
+
+  @override
+  String get orderNotifyTimeProposed =>
+      'The restaurant suggested a new pickup time — tap to review.';
+
+  @override
+  String get orderNotifyRejected => 'Your order was declined.';
 }

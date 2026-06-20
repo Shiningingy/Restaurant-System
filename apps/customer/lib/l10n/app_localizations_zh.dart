@@ -39,6 +39,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get connectScanButton => '扫描二维码';
 
   @override
+  String get connectUploadQr => '上传二维码图片';
+
+  @override
+  String get connectQrImageInvalid => '未在该图片中找到餐厅二维码。';
+
+  @override
+  String get connectEnterManually => '手动输入信息';
+
+  @override
   String get connectOrDivider => '或手动输入';
 
   @override
@@ -66,6 +75,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get walletShare => '分享';
 
   @override
+  String get walletRename => '重命名';
+
+  @override
+  String get walletRenameLabel => '您给这家餐厅起的昵称';
+
+  @override
   String get walletRemove => '移除';
 
   @override
@@ -90,6 +105,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get profileEmailLabel => '电子邮箱（可选）';
+
+  @override
+  String get profileNotifySection => '订单准备好时通知我';
+
+  @override
+  String get profileNotifyHint => '仅在餐厅已开启邮件/短信通知时有效。';
+
+  @override
+  String get profileNotifyEmail => '通过电子邮件';
+
+  @override
+  String get profileNotifySms => '通过短信';
 
   @override
   String get profileSave => '保存';
@@ -194,6 +221,26 @@ class AppLocalizationsZh extends AppLocalizations {
   String get checkoutPickupTime => '取餐时间';
 
   @override
+  String checkoutPickupLead(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '下单后最快约 $minutes 分钟可取餐',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String checkoutPickupTooSoon(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '时间太早——取餐至少需 $minutes 分钟。已设为最早可取时间。',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get checkoutTotal => '合计';
 
   @override
@@ -232,6 +279,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get statusRejectedHeadline => '订单已被拒绝';
 
   @override
+  String get statusTimeProposedHeadline => '建议了新的取餐时间';
+
+  @override
   String get statusSubmittedDetail => '餐厅将很快确认您的订单。';
 
   @override
@@ -244,10 +294,57 @@ class AppLocalizationsZh extends AppLocalizations {
   String get statusRejectedDetail => '抱歉 — 餐厅无法接受此订单。';
 
   @override
+  String statusTimeProposedDetail(String time) {
+    return '餐厅建议改为 $time。确认以继续，或拒绝以取消。';
+  }
+
+  @override
+  String get statusApproveTime => '确认';
+
+  @override
+  String get statusDeclineTime => '拒绝';
+
+  @override
   String statusTotalPayAtPickup(String total) {
     return '合计 $total — 取餐时支付';
   }
 
   @override
   String get statusBackToMenu => '返回菜单';
+
+  @override
+  String get ordersTitle => '我的订单';
+
+  @override
+  String get ordersEmpty => '您在这里下的订单及其状态会显示在此处。';
+
+  @override
+  String get orderStatusSubmitted => '等待中';
+
+  @override
+  String get orderStatusTimeProposed => '新时间';
+
+  @override
+  String get orderStatusAccepted => '备餐中';
+
+  @override
+  String get orderStatusReady => '可取餐';
+
+  @override
+  String get orderStatusPickedUp => '已取餐';
+
+  @override
+  String get orderStatusRejected => '已拒绝';
+
+  @override
+  String get orderNotifyAccepted => '您的订单已被接受，正在备餐。';
+
+  @override
+  String get orderNotifyReady => '您的订单已经可以取餐了！';
+
+  @override
+  String get orderNotifyTimeProposed => '餐厅建议了新的取餐时间——点击查看。';
+
+  @override
+  String get orderNotifyRejected => '您的订单已被拒绝。';
 }

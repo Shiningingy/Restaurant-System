@@ -43,24 +43,27 @@ class _PinDialog extends ConsumerStatefulWidget {
 }
 
 class _PinDialogState extends ConsumerState<_PinDialog> {
+  final _name = TextEditingController();
   final _controller = TextEditingController();
   bool _error = false;
   bool _busy = false;
 
   @override
   void dispose() {
+    _name.dispose();
     _controller.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
+    final name = _name.text.trim();
     final pin = _controller.text;
-    if (pin.length < 4) return;
+    if (name.isEmpty || pin.length < 4) return;
     setState(() {
       _busy = true;
       _error = false;
     });
-    final staff = await ref.read(sessionProvider.notifier).signInWithPin(pin);
+    final staff = await ref.read(sessionProvider.notifier).signIn(name, pin);
     if (!mounted) return;
     if (staff == null) {
       setState(() {
@@ -77,22 +80,41 @@ class _PinDialogState extends ConsumerState<_PinDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(context.l10n.pinEnterTitle),
-      content: TextField(
-        controller: _controller,
-        autofocus: true,
-        obscureText: true,
-        maxLength: 4,
-        keyboardType: TextInputType.number,
-        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-        decoration: InputDecoration(
-          labelText: context.l10n.pinFieldLabel,
-          counterText: '',
-          errorText: _error ? context.l10n.pinIncorrect : null,
-        ),
-        onChanged: (v) {
-          if (v.length == 4 && !_busy) _submit();
-        },
-        onSubmitted: (_) => _submit(),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: _name,
+            autofocus: true,
+            textCapitalization: TextCapitalization.words,
+            textInputAction: TextInputAction.next,
+            decoration: InputDecoration(
+              labelText: context.l10n.pinNameLabel,
+              errorText: _error ? context.l10n.pinIncorrect : null,
+            ),
+            onChanged: (_) {
+              if (_error) setState(() => _error = false);
+            },
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _controller,
+            obscureText: true,
+            maxLength: 4,
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            decoration: InputDecoration(
+              labelText: context.l10n.pinFieldLabel,
+              counterText: '',
+            ),
+            onChanged: (v) {
+              if (v.length == 4 && _name.text.trim().isNotEmpty && !_busy) {
+                _submit();
+              }
+            },
+            onSubmitted: (_) => _submit(),
+          ),
+        ],
       ),
       actions: [
         TextButton(

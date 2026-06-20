@@ -158,6 +158,24 @@ abstract class AppLocalizations {
   /// **'Scan QR code'**
   String get connectScanButton;
 
+  /// No description provided for @connectUploadQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload QR image'**
+  String get connectUploadQr;
+
+  /// No description provided for @connectQrImageInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'No restaurant QR code found in that image.'**
+  String get connectQrImageInvalid;
+
+  /// No description provided for @connectEnterManually.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter details manually'**
+  String get connectEnterManually;
+
   /// No description provided for @connectOrDivider.
   ///
   /// In en, this message translates to:
@@ -212,6 +230,18 @@ abstract class AppLocalizations {
   /// **'Share'**
   String get walletShare;
 
+  /// No description provided for @walletRename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get walletRename;
+
+  /// No description provided for @walletRenameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Your nickname for this restaurant'**
+  String get walletRenameLabel;
+
   /// No description provided for @walletRemove.
   ///
   /// In en, this message translates to:
@@ -259,6 +289,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Email (optional)'**
   String get profileEmailLabel;
+
+  /// No description provided for @profileNotifySection.
+  ///
+  /// In en, this message translates to:
+  /// **'Notify me when my order is ready'**
+  String get profileNotifySection;
+
+  /// No description provided for @profileNotifyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Only works if the restaurant has turned on email/SMS notifications.'**
+  String get profileNotifyHint;
+
+  /// No description provided for @profileNotifyEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'By email'**
+  String get profileNotifyEmail;
+
+  /// No description provided for @profileNotifySms.
+  ///
+  /// In en, this message translates to:
+  /// **'By text message'**
+  String get profileNotifySms;
 
   /// No description provided for @profileSave.
   ///
@@ -440,6 +494,18 @@ abstract class AppLocalizations {
   /// **'Pickup time'**
   String get checkoutPickupTime;
 
+  /// No description provided for @checkoutPickupLead.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes, plural, =1{Ready about 1 minute after ordering at the earliest} other{Ready about {minutes} minutes after ordering at the earliest}}'**
+  String checkoutPickupLead(int minutes);
+
+  /// No description provided for @checkoutPickupTooSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes, plural, other{That\'s too soon — pickup is at least {minutes} minutes away. Set to the earliest time.}}'**
+  String checkoutPickupTooSoon(int minutes);
+
   /// No description provided for @checkoutTotal.
   ///
   /// In en, this message translates to:
@@ -512,6 +578,12 @@ abstract class AppLocalizations {
   /// **'Order declined'**
   String get statusRejectedHeadline;
 
+  /// No description provided for @statusTimeProposedHeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'New pickup time suggested'**
+  String get statusTimeProposedHeadline;
+
   /// No description provided for @statusSubmittedDetail.
   ///
   /// In en, this message translates to:
@@ -536,6 +608,24 @@ abstract class AppLocalizations {
   /// **'Sorry — the restaurant could not take this order.'**
   String get statusRejectedDetail;
 
+  /// No description provided for @statusTimeProposedDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'The restaurant suggested {time} instead. Approve to continue, or decline to cancel.'**
+  String statusTimeProposedDetail(String time);
+
+  /// No description provided for @statusApproveTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve'**
+  String get statusApproveTime;
+
+  /// No description provided for @statusDeclineTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get statusDeclineTime;
+
   /// No description provided for @statusTotalPayAtPickup.
   ///
   /// In en, this message translates to:
@@ -547,6 +637,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back to menu'**
   String get statusBackToMenu;
+
+  /// No description provided for @ordersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My orders'**
+  String get ordersTitle;
+
+  /// No description provided for @ordersEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders you place here will show up here, with their status.'**
+  String get ordersEmpty;
+
+  /// No description provided for @orderStatusSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get orderStatusSubmitted;
+
+  /// No description provided for @orderStatusTimeProposed.
+  ///
+  /// In en, this message translates to:
+  /// **'New time'**
+  String get orderStatusTimeProposed;
+
+  /// No description provided for @orderStatusAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing'**
+  String get orderStatusAccepted;
+
+  /// No description provided for @orderStatusReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get orderStatusReady;
+
+  /// No description provided for @orderStatusPickedUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Picked up'**
+  String get orderStatusPickedUp;
+
+  /// No description provided for @orderStatusRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Declined'**
+  String get orderStatusRejected;
+
+  /// No description provided for @orderNotifyAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Your order was accepted and is being prepared.'**
+  String get orderNotifyAccepted;
+
+  /// No description provided for @orderNotifyReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Your order is ready for pickup!'**
+  String get orderNotifyReady;
+
+  /// No description provided for @orderNotifyTimeProposed.
+  ///
+  /// In en, this message translates to:
+  /// **'The restaurant suggested a new pickup time — tap to review.'**
+  String get orderNotifyTimeProposed;
+
+  /// No description provided for @orderNotifyRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Your order was declined.'**
+  String get orderNotifyRejected;
 }
 
 class _AppLocalizationsDelegate

@@ -1,21 +1,56 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../../core/l10n_ext.dart';
+import '../../../core/settings/providers.dart';
 import '../application/providers.dart';
 
 final _pickup = DateFormat('HH:mm');
 
-class InboxScreen extends ConsumerWidget {
+class InboxScreen extends ConsumerStatefulWidget {
   const InboxScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<InboxScreen> createState() => _InboxScreenState();
+}
+
+class _InboxScreenState extends ConsumerState<InboxScreen> {
+  /// Order ids seen on the previous poll; null until the first snapshot so we
+  /// don't chime for orders that were already waiting when the inbox opened.
+  Set<String>? _seenSubmitted;
+
+  void _onSubmittedChanged(
+    AsyncValue<List<domain.IncomingOnlineOrder>>? _,
+    AsyncValue<List<domain.IncomingOnlineOrder>> next,
+  ) {
+    final value = next.value;
+    if (value == null) return;
+    final ids = value.map((o) => o.id).toSet();
+    final previous = _seenSubmitted;
+    _seenSubmitted = ids;
+    if (previous == null) return; // first snapshot: establish a baseline only
+    final fresh = ids.difference(previous);
+    if (fresh.isNotEmpty &&
+        ref.read(onlineOrderSettingsProvider).newOrderSound) {
+      SystemSound.play(SystemSoundType.alert);
+      HapticFeedback.mediumImpact();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final enabled = ref.watch(onlineOrderingEnabledProvider);
+    if (enabled) {
+      ref.listen(
+        onlineOrdersByStatusProvider(domain.OnlineOrderStatus.submitted),
+        _onSubmittedChanged,
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -48,6 +83,13 @@ class InboxScreen extends ConsumerWidget {
                   status: domain.OnlineOrderStatus.submitted,
                   emptyLabel: context.l10n.inboxNoNewPreorders,
                   builder: (order) => _NewOrderCard(order: order),
+                ),
+                const SizedBox(height: 24),
+                _Section(
+                  title: context.l10n.inboxAwaitingApproval,
+                  status: domain.OnlineOrderStatus.timeProposed,
+                  emptyLabel: context.l10n.inboxNoneAwaiting,
+                  builder: (order) => _AwaitingCard(order: order),
                 ),
                 const SizedBox(height: 24),
                 _Section(
@@ -162,14 +204,18 @@ class _NewOrderCard extends ConsumerWidget {
           children: [
             _OrderSummary(order: order),
             const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+            Wrap(
+              alignment: WrapAlignment.end,
+              spacing: 8,
               children: [
                 TextButton(
                   onPressed: () => _reject(context, ref),
                   child: Text(context.l10n.inboxReject),
                 ),
-                const SizedBox(width: 8),
+                TextButton(
+                  onPressed: () => _proposeTime(context, ref),
+                  child: Text(context.l10n.inboxProposeTime),
+                ),
                 FilledButton(
                   onPressed: () => _accept(context, ref),
                   child: Text(context.l10n.inboxAccept),
@@ -180,6 +226,29 @@ class _NewOrderCard extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _proposeTime(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(order.requestedPickupAt),
+      helpText: l10n.inboxProposeTime,
+    );
+    if (picked == null) return;
+    final now = DateTime.now();
+    var when = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      picked.hour,
+      picked.minute,
+    );
+    if (when.isBefore(now)) when = when.add(const Duration(days: 1));
+    await ref.read(inboxServiceProvider).proposePickupTime(order.id, when);
+    ref.invalidate(onlineOrdersByStatusProvider);
+    messenger.showSnackBar(SnackBar(content: Text(l10n.inboxTimeProposed)));
   }
 
   Future<void> _accept(BuildContext context, WidgetRef ref) async {
@@ -196,6 +265,46 @@ class _NewOrderCard extends ConsumerWidget {
     await ref.read(inboxServiceProvider).reject(order.id);
     ref.invalidate(onlineOrdersByStatusProvider);
     messenger.showSnackBar(SnackBar(content: Text(l10n.inboxPreorderRejected)));
+  }
+}
+
+/// A preorder where we proposed a new time and are waiting on the customer.
+class _AwaitingCard extends StatelessWidget {
+  final domain.IncomingOnlineOrder order;
+
+  const _AwaitingCard({required this.order});
+
+  @override
+  Widget build(BuildContext context) {
+    final proposed = order.proposedPickupAt;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _OrderSummary(order: order),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(Icons.hourglass_top, size: 18),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    proposed == null
+                        ? context.l10n.inboxAwaitingApproval
+                        : context.l10n.inboxProposedWaiting(
+                            _pickup.format(proposed),
+                          ),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

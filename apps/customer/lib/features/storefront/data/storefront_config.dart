@@ -10,19 +10,38 @@ class CustomerProfile {
   final String? phone;
   final String? email;
 
-  const CustomerProfile({this.name, this.phone, this.email});
+  /// Whether the customer wants a "ready" message by email / SMS. Sent only
+  /// if the restaurant has deployed its notify Edge Function with a provider
+  /// key (docs/EMAIL_SMS_NOTIFICATIONS.md); the app never sends directly.
+  final bool notifyByEmail;
+  final bool notifyBySms;
+
+  const CustomerProfile({
+    this.name,
+    this.phone,
+    this.email,
+    this.notifyByEmail = false,
+    this.notifyBySms = false,
+  });
 
   bool get isEmpty =>
       (name == null || name!.isEmpty) &&
       (phone == null || phone!.isEmpty) &&
       (email == null || email!.isEmpty);
 
-  CustomerProfile copyWith({String? name, String? phone, String? email}) =>
-      CustomerProfile(
-        name: name ?? this.name,
-        phone: phone ?? this.phone,
-        email: email ?? this.email,
-      );
+  CustomerProfile copyWith({
+    String? name,
+    String? phone,
+    String? email,
+    bool? notifyByEmail,
+    bool? notifyBySms,
+  }) => CustomerProfile(
+    name: name ?? this.name,
+    phone: phone ?? this.phone,
+    email: email ?? this.email,
+    notifyByEmail: notifyByEmail ?? this.notifyByEmail,
+    notifyBySms: notifyBySms ?? this.notifyBySms,
+  );
 }
 
 /// One restaurant the customer has collected in their wallet — its Supabase
@@ -34,8 +53,12 @@ class SavedStorefront {
   final String url;
   final String anonKey;
 
-  /// Display name shown in the wallet; falls back to the URL host.
+  /// The name the merchant set (carried in their connect QR/link).
   final String? name;
+
+  /// A nickname the customer chose for this restaurant, overriding the
+  /// merchant's name in their own wallet.
+  final String? nickname;
 
   /// The device's anonymous Supabase session for *this* storefront.
   final String? sessionRefreshToken;
@@ -46,13 +69,15 @@ class SavedStorefront {
     required this.url,
     required this.anonKey,
     this.name,
+    this.nickname,
     this.sessionRefreshToken,
     this.customerUid,
   });
 
-  /// A human label even when no name was given: the URL host (e.g. the
-  /// Supabase project ref) so each saved restaurant is still distinguishable.
+  /// What to show in the wallet. Priority: the customer's own nickname, then
+  /// the merchant's name, then the URL host (so it's always distinguishable).
   String get label {
+    if (nickname != null && nickname!.isNotEmpty) return nickname!;
     if (name != null && name!.isNotEmpty) return name!;
     final host = Uri.tryParse(url)?.host;
     return (host == null || host.isEmpty) ? url : host;
@@ -60,6 +85,7 @@ class SavedStorefront {
 
   SavedStorefront copyWith({
     String? name,
+    String? nickname,
     String? sessionRefreshToken,
     String? customerUid,
   }) => SavedStorefront(
@@ -67,6 +93,7 @@ class SavedStorefront {
     url: url,
     anonKey: anonKey,
     name: name ?? this.name,
+    nickname: nickname ?? this.nickname,
     sessionRefreshToken: sessionRefreshToken ?? this.sessionRefreshToken,
     customerUid: customerUid ?? this.customerUid,
   );
@@ -76,6 +103,7 @@ class SavedStorefront {
     'url': url,
     'anonKey': anonKey,
     if (name != null && name!.isNotEmpty) 'name': name,
+    if (nickname != null && nickname!.isNotEmpty) 'nickname': nickname,
     if (sessionRefreshToken != null) 'refresh': sessionRefreshToken,
     if (customerUid != null) 'uid': customerUid,
   };
@@ -85,6 +113,7 @@ class SavedStorefront {
     url: j['url'] as String,
     anonKey: j['anonKey'] as String,
     name: j['name'] as String?,
+    nickname: j['nickname'] as String?,
     sessionRefreshToken: j['refresh'] as String?,
     customerUid: j['uid'] as String?,
   );
@@ -148,6 +177,8 @@ class StorefrontConfigRepository {
   static const _nameKey = 'customerName';
   static const _phoneKey = 'customerPhone';
   static const _emailKey = 'customerEmail';
+  static const _notifyEmailKey = 'customerNotifyByEmail';
+  static const _notifySmsKey = 'customerNotifyBySms';
   static const _appLocaleKey = 'appLocale';
 
   // Pre-wallet single-storefront keys, migrated forward on first write.
@@ -172,6 +203,8 @@ class StorefrontConfigRepository {
     name: prefs.getString(_nameKey),
     phone: prefs.getString(_phoneKey),
     email: prefs.getString(_emailKey),
+    notifyByEmail: prefs.getBool(_notifyEmailKey) ?? false,
+    notifyBySms: prefs.getBool(_notifySmsKey) ?? false,
   );
 
   /// Every restaurant in the wallet. Reads forward from the new list, or
@@ -276,6 +309,27 @@ class StorefrontConfigRepository {
     await _persist(list, active);
   }
 
+  /// Sets (or clears, when blank) the customer's nickname for a restaurant.
+  /// Built fresh rather than via copyWith so an empty nickname truly clears.
+  Future<void> renameStorefront(String id, String? nickname) async {
+    final clean = (nickname == null || nickname.trim().isEmpty)
+        ? null
+        : nickname.trim();
+    final list = storefronts.map((s) {
+      if (s.id != id) return s;
+      return SavedStorefront(
+        id: s.id,
+        url: s.url,
+        anonKey: s.anonKey,
+        name: s.name,
+        nickname: clean,
+        sessionRefreshToken: s.sessionRefreshToken,
+        customerUid: s.customerUid,
+      );
+    }).toList();
+    await _persist(list, activeStorefrontId);
+  }
+
   /// Updates the active storefront's stored session.
   Future<void> saveSession({
     required String refreshToken,
@@ -297,6 +351,8 @@ class StorefrontConfigRepository {
     await _setOrRemove(_nameKey, p.name);
     await _setOrRemove(_phoneKey, p.phone);
     await _setOrRemove(_emailKey, p.email);
+    await prefs.setBool(_notifyEmailKey, p.notifyByEmail);
+    await prefs.setBool(_notifySmsKey, p.notifyBySms);
   }
 
   /// Remembers the name/phone the customer typed at checkout for next time.

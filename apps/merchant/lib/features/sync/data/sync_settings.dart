@@ -1,6 +1,17 @@
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// Cleans a pasted Supabase URL: trims it and prepends `https://` when no
+/// scheme is given (otherwise `Uri.parse` yields no host and every request
+/// throws "No host specified in URI"). Shared by merchant + customer entry.
+String normalizeSupabaseUrl(String url) {
+  final u = url.trim();
+  if (u.isEmpty) return u;
+  final lower = u.toLowerCase();
+  if (lower.startsWith('http://') || lower.startsWith('https://')) return u;
+  return 'https://$u';
+}
+
 /// The restaurant's own Supabase project — URL + anon (public) key.
 /// Empty [url] means cloud sync is off; the POS is fully functional that
 /// way forever (docs/PRINCIPLES.md — no required subscription).
@@ -64,7 +75,7 @@ class SyncSettings {
     if (url == null || url.isEmpty) {
       await _remove(_urlKey);
     } else {
-      await _set(_urlKey, url.trim());
+      await _set(_urlKey, normalizeSupabaseUrl(url));
     }
     if (key == null || key.isEmpty) {
       await _remove(_anonKeyKey);
@@ -114,6 +125,12 @@ class SyncSettings {
     await _set(_restaurantEmailKey, email);
     await _set(_restaurantRefreshKey, refreshToken);
   }
+
+  /// Persists a rotated refresh token (after a refresh) without touching the
+  /// stored email. Keeps the saved token from going stale, which otherwise
+  /// makes the next launch's refresh fail with a 400.
+  Future<void> updateRestaurantRefreshToken(String refreshToken) =>
+      _set(_restaurantRefreshKey, refreshToken);
 
   Future<void> clearRestaurantSession() async {
     await _remove(_restaurantEmailKey);

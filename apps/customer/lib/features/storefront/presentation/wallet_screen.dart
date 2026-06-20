@@ -45,40 +45,53 @@ class WalletScreen extends ConsumerWidget {
           : ListView(
               children: [
                 for (final store in stores)
-                  ListTile(
-                    leading: const Icon(Icons.storefront_outlined),
-                    title: Text(store.label),
-                    subtitle: store.name == null
-                        ? null
-                        : Text(Uri.tryParse(store.url)?.host ?? store.url),
-                    onTap: () => _open(ref, store.id),
-                    trailing: PopupMenuButton<String>(
-                      onSelected: (v) {
-                        if (v == 'share') {
-                          showStorefrontQr(context, store);
-                        } else if (v == 'remove') {
-                          _confirmRemove(context, ref, store);
-                        }
-                      },
-                      itemBuilder: (context) => [
-                        PopupMenuItem(
-                          value: 'share',
-                          child: ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: const Icon(Icons.qr_code_2),
-                            title: Text(context.l10n.walletShare),
-                          ),
+                  Builder(
+                    builder: (context) {
+                      final host = Uri.tryParse(store.url)?.host ?? store.url;
+                      return ListTile(
+                        leading: const Icon(Icons.storefront_outlined),
+                        title: Text(store.label),
+                        subtitle: store.label == host ? null : Text(host),
+                        onTap: () => _open(ref, store.id),
+                        trailing: PopupMenuButton<String>(
+                          onSelected: (v) {
+                            if (v == 'rename') {
+                              _rename(context, ref, store);
+                            } else if (v == 'share') {
+                              showStorefrontQr(context, store);
+                            } else if (v == 'remove') {
+                              _confirmRemove(context, ref, store);
+                            }
+                          },
+                          itemBuilder: (context) => [
+                            PopupMenuItem(
+                              value: 'rename',
+                              child: ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                leading: const Icon(Icons.edit_outlined),
+                                title: Text(context.l10n.walletRename),
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: 'share',
+                              child: ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                leading: const Icon(Icons.qr_code_2),
+                                title: Text(context.l10n.walletShare),
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: 'remove',
+                              child: ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                leading: const Icon(Icons.delete_outline),
+                                title: Text(context.l10n.walletRemove),
+                              ),
+                            ),
+                          ],
                         ),
-                        PopupMenuItem(
-                          value: 'remove',
-                          child: ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: const Icon(Icons.delete_outline),
-                            title: Text(context.l10n.walletRemove),
-                          ),
-                        ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
               ],
             ),
@@ -94,6 +107,44 @@ class WalletScreen extends ConsumerWidget {
   void _add(BuildContext context) => Navigator.of(
     context,
   ).push(MaterialPageRoute<void>(builder: (_) => const ConnectScreen()));
+
+  /// Lets the customer set their own nickname for a restaurant (priority over
+  /// the merchant's name). Pre-fills the current nickname; blank clears it.
+  Future<void> _rename(
+    BuildContext context,
+    WidgetRef ref,
+    SavedStorefront store,
+  ) async {
+    final l10n = context.l10n;
+    final controller = TextEditingController(text: store.nickname ?? '');
+    final nickname = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.walletRename),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          textCapitalization: TextCapitalization.words,
+          decoration: InputDecoration(
+            labelText: l10n.walletRenameLabel,
+            hintText: store.name,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, null),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, controller.text),
+            child: Text(l10n.profileSave),
+          ),
+        ],
+      ),
+    );
+    if (nickname == null) return; // cancelled
+    await ref.read(walletProvider.notifier).rename(store.id, nickname);
+  }
 
   Future<void> _confirmRemove(
     BuildContext context,

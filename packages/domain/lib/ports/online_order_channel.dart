@@ -1,5 +1,16 @@
 /// Status of an online preorder as it moves through the merchant flow.
-enum OnlineOrderStatus { submitted, accepted, rejected, ready, pickedUp }
+///
+/// [timeProposed] means the merchant couldn't meet the requested pickup time
+/// and proposed a new one; the order waits for the customer to approve (->
+/// accepted) or decline (-> rejected).
+enum OnlineOrderStatus {
+  submitted,
+  timeProposed,
+  accepted,
+  rejected,
+  ready,
+  pickedUp,
+}
 
 /// A preorder placed by the customer app, as it arrives on the merchant
 /// tablet. Line details stay as JSON until Phase 6 firms up the shape —
@@ -12,6 +23,10 @@ class IncomingOnlineOrder {
   final DateTime requestedPickupAt;
   final DateTime submittedAt;
 
+  /// The new pickup time the merchant proposed, when [status] is
+  /// timeProposed; null otherwise.
+  final DateTime? proposedPickupAt;
+
   const IncomingOnlineOrder({
     required this.id,
     required this.customerName,
@@ -19,6 +34,7 @@ class IncomingOnlineOrder {
     required this.requestedPickupAt,
     required this.submittedAt,
     this.customerPhone,
+    this.proposedPickupAt,
   });
 }
 
@@ -42,4 +58,8 @@ abstract interface class OnlineOrderChannel {
 
   /// Pushes accept/reject/ready/picked-up back to the customer.
   Future<void> updateOrderStatus(String orderId, OnlineOrderStatus status);
+
+  /// Proposes a new pickup time (status -> timeProposed); the customer then
+  /// approves or declines it.
+  Future<void> proposePickupTime(String orderId, DateTime proposedPickupAt);
 }

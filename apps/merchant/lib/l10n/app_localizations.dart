@@ -530,6 +530,30 @@ abstract class AppLocalizations {
   /// **'Price'**
   String get menuPrice;
 
+  /// No description provided for @menuDeleteItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete item'**
+  String get menuDeleteItem;
+
+  /// No description provided for @menuDeleteItemConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\"? This can\'t be undone.'**
+  String menuDeleteItemConfirm(String name);
+
+  /// No description provided for @menuDeleteCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete category'**
+  String get menuDeleteCategory;
+
+  /// No description provided for @menuDeleteCategoryConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Delete \"{name}\"? This can\'t be undone.} =1{Delete \"{name}\" and its 1 item? This can\'t be undone.} other{Delete \"{name}\" and its {count} items? This can\'t be undone.}}'**
+  String menuDeleteCategoryConfirm(String name, int count);
+
   /// No description provided for @modGroup.
   ///
   /// In en, this message translates to:
@@ -842,6 +866,36 @@ abstract class AppLocalizations {
   /// **'Accept'**
   String get inboxAccept;
 
+  /// No description provided for @inboxProposeTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Propose time'**
+  String get inboxProposeTime;
+
+  /// No description provided for @inboxTimeProposed.
+  ///
+  /// In en, this message translates to:
+  /// **'New time proposed — waiting for the customer.'**
+  String get inboxTimeProposed;
+
+  /// No description provided for @inboxAwaitingApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting customer approval'**
+  String get inboxAwaitingApproval;
+
+  /// No description provided for @inboxNoneAwaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'No orders awaiting customer approval.'**
+  String get inboxNoneAwaiting;
+
+  /// No description provided for @inboxProposedWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Proposed {time} — waiting for the customer to approve.'**
+  String inboxProposedWaiting(String time);
+
   /// No description provided for @inboxAcceptedAdded.
   ///
   /// In en, this message translates to:
@@ -1039,6 +1093,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Applied to new orders; existing orders keep their rate.'**
   String get setSalesTaxRateSubtitle;
+
+  /// No description provided for @setOnlineOrdering.
+  ///
+  /// In en, this message translates to:
+  /// **'Online ordering'**
+  String get setOnlineOrdering;
+
+  /// No description provided for @setPickupLead.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum pickup time'**
+  String get setPickupLead;
+
+  /// No description provided for @setPickupLeadSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Soonest a customer can ask to pick up. Sent with the menu.'**
+  String get setPickupLeadSubtitle;
+
+  /// No description provided for @setPickupLeadValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes, plural, =0{No minimum} =1{1 min} other{{minutes} min}}'**
+  String setPickupLeadValue(int minutes);
+
+  /// No description provided for @setNewOrderSound.
+  ///
+  /// In en, this message translates to:
+  /// **'Alert sound on new order'**
+  String get setNewOrderSound;
 
   /// No description provided for @setPayments.
   ///
@@ -1541,8 +1625,14 @@ abstract class AppLocalizations {
   /// No description provided for @pinEnterTitle.
   ///
   /// In en, this message translates to:
-  /// **'Enter PIN'**
+  /// **'Sign in'**
   String get pinEnterTitle;
+
+  /// No description provided for @pinNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get pinNameLabel;
 
   /// No description provided for @pinFieldLabel.
   ///
@@ -1553,7 +1643,7 @@ abstract class AppLocalizations {
   /// No description provided for @pinIncorrect.
   ///
   /// In en, this message translates to:
-  /// **'Incorrect PIN'**
+  /// **'Incorrect name or PIN'**
   String get pinIncorrect;
 
   /// No description provided for @pinUnlock.

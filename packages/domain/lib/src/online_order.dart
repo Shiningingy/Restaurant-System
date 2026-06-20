@@ -80,6 +80,10 @@ class PublishedModifierGroup {
 class PublishedItem {
   final String id;
   final String name;
+
+  /// Optional second-language name (e.g. 中文) shown to customers who switch
+  /// the app language. Null when the merchant's menu has no second name.
+  final String? nameSecondary;
   final Money price;
   final List<PublishedModifierGroup> modifierGroups;
 
@@ -87,12 +91,14 @@ class PublishedItem {
     required this.id,
     required this.name,
     required this.price,
+    this.nameSecondary,
     this.modifierGroups = const [],
   });
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
+        if (nameSecondary != null) 'nameSecondary': nameSecondary,
         'price': price.cents,
         'modifierGroups': modifierGroups.map((g) => g.toJson()).toList(),
       };
@@ -100,6 +106,7 @@ class PublishedItem {
   factory PublishedItem.fromJson(Map<String, dynamic> j) => PublishedItem(
         id: j['id'] as String,
         name: j['name'] as String,
+        nameSecondary: j['nameSecondary'] as String?,
         price: Money(j['price'] as int),
         modifierGroups: (j['modifierGroups'] as List? ?? const [])
             .cast<Map<String, dynamic>>()
@@ -141,15 +148,26 @@ class PublishedMenu {
   final String restaurantName;
   final List<PublishedCategory> categories;
 
-  const PublishedMenu({required this.restaurantName, required this.categories});
+  /// Soonest the customer may request pickup, in minutes from now. The
+  /// customer app enforces this so it never asks for an impossible time.
+  /// Defaults to 0 for menus published before this field existed.
+  final int pickupLeadMinutes;
+
+  const PublishedMenu({
+    required this.restaurantName,
+    required this.categories,
+    this.pickupLeadMinutes = 0,
+  });
 
   Map<String, dynamic> toJson() => {
         'restaurantName': restaurantName,
+        'pickupLeadMinutes': pickupLeadMinutes,
         'categories': categories.map((c) => c.toJson()).toList(),
       };
 
   factory PublishedMenu.fromJson(Map<String, dynamic> j) => PublishedMenu(
         restaurantName: j['restaurantName'] as String? ?? '',
+        pickupLeadMinutes: j['pickupLeadMinutes'] as int? ?? 0,
         categories: (j['categories'] as List)
             .cast<Map<String, dynamic>>()
             .map(PublishedCategory.fromJson)
@@ -230,6 +248,13 @@ class PreorderLine {
 class PreorderSubmission {
   final String customerName;
   final String? customerPhone;
+  final String? customerEmail;
+
+  /// How the customer wants to hear the order is ready. Carried on the order
+  /// so the restaurant's notify Edge Function knows whether/where to send
+  /// (it never sends unless asked). Defaults to off.
+  final bool notifyByEmail;
+  final bool notifyBySms;
   final DateTime requestedPickupAt;
   final List<PreorderLine> lines;
   final String? note;
@@ -239,6 +264,9 @@ class PreorderSubmission {
     required this.requestedPickupAt,
     required this.lines,
     this.customerPhone,
+    this.customerEmail,
+    this.notifyByEmail = false,
+    this.notifyBySms = false,
     this.note,
   });
 
@@ -247,6 +275,9 @@ class PreorderSubmission {
   Map<String, dynamic> toJson() => {
         'customerName': customerName,
         'customerPhone': customerPhone,
+        'customerEmail': customerEmail,
+        'notifyByEmail': notifyByEmail,
+        'notifyBySms': notifyBySms,
         'requestedPickupAt': requestedPickupAt.toIso8601String(),
         'lines': lines.map((l) => l.toJson()).toList(),
         'note': note,
@@ -256,6 +287,9 @@ class PreorderSubmission {
       PreorderSubmission(
         customerName: j['customerName'] as String,
         customerPhone: j['customerPhone'] as String?,
+        customerEmail: j['customerEmail'] as String?,
+        notifyByEmail: j['notifyByEmail'] as bool? ?? false,
+        notifyBySms: j['notifyBySms'] as bool? ?? false,
         requestedPickupAt: DateTime.parse(j['requestedPickupAt'] as String),
         lines: (j['lines'] as List)
             .cast<Map<String, dynamic>>()

@@ -246,6 +246,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuPrice => 'Price';
 
   @override
+  String get menuDeleteItem => 'Delete item';
+
+  @override
+  String menuDeleteItemConfirm(String name) {
+    return 'Delete \"$name\"? This can\'t be undone.';
+  }
+
+  @override
+  String get menuDeleteCategory => 'Delete category';
+
+  @override
+  String menuDeleteCategoryConfirm(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Delete \"$name\" and its $count items? This can\'t be undone.',
+      one: 'Delete \"$name\" and its 1 item? This can\'t be undone.',
+      zero: 'Delete \"$name\"? This can\'t be undone.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get modGroup => 'Group';
 
   @override
@@ -434,6 +457,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get inboxAccept => 'Accept';
 
   @override
+  String get inboxProposeTime => 'Propose time';
+
+  @override
+  String get inboxTimeProposed =>
+      'New time proposed — waiting for the customer.';
+
+  @override
+  String get inboxAwaitingApproval => 'Awaiting customer approval';
+
+  @override
+  String get inboxNoneAwaiting => 'No orders awaiting customer approval.';
+
+  @override
+  String inboxProposedWaiting(String time) {
+    return 'Proposed $time — waiting for the customer to approve.';
+  }
+
+  @override
   String get inboxAcceptedAdded => 'Accepted — added to orders.';
 
   @override
@@ -550,6 +591,31 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get setSalesTaxRateSubtitle =>
       'Applied to new orders; existing orders keep their rate.';
+
+  @override
+  String get setOnlineOrdering => 'Online ordering';
+
+  @override
+  String get setPickupLead => 'Minimum pickup time';
+
+  @override
+  String get setPickupLeadSubtitle =>
+      'Soonest a customer can ask to pick up. Sent with the menu.';
+
+  @override
+  String setPickupLeadValue(int minutes) {
+    String _temp0 = intl.Intl.pluralLogic(
+      minutes,
+      locale: localeName,
+      other: '$minutes min',
+      one: '1 min',
+      zero: 'No minimum',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get setNewOrderSound => 'Alert sound on new order';
 
   @override
   String get setPayments => 'Payments';
@@ -832,13 +898,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get roleAccessRequired => 'Manager access required';
 
   @override
-  String get pinEnterTitle => 'Enter PIN';
+  String get pinEnterTitle => 'Sign in';
+
+  @override
+  String get pinNameLabel => 'Name';
 
   @override
   String get pinFieldLabel => '4-digit PIN';
 
   @override
-  String get pinIncorrect => 'Incorrect PIN';
+  String get pinIncorrect => 'Incorrect name or PIN';
 
   @override
   String get pinUnlock => 'Unlock';

@@ -88,6 +88,9 @@ class SupabaseOnlineOrderChannel implements domain.OnlineOrderChannel {
         linesJson: jsonEncode(r['lines']),
         requestedPickupAt: DateTime.parse(r['requested_pickup_at'] as String),
         submittedAt: DateTime.parse(r['submitted_at'] as String),
+        proposedPickupAt: r['proposed_pickup_at'] == null
+            ? null
+            : DateTime.parse(r['proposed_pickup_at'] as String),
       );
 
   @override
@@ -141,6 +144,28 @@ class SupabaseOnlineOrderChannel implements domain.OnlineOrderChannel {
         .timeout(timeout);
     if (resp.statusCode >= 300) {
       throw domain.SyncException('update order status (${resp.statusCode})');
+    }
+  }
+
+  @override
+  Future<void> proposePickupTime(
+    String orderId,
+    DateTime proposedPickupAt,
+  ) async {
+    final resp = await _client
+        .patch(
+          _rest(domain.OnlineOrderingTables.onlineOrders, {
+            'id': 'eq.$orderId',
+          }),
+          headers: await _authHeaders(),
+          body: jsonEncode({
+            'status': domain.OnlineOrderStatus.timeProposed.name,
+            'proposed_pickup_at': proposedPickupAt.toUtc().toIso8601String(),
+          }),
+        )
+        .timeout(timeout);
+    if (resp.statusCode >= 300) {
+      throw domain.SyncException('propose pickup time (${resp.statusCode})');
     }
   }
 }
