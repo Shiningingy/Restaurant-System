@@ -91,7 +91,9 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => _editTaxRate(context, ref, taxRateBp),
           ),
           const Divider(height: 32),
-          _OnlineOrderingSection(settings: ref.watch(onlineOrderSettingsProvider)),
+          _OnlineOrderingSection(
+            settings: ref.watch(onlineOrderSettingsProvider),
+          ),
           const Divider(height: 32),
           Text(
             context.l10n.setPayments,
@@ -568,8 +570,9 @@ class _OnlineOrderingSection extends ConsumerWidget {
           secondary: const Icon(Icons.notifications_active_outlined),
           title: Text(context.l10n.setNewOrderSound),
           value: settings.newOrderSound,
-          onChanged: (v) =>
-              ref.read(onlineOrderSettingsProvider.notifier).setNewOrderSound(v),
+          onChanged: (v) => ref
+              .read(onlineOrderSettingsProvider.notifier)
+              .setNewOrderSound(v),
         ),
       ],
     );
@@ -593,7 +596,9 @@ class _OnlineOrderingSection extends ConsumerWidget {
       ),
     );
     if (picked != null) {
-      await ref.read(onlineOrderSettingsProvider.notifier).setPickupLead(picked);
+      await ref
+          .read(onlineOrderSettingsProvider.notifier)
+          .setPickupLead(picked);
     }
   }
 }

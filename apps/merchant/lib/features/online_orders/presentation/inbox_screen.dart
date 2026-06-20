@@ -1,21 +1,56 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../../core/l10n_ext.dart';
+import '../../../core/settings/providers.dart';
 import '../application/providers.dart';
 
 final _pickup = DateFormat('HH:mm');
 
-class InboxScreen extends ConsumerWidget {
+class InboxScreen extends ConsumerStatefulWidget {
   const InboxScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<InboxScreen> createState() => _InboxScreenState();
+}
+
+class _InboxScreenState extends ConsumerState<InboxScreen> {
+  /// Order ids seen on the previous poll; null until the first snapshot so we
+  /// don't chime for orders that were already waiting when the inbox opened.
+  Set<String>? _seenSubmitted;
+
+  void _onSubmittedChanged(
+    AsyncValue<List<domain.IncomingOnlineOrder>>? _,
+    AsyncValue<List<domain.IncomingOnlineOrder>> next,
+  ) {
+    final value = next.value;
+    if (value == null) return;
+    final ids = value.map((o) => o.id).toSet();
+    final previous = _seenSubmitted;
+    _seenSubmitted = ids;
+    if (previous == null) return; // first snapshot: establish a baseline only
+    final fresh = ids.difference(previous);
+    if (fresh.isNotEmpty &&
+        ref.read(onlineOrderSettingsProvider).newOrderSound) {
+      SystemSound.play(SystemSoundType.alert);
+      HapticFeedback.mediumImpact();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final enabled = ref.watch(onlineOrderingEnabledProvider);
+    if (enabled) {
+      ref.listen(
+        onlineOrdersByStatusProvider(domain.OnlineOrderStatus.submitted),
+        _onSubmittedChanged,
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
