@@ -6,11 +6,47 @@
   "languageSystem": "System default",
 
   "connectTitle": "Connect to a restaurant",
+  "connectAddTitle": "Add a restaurant",
   "connectIntro": "Scan or enter the storefront your restaurant gave you to browse the menu and preorder for pickup.",
   "connectUrlLabel": "Storefront URL",
   "connectKeyLabel": "Access key",
+  "connectNameLabel": "Restaurant name (optional)",
+  "connectScanButton": "Scan QR code",
+  "connectOrDivider": "or enter it by hand",
   "connectButton": "Connect",
   "connectErrorEmptyFields": "Enter the restaurant URL and key.",
+
+  "walletTitle": "My restaurants",
+  "walletEmptyTitle": "No restaurants yet",
+  "walletEmptyBody": "Add a restaurant by scanning its QR code, or enter its link by hand.",
+  "walletAdd": "Add restaurant",
+  "walletProfile": "My details",
+  "walletShare": "Share",
+  "walletRemove": "Remove",
+  "walletRemoveConfirm": "Remove {name} from your restaurants?",
+  "@walletRemoveConfirm": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "commonCancel": "Cancel",
+
+  "profileTitle": "My details",
+  "profileIntro": "Saved on this device to prefill your pickup orders. No account, no sign-in.",
+  "profileNameLabel": "Name or nickname",
+  "profilePhoneLabel": "Phone (optional)",
+  "profileEmailLabel": "Email (optional)",
+  "profileSave": "Save",
+  "profileSaved": "Saved",
+
+  "scanTitle": "Scan storefront QR",
+  "scanHint": "Point your camera at the restaurant's QR code.",
+  "scanInvalid": "That QR code isn't a restaurant link.",
+
+  "shareTitle": "Share {name}",
+  "@shareTitle": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "shareHint": "Let a friend scan this to add the same restaurant.",
+  "shareClose": "Close",
 
   "menuTitle": "Menu",
   "menuDisconnect": "Disconnect",

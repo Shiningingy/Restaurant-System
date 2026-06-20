@@ -21,6 +21,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get connectTitle => '连接到餐厅';
 
   @override
+  String get connectAddTitle => '添加餐厅';
+
+  @override
   String get connectIntro => '扫描或输入餐厅给您的店铺信息，即可浏览菜单并预订自取。';
 
   @override
@@ -30,10 +33,89 @@ class AppLocalizationsZh extends AppLocalizations {
   String get connectKeyLabel => '访问密钥';
 
   @override
+  String get connectNameLabel => '餐厅名称（可选）';
+
+  @override
+  String get connectScanButton => '扫描二维码';
+
+  @override
+  String get connectOrDivider => '或手动输入';
+
+  @override
   String get connectButton => '连接';
 
   @override
   String get connectErrorEmptyFields => '请输入餐厅网址和密钥。';
+
+  @override
+  String get walletTitle => '我的餐厅';
+
+  @override
+  String get walletEmptyTitle => '还没有餐厅';
+
+  @override
+  String get walletEmptyBody => '扫描餐厅的二维码即可添加，或手动输入其链接。';
+
+  @override
+  String get walletAdd => '添加餐厅';
+
+  @override
+  String get walletProfile => '我的信息';
+
+  @override
+  String get walletShare => '分享';
+
+  @override
+  String get walletRemove => '移除';
+
+  @override
+  String walletRemoveConfirm(String name) {
+    return '要将 $name 从您的餐厅中移除吗？';
+  }
+
+  @override
+  String get commonCancel => '取消';
+
+  @override
+  String get profileTitle => '我的信息';
+
+  @override
+  String get profileIntro => '保存在本设备上，用于自动填写取餐订单。无需账号，无需登录。';
+
+  @override
+  String get profileNameLabel => '姓名或昵称';
+
+  @override
+  String get profilePhoneLabel => '电话（可选）';
+
+  @override
+  String get profileEmailLabel => '电子邮箱（可选）';
+
+  @override
+  String get profileSave => '保存';
+
+  @override
+  String get profileSaved => '已保存';
+
+  @override
+  String get scanTitle => '扫描店铺二维码';
+
+  @override
+  String get scanHint => '将相机对准餐厅的二维码。';
+
+  @override
+  String get scanInvalid => '该二维码不是餐厅链接。';
+
+  @override
+  String shareTitle(String name) {
+    return '分享 $name';
+  }
+
+  @override
+  String get shareHint => '让朋友扫描此码即可添加同一家餐厅。';
+
+  @override
+  String get shareClose => '关闭';
 
   @override
   String get menuTitle => '菜单';

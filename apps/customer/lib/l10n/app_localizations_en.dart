@@ -21,6 +21,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connectTitle => 'Connect to a restaurant';
 
   @override
+  String get connectAddTitle => 'Add a restaurant';
+
+  @override
   String get connectIntro =>
       'Scan or enter the storefront your restaurant gave you to browse the menu and preorder for pickup.';
 
@@ -31,10 +34,91 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connectKeyLabel => 'Access key';
 
   @override
+  String get connectNameLabel => 'Restaurant name (optional)';
+
+  @override
+  String get connectScanButton => 'Scan QR code';
+
+  @override
+  String get connectOrDivider => 'or enter it by hand';
+
+  @override
   String get connectButton => 'Connect';
 
   @override
   String get connectErrorEmptyFields => 'Enter the restaurant URL and key.';
+
+  @override
+  String get walletTitle => 'My restaurants';
+
+  @override
+  String get walletEmptyTitle => 'No restaurants yet';
+
+  @override
+  String get walletEmptyBody =>
+      'Add a restaurant by scanning its QR code, or enter its link by hand.';
+
+  @override
+  String get walletAdd => 'Add restaurant';
+
+  @override
+  String get walletProfile => 'My details';
+
+  @override
+  String get walletShare => 'Share';
+
+  @override
+  String get walletRemove => 'Remove';
+
+  @override
+  String walletRemoveConfirm(String name) {
+    return 'Remove $name from your restaurants?';
+  }
+
+  @override
+  String get commonCancel => 'Cancel';
+
+  @override
+  String get profileTitle => 'My details';
+
+  @override
+  String get profileIntro =>
+      'Saved on this device to prefill your pickup orders. No account, no sign-in.';
+
+  @override
+  String get profileNameLabel => 'Name or nickname';
+
+  @override
+  String get profilePhoneLabel => 'Phone (optional)';
+
+  @override
+  String get profileEmailLabel => 'Email (optional)';
+
+  @override
+  String get profileSave => 'Save';
+
+  @override
+  String get profileSaved => 'Saved';
+
+  @override
+  String get scanTitle => 'Scan storefront QR';
+
+  @override
+  String get scanHint => 'Point your camera at the restaurant\'s QR code.';
+
+  @override
+  String get scanInvalid => 'That QR code isn\'t a restaurant link.';
+
+  @override
+  String shareTitle(String name) {
+    return 'Share $name';
+  }
+
+  @override
+  String get shareHint => 'Let a friend scan this to add the same restaurant.';
+
+  @override
+  String get shareClose => 'Close';
 
   @override
   String get menuTitle => 'Menu';
