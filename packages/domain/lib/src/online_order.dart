@@ -80,6 +80,10 @@ class PublishedModifierGroup {
 class PublishedItem {
   final String id;
   final String name;
+
+  /// Optional second-language name (e.g. 中文) shown to customers who switch
+  /// the app language. Null when the merchant's menu has no second name.
+  final String? nameSecondary;
   final Money price;
   final List<PublishedModifierGroup> modifierGroups;
 
@@ -87,12 +91,14 @@ class PublishedItem {
     required this.id,
     required this.name,
     required this.price,
+    this.nameSecondary,
     this.modifierGroups = const [],
   });
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
+        if (nameSecondary != null) 'nameSecondary': nameSecondary,
         'price': price.cents,
         'modifierGroups': modifierGroups.map((g) => g.toJson()).toList(),
       };
@@ -100,6 +106,7 @@ class PublishedItem {
   factory PublishedItem.fromJson(Map<String, dynamic> j) => PublishedItem(
         id: j['id'] as String,
         name: j['name'] as String,
+        nameSecondary: j['nameSecondary'] as String?,
         price: Money(j['price'] as int),
         modifierGroups: (j['modifierGroups'] as List? ?? const [])
             .cast<Map<String, dynamic>>()

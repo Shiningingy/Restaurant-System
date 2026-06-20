@@ -4,6 +4,7 @@ import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../../core/l10n_ext.dart';
 import '../../../core/language_menu.dart';
+import '../../../core/widgets/item_name.dart';
 import '../../cart/cart.dart';
 import '../../cart/presentation/cart_screen.dart';
 import '../application/providers.dart';
@@ -61,7 +62,10 @@ class MenuScreen extends ConsumerWidget {
                   ),
                   for (final item in category.items)
                     ListTile(
-                      title: Text(item.name),
+                      title: ItemName(
+                        name: item.name,
+                        nameSecondary: item.nameSecondary,
+                      ),
                       subtitle: item.modifierGroups.isEmpty
                           ? null
                           : Text(context.l10n.menuOptionsAvailable),
