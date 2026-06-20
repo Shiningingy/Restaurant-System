@@ -377,6 +377,17 @@ class $MenuItemsTable extends MenuItems
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _skuMeta = const VerificationMeta('sku');
   @override
   late final GeneratedColumn<String> sku = GeneratedColumn<String>(
@@ -421,6 +432,7 @@ class $MenuItemsTable extends MenuItems
     price,
     code,
     nameSecondary,
+    description,
     sku,
     sortOrder,
     isActive,
@@ -470,6 +482,15 @@ class $MenuItemsTable extends MenuItems
         nameSecondary.isAcceptableOrUnknown(
           data['name_secondary']!,
           _nameSecondaryMeta,
+        ),
+      );
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
         ),
       );
     }
@@ -526,6 +547,10 @@ class $MenuItemsTable extends MenuItems
         DriftSqlType.string,
         data['${effectivePrefix}name_secondary'],
       ),
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
       sku: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}sku'],
@@ -561,6 +586,9 @@ class MenuItemRow extends DataClass implements Insertable<MenuItemRow> {
 
   /// Optional second name line (e.g. a native-language name).
   final String? nameSecondary;
+
+  /// Optional longer description (ingredients, notes) shown on the menu.
+  final String? description;
   final String? sku;
   final int sortOrder;
   final bool isActive;
@@ -571,6 +599,7 @@ class MenuItemRow extends DataClass implements Insertable<MenuItemRow> {
     required this.price,
     this.code,
     this.nameSecondary,
+    this.description,
     this.sku,
     required this.sortOrder,
     required this.isActive,
@@ -592,6 +621,9 @@ class MenuItemRow extends DataClass implements Insertable<MenuItemRow> {
     if (!nullToAbsent || nameSecondary != null) {
       map['name_secondary'] = Variable<String>(nameSecondary);
     }
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
     if (!nullToAbsent || sku != null) {
       map['sku'] = Variable<String>(sku);
     }
@@ -610,6 +642,9 @@ class MenuItemRow extends DataClass implements Insertable<MenuItemRow> {
       nameSecondary: nameSecondary == null && nullToAbsent
           ? const Value.absent()
           : Value(nameSecondary),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
       sku: sku == null && nullToAbsent ? const Value.absent() : Value(sku),
       sortOrder: Value(sortOrder),
       isActive: Value(isActive),
@@ -628,6 +663,7 @@ class MenuItemRow extends DataClass implements Insertable<MenuItemRow> {
       price: serializer.fromJson<domain.Money>(json['price']),
       code: serializer.fromJson<String?>(json['code']),
       nameSecondary: serializer.fromJson<String?>(json['nameSecondary']),
+      description: serializer.fromJson<String?>(json['description']),
       sku: serializer.fromJson<String?>(json['sku']),
       sortOrder: serializer.fromJson<int>(json['sortOrder']),
       isActive: serializer.fromJson<bool>(json['isActive']),
@@ -643,6 +679,7 @@ class MenuItemRow extends DataClass implements Insertable<MenuItemRow> {
       'price': serializer.toJson<domain.Money>(price),
       'code': serializer.toJson<String?>(code),
       'nameSecondary': serializer.toJson<String?>(nameSecondary),
+      'description': serializer.toJson<String?>(description),
       'sku': serializer.toJson<String?>(sku),
       'sortOrder': serializer.toJson<int>(sortOrder),
       'isActive': serializer.toJson<bool>(isActive),
@@ -656,6 +693,7 @@ class MenuItemRow extends DataClass implements Insertable<MenuItemRow> {
     domain.Money? price,
     Value<String?> code = const Value.absent(),
     Value<String?> nameSecondary = const Value.absent(),
+    Value<String?> description = const Value.absent(),
     Value<String?> sku = const Value.absent(),
     int? sortOrder,
     bool? isActive,
@@ -668,6 +706,7 @@ class MenuItemRow extends DataClass implements Insertable<MenuItemRow> {
     nameSecondary: nameSecondary.present
         ? nameSecondary.value
         : this.nameSecondary,
+    description: description.present ? description.value : this.description,
     sku: sku.present ? sku.value : this.sku,
     sortOrder: sortOrder ?? this.sortOrder,
     isActive: isActive ?? this.isActive,
@@ -684,6 +723,9 @@ class MenuItemRow extends DataClass implements Insertable<MenuItemRow> {
       nameSecondary: data.nameSecondary.present
           ? data.nameSecondary.value
           : this.nameSecondary,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
       sku: data.sku.present ? data.sku.value : this.sku,
       sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
@@ -699,6 +741,7 @@ class MenuItemRow extends DataClass implements Insertable<MenuItemRow> {
           ..write('price: $price, ')
           ..write('code: $code, ')
           ..write('nameSecondary: $nameSecondary, ')
+          ..write('description: $description, ')
           ..write('sku: $sku, ')
           ..write('sortOrder: $sortOrder, ')
           ..write('isActive: $isActive')
@@ -714,6 +757,7 @@ class MenuItemRow extends DataClass implements Insertable<MenuItemRow> {
     price,
     code,
     nameSecondary,
+    description,
     sku,
     sortOrder,
     isActive,
@@ -728,6 +772,7 @@ class MenuItemRow extends DataClass implements Insertable<MenuItemRow> {
           other.price == this.price &&
           other.code == this.code &&
           other.nameSecondary == this.nameSecondary &&
+          other.description == this.description &&
           other.sku == this.sku &&
           other.sortOrder == this.sortOrder &&
           other.isActive == this.isActive);
@@ -740,6 +785,7 @@ class MenuItemsCompanion extends UpdateCompanion<MenuItemRow> {
   final Value<domain.Money> price;
   final Value<String?> code;
   final Value<String?> nameSecondary;
+  final Value<String?> description;
   final Value<String?> sku;
   final Value<int> sortOrder;
   final Value<bool> isActive;
@@ -751,6 +797,7 @@ class MenuItemsCompanion extends UpdateCompanion<MenuItemRow> {
     this.price = const Value.absent(),
     this.code = const Value.absent(),
     this.nameSecondary = const Value.absent(),
+    this.description = const Value.absent(),
     this.sku = const Value.absent(),
     this.sortOrder = const Value.absent(),
     this.isActive = const Value.absent(),
@@ -763,6 +810,7 @@ class MenuItemsCompanion extends UpdateCompanion<MenuItemRow> {
     required domain.Money price,
     this.code = const Value.absent(),
     this.nameSecondary = const Value.absent(),
+    this.description = const Value.absent(),
     this.sku = const Value.absent(),
     this.sortOrder = const Value.absent(),
     this.isActive = const Value.absent(),
@@ -778,6 +826,7 @@ class MenuItemsCompanion extends UpdateCompanion<MenuItemRow> {
     Expression<int>? price,
     Expression<String>? code,
     Expression<String>? nameSecondary,
+    Expression<String>? description,
     Expression<String>? sku,
     Expression<int>? sortOrder,
     Expression<bool>? isActive,
@@ -790,6 +839,7 @@ class MenuItemsCompanion extends UpdateCompanion<MenuItemRow> {
       if (price != null) 'price': price,
       if (code != null) 'code': code,
       if (nameSecondary != null) 'name_secondary': nameSecondary,
+      if (description != null) 'description': description,
       if (sku != null) 'sku': sku,
       if (sortOrder != null) 'sort_order': sortOrder,
       if (isActive != null) 'is_active': isActive,
@@ -804,6 +854,7 @@ class MenuItemsCompanion extends UpdateCompanion<MenuItemRow> {
     Value<domain.Money>? price,
     Value<String?>? code,
     Value<String?>? nameSecondary,
+    Value<String?>? description,
     Value<String?>? sku,
     Value<int>? sortOrder,
     Value<bool>? isActive,
@@ -816,6 +867,7 @@ class MenuItemsCompanion extends UpdateCompanion<MenuItemRow> {
       price: price ?? this.price,
       code: code ?? this.code,
       nameSecondary: nameSecondary ?? this.nameSecondary,
+      description: description ?? this.description,
       sku: sku ?? this.sku,
       sortOrder: sortOrder ?? this.sortOrder,
       isActive: isActive ?? this.isActive,
@@ -846,6 +898,9 @@ class MenuItemsCompanion extends UpdateCompanion<MenuItemRow> {
     if (nameSecondary.present) {
       map['name_secondary'] = Variable<String>(nameSecondary.value);
     }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
     if (sku.present) {
       map['sku'] = Variable<String>(sku.value);
     }
@@ -870,6 +925,7 @@ class MenuItemsCompanion extends UpdateCompanion<MenuItemRow> {
           ..write('price: $price, ')
           ..write('code: $code, ')
           ..write('nameSecondary: $nameSecondary, ')
+          ..write('description: $description, ')
           ..write('sku: $sku, ')
           ..write('sortOrder: $sortOrder, ')
           ..write('isActive: $isActive, ')
@@ -6593,6 +6649,7 @@ typedef $$MenuItemsTableCreateCompanionBuilder =
       required domain.Money price,
       Value<String?> code,
       Value<String?> nameSecondary,
+      Value<String?> description,
       Value<String?> sku,
       Value<int> sortOrder,
       Value<bool> isActive,
@@ -6606,6 +6663,7 @@ typedef $$MenuItemsTableUpdateCompanionBuilder =
       Value<domain.Money> price,
       Value<String?> code,
       Value<String?> nameSecondary,
+      Value<String?> description,
       Value<String?> sku,
       Value<int> sortOrder,
       Value<bool> isActive,
@@ -6733,6 +6791,11 @@ class $$MenuItemsTableFilterComposer
 
   ColumnFilters<String> get nameSecondary => $composableBuilder(
     column: $table.nameSecondary,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6885,6 +6948,11 @@ class $$MenuItemsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get sku => $composableBuilder(
     column: $table.sku,
     builder: (column) => ColumnOrderings(column),
@@ -6947,6 +7015,11 @@ class $$MenuItemsTableAnnotationComposer
 
   GeneratedColumn<String> get nameSecondary => $composableBuilder(
     column: $table.nameSecondary,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
     builder: (column) => column,
   );
 
@@ -7099,6 +7172,7 @@ class $$MenuItemsTableTableManager
                 Value<domain.Money> price = const Value.absent(),
                 Value<String?> code = const Value.absent(),
                 Value<String?> nameSecondary = const Value.absent(),
+                Value<String?> description = const Value.absent(),
                 Value<String?> sku = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
@@ -7110,6 +7184,7 @@ class $$MenuItemsTableTableManager
                 price: price,
                 code: code,
                 nameSecondary: nameSecondary,
+                description: description,
                 sku: sku,
                 sortOrder: sortOrder,
                 isActive: isActive,
@@ -7123,6 +7198,7 @@ class $$MenuItemsTableTableManager
                 required domain.Money price,
                 Value<String?> code = const Value.absent(),
                 Value<String?> nameSecondary = const Value.absent(),
+                Value<String?> description = const Value.absent(),
                 Value<String?> sku = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
@@ -7134,6 +7210,7 @@ class $$MenuItemsTableTableManager
                 price: price,
                 code: code,
                 nameSecondary: nameSecondary,
+                description: description,
                 sku: sku,
                 sortOrder: sortOrder,
                 isActive: isActive,

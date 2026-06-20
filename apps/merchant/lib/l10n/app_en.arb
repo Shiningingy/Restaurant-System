@@ -446,6 +446,7 @@
   "adminExport": "Export data",
   "itemCodeLabel": "Item code (optional)",
   "itemNameSecondaryLabel": "Second name (optional)",
+  "itemDescriptionLabel": "Description (optional)",
   "itemFieldsSection": "Custom fields",
   "itemFieldLabelHint": "Field",
   "itemFieldValueHint": "Value",

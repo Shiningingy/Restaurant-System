@@ -1808,6 +1808,12 @@ abstract class AppLocalizations {
   /// **'Second name (optional)'**
   String get itemNameSecondaryLabel;
 
+  /// No description provided for @itemDescriptionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Description (optional)'**
+  String get itemDescriptionLabel;
+
   /// No description provided for @itemFieldsSection.
   ///
   /// In en, this message translates to:

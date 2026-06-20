@@ -28,6 +28,7 @@ class MenuPublisher {
             id: item.id,
             name: item.name,
             nameSecondary: item.nameSecondary,
+            description: item.description,
             price: item.price,
             modifierGroups: [
               for (final g in groups)

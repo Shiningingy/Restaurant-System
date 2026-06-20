@@ -79,13 +79,14 @@ class MenuScreen extends ConsumerWidget {
                   ),
                   for (final item in category.items)
                     ListTile(
+                      isThreeLine:
+                          item.description != null &&
+                          item.description!.isNotEmpty,
                       title: ItemName(
                         name: item.name,
                         nameSecondary: item.nameSecondary,
                       ),
-                      subtitle: item.modifierGroups.isEmpty
-                          ? null
-                          : Text(context.l10n.menuOptionsAvailable),
+                      subtitle: _itemSubtitle(context, item),
                       trailing: Text(item.price.format()),
                       onTap: () => _addItem(context, ref, item),
                     ),
@@ -114,6 +115,26 @@ class MenuScreen extends ConsumerWidget {
                 ),
               ),
             ),
+    );
+  }
+
+  /// The item's description (when present) plus an "options available" hint,
+  /// or null when there's neither.
+  Widget? _itemSubtitle(BuildContext context, domain.PublishedItem item) {
+    final desc = item.description?.trim();
+    final hasDesc = desc != null && desc.isNotEmpty;
+    final hasOptions = item.modifierGroups.isNotEmpty;
+    if (!hasDesc && !hasOptions) return null;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (hasDesc) Text(desc, maxLines: 2, overflow: TextOverflow.ellipsis),
+        if (hasOptions)
+          Text(
+            context.l10n.menuOptionsAvailable,
+            style: Theme.of(context).textTheme.labelSmall,
+          ),
+      ],
     );
   }
 

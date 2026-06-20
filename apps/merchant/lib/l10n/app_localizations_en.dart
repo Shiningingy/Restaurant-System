@@ -995,6 +995,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get itemNameSecondaryLabel => 'Second name (optional)';
 
   @override
+  String get itemDescriptionLabel => 'Description (optional)';
+
+  @override
   String get itemFieldsSection => 'Custom fields';
 
   @override

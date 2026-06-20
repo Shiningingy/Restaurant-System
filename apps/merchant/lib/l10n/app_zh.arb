@@ -314,6 +314,7 @@
   "adminExport": "导出数据",
   "itemCodeLabel": "编号（可选）",
   "itemNameSecondaryLabel": "第二名称（可选）",
+  "itemDescriptionLabel": "描述（可选）",
   "itemFieldsSection": "自定义字段",
   "itemFieldLabelHint": "字段",
   "itemFieldValueHint": "内容",

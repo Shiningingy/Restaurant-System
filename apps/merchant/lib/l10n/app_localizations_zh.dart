@@ -976,6 +976,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get itemNameSecondaryLabel => '第二名称（可选）';
 
   @override
+  String get itemDescriptionLabel => '描述（可选）';
+
+  @override
   String get itemFieldsSection => '自定义字段';
 
   @override

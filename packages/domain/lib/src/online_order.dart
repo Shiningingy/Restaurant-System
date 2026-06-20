@@ -84,6 +84,9 @@ class PublishedItem {
   /// Optional second-language name (e.g. 中文) shown to customers who switch
   /// the app language. Null when the merchant's menu has no second name.
   final String? nameSecondary;
+
+  /// Optional longer description (ingredients, notes) shown under the item.
+  final String? description;
   final Money price;
   final List<PublishedModifierGroup> modifierGroups;
 
@@ -92,6 +95,7 @@ class PublishedItem {
     required this.name,
     required this.price,
     this.nameSecondary,
+    this.description,
     this.modifierGroups = const [],
   });
 
@@ -99,6 +103,7 @@ class PublishedItem {
         'id': id,
         'name': name,
         if (nameSecondary != null) 'nameSecondary': nameSecondary,
+        if (description != null) 'description': description,
         'price': price.cents,
         'modifierGroups': modifierGroups.map((g) => g.toJson()).toList(),
       };
@@ -107,6 +112,7 @@ class PublishedItem {
         id: j['id'] as String,
         name: j['name'] as String,
         nameSecondary: j['nameSecondary'] as String?,
+        description: j['description'] as String?,
         price: Money(j['price'] as int),
         modifierGroups: (j['modifierGroups'] as List? ?? const [])
             .cast<Map<String, dynamic>>()
