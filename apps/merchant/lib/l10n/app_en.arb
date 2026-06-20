@@ -105,6 +105,19 @@
   "menuNewItem": "New item",
   "menuEditItem": "Edit item",
   "menuPrice": "Price",
+  "menuDeleteItem": "Delete item",
+  "menuDeleteItemConfirm": "Delete \"{name}\"? This can't be undone.",
+  "@menuDeleteItemConfirm": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "menuDeleteCategory": "Delete category",
+  "menuDeleteCategoryConfirm": "{count, plural, =0{Delete \"{name}\"? This can't be undone.} =1{Delete \"{name}\" and its 1 item? This can't be undone.} other{Delete \"{name}\" and its {count} items? This can't be undone.}}",
+  "@menuDeleteCategoryConfirm": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  },
 
   "modGroup": "Group",
   "modGroupsEmpty": "Modifier groups (e.g. \"Size\", \"Add-ons\") appear here.",

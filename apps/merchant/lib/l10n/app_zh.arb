@@ -78,6 +78,19 @@
   "menuNewItem": "新建菜品",
   "menuEditItem": "编辑菜品",
   "menuPrice": "价格",
+  "menuDeleteItem": "删除菜品",
+  "menuDeleteItemConfirm": "删除“{name}”？此操作无法撤销。",
+  "@menuDeleteItemConfirm": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "menuDeleteCategory": "删除分类",
+  "menuDeleteCategoryConfirm": "{count, plural, =0{删除“{name}”？此操作无法撤销。} other{删除“{name}”及其下的 {count} 个菜品？此操作无法撤销。}}",
+  "@menuDeleteCategoryConfirm": {
+    "placeholders": {
+      "name": { "type": "String" },
+      "count": { "type": "int" }
+    }
+  },
 
   "modGroup": "选项组",
   "modGroupsEmpty": "选项组（如“规格”、“加料”）会显示在这里。",

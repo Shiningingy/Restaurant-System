@@ -246,6 +246,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuPrice => 'Price';
 
   @override
+  String get menuDeleteItem => 'Delete item';
+
+  @override
+  String menuDeleteItemConfirm(String name) {
+    return 'Delete \"$name\"? This can\'t be undone.';
+  }
+
+  @override
+  String get menuDeleteCategory => 'Delete category';
+
+  @override
+  String menuDeleteCategoryConfirm(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Delete \"$name\" and its $count items? This can\'t be undone.',
+      one: 'Delete \"$name\" and its 1 item? This can\'t be undone.',
+      zero: 'Delete \"$name\"? This can\'t be undone.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get modGroup => 'Group';
 
   @override

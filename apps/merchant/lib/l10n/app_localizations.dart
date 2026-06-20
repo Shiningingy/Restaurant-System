@@ -530,6 +530,30 @@ abstract class AppLocalizations {
   /// **'Price'**
   String get menuPrice;
 
+  /// No description provided for @menuDeleteItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete item'**
+  String get menuDeleteItem;
+
+  /// No description provided for @menuDeleteItemConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete \"{name}\"? This can\'t be undone.'**
+  String menuDeleteItemConfirm(String name);
+
+  /// No description provided for @menuDeleteCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete category'**
+  String get menuDeleteCategory;
+
+  /// No description provided for @menuDeleteCategoryConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Delete \"{name}\"? This can\'t be undone.} =1{Delete \"{name}\" and its 1 item? This can\'t be undone.} other{Delete \"{name}\" and its {count} items? This can\'t be undone.}}'**
+  String menuDeleteCategoryConfirm(String name, int count);
+
   /// No description provided for @modGroup.
   ///
   /// In en, this message translates to:

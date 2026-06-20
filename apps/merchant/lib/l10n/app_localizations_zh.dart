@@ -242,6 +242,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get menuPrice => '价格';
 
   @override
+  String get menuDeleteItem => '删除菜品';
+
+  @override
+  String menuDeleteItemConfirm(String name) {
+    return '删除“$name”？此操作无法撤销。';
+  }
+
+  @override
+  String get menuDeleteCategory => '删除分类';
+
+  @override
+  String menuDeleteCategoryConfirm(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '删除“$name”及其下的 $count 个菜品？此操作无法撤销。',
+      zero: '删除“$name”？此操作无法撤销。',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get modGroup => '选项组';
 
   @override

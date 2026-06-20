@@ -132,6 +132,33 @@ class _ItemEditorScreenState extends ConsumerState<ItemEditorScreen> {
     if (mounted) Navigator.pop(context);
   }
 
+  Future<void> _delete() async {
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.menuDeleteItem),
+        content: Text(l10n.menuDeleteItemConfirm(_name.text.trim())),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.commonDelete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await ref.read(menuRepositoryProvider).deleteItem(_id);
+    if (mounted) Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     final allGroups = ref.watch(modifierGroupsProvider).value ?? const [];
@@ -141,6 +168,12 @@ class _ItemEditorScreenState extends ConsumerState<ItemEditorScreen> {
           _isNew ? context.l10n.menuNewItem : context.l10n.menuEditItem,
         ),
         actions: [
+          if (!_isNew)
+            IconButton(
+              tooltip: context.l10n.commonDelete,
+              icon: const Icon(Icons.delete_outline),
+              onPressed: _delete,
+            ),
           TextButton(
             onPressed: _valid ? _save : null,
             child: Text(context.l10n.commonSave),

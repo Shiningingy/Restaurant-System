@@ -159,7 +159,7 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
   ) async {
     final controller = TextEditingController(text: existing?.name ?? '');
     var isActive = existing?.isActive ?? true;
-    final saved = await showDialog<bool>(
+    final result = await showDialog<String>(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
@@ -185,19 +185,31 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
             ],
           ),
           actions: [
+            if (existing != null)
+              TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.error,
+                ),
+                onPressed: () => Navigator.pop(context, 'delete'),
+                child: Text(context.l10n.commonDelete),
+              ),
             TextButton(
-              onPressed: () => Navigator.pop(context, false),
+              onPressed: () => Navigator.pop(context, 'cancel'),
               child: Text(context.l10n.commonCancel),
             ),
             FilledButton(
-              onPressed: () => Navigator.pop(context, true),
+              onPressed: () => Navigator.pop(context, 'save'),
               child: Text(context.l10n.commonSave),
             ),
           ],
         ),
       ),
     );
-    if (saved == true && controller.text.trim().isNotEmpty) {
+    if (result == 'delete' && existing != null) {
+      if (context.mounted) await _deleteCategory(context, existing);
+      return;
+    }
+    if (result == 'save' && controller.text.trim().isNotEmpty) {
       final repo = ref.read(menuRepositoryProvider);
       final categories = ref.read(categoriesProvider).value ?? const [];
       await repo.upsertCategory(
@@ -208,6 +220,46 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
               sortOrder: categories.length,
             ),
       );
+    }
+  }
+
+  /// Confirms (showing how many items will go with it) then cascade-deletes
+  /// the category. If it was the selected one, selection falls back to the
+  /// first remaining category on next build.
+  Future<void> _deleteCategory(
+    BuildContext context,
+    domain.Category category,
+  ) async {
+    final l10n = context.l10n;
+    final repo = ref.read(menuRepositoryProvider);
+    final itemCount = (await repo.watchItemsInCategory(category.id).first).length;
+    if (!context.mounted) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.menuDeleteCategory),
+        content: Text(
+          l10n.menuDeleteCategoryConfirm(category.name, itemCount),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.commonDelete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await repo.deleteCategory(category.id);
+    if (_selectedCategoryId == category.id) {
+      setState(() => _selectedCategoryId = null);
     }
   }
 }
