@@ -64,15 +64,26 @@ class _OrderTile extends ConsumerWidget {
       subtitle: Text(
         '${_when.format(order.placedAt)} · ${order.total.format()}',
       ),
-      trailing: Text(
-        _label(context, status),
-        style: Theme.of(
-          context,
-        ).textTheme.labelLarge?.copyWith(color: _color(context, status)),
-      ),
+      trailing: status == domain.OnlineOrderStatus.ready
+          ? FilledButton.tonal(
+              onPressed: () => ref
+                  .read(orderHistoryProvider.notifier)
+                  .updateStatus(
+                    order.orderId,
+                    domain.OnlineOrderStatus.pickedUp,
+                  ),
+              child: Text(context.l10n.orderMarkPickedUp),
+            )
+          : Text(
+              _label(context, status),
+              style: Theme.of(
+                context,
+              ).textTheme.labelLarge?.copyWith(color: _color(context, status)),
+            ),
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute<void>(
-          builder: (_) => StatusScreen(orderId: order.orderId, total: order.total),
+          builder: (_) =>
+              StatusScreen(orderId: order.orderId, total: order.total),
         ),
       ),
     );

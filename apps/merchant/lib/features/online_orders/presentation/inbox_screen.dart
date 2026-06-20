@@ -98,6 +98,13 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
                   emptyLabel: context.l10n.inboxNothingInProgress,
                   builder: (order) => _PreparingCard(order: order),
                 ),
+                const SizedBox(height: 24),
+                _Section(
+                  title: context.l10n.inboxReady,
+                  status: domain.OnlineOrderStatus.ready,
+                  emptyLabel: context.l10n.inboxNoneReady,
+                  builder: (order) => _ReadyCard(order: order),
+                ),
               ],
             ),
     );
@@ -337,6 +344,46 @@ class _PreparingCard extends ConsumerWidget {
                 },
                 icon: const Icon(Icons.notifications_active_outlined),
                 label: Text(context.l10n.inboxMarkReady),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A preorder that's ready for the customer to collect — mark it picked up to
+/// close it out and clear it from the board.
+class _ReadyCard extends ConsumerWidget {
+  final domain.IncomingOnlineOrder order;
+
+  const _ReadyCard({required this.order});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _OrderSummary(order: order),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: FilledButton.icon(
+                onPressed: () async {
+                  final messenger = ScaffoldMessenger.of(context);
+                  final l10n = context.l10n;
+                  await ref.read(inboxServiceProvider).markPickedUp(order.id);
+                  ref.invalidate(onlineOrdersByStatusProvider);
+                  messenger.showSnackBar(
+                    SnackBar(content: Text(l10n.inboxMarkedPickedUp)),
+                  );
+                },
+                icon: const Icon(Icons.check_circle_outline),
+                label: Text(context.l10n.inboxMarkPickedUp),
               ),
             ),
           ],

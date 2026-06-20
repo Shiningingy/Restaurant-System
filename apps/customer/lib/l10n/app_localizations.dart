@@ -704,6 +704,12 @@ abstract class AppLocalizations {
   /// **'Declined'**
   String get orderStatusRejected;
 
+  /// No description provided for @orderMarkPickedUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Picked up'**
+  String get orderMarkPickedUp;
+
   /// No description provided for @orderNotifyAccepted.
   ///
   /// In en, this message translates to:

@@ -938,6 +938,30 @@ abstract class AppLocalizations {
   /// **'Proposed {time} — waiting for the customer to approve.'**
   String inboxProposedWaiting(String time);
 
+  /// No description provided for @inboxReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready for pickup'**
+  String get inboxReady;
+
+  /// No description provided for @inboxNoneReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing waiting for pickup.'**
+  String get inboxNoneReady;
+
+  /// No description provided for @inboxMarkPickedUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark picked up'**
+  String get inboxMarkPickedUp;
+
+  /// No description provided for @inboxMarkedPickedUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Order completed.'**
+  String get inboxMarkedPickedUp;
+
   /// No description provided for @inboxAcceptedAdded.
   ///
   /// In en, this message translates to:

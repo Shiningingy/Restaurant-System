@@ -488,6 +488,18 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get inboxReady => '可取餐';
+
+  @override
+  String get inboxNoneReady => '没有等待取餐的订单。';
+
+  @override
+  String get inboxMarkPickedUp => '标记为已取餐';
+
+  @override
+  String get inboxMarkedPickedUp => '订单已完成。';
+
+  @override
   String get inboxAcceptedAdded => '已接受，已添加到订单。';
 
   @override

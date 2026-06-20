@@ -161,6 +161,10 @@
   "@inboxProposedWaiting": {
     "placeholders": { "time": { "type": "String" } }
   },
+  "inboxReady": "可取餐",
+  "inboxNoneReady": "没有等待取餐的订单。",
+  "inboxMarkPickedUp": "标记为已取餐",
+  "inboxMarkedPickedUp": "订单已完成。",
   "inboxAcceptedAdded": "已接受，已添加到订单。",
   "inboxPreorderRejected": "预订单已拒绝。",
   "inboxCustomerNotifiedReady": "已通知顾客：已就绪。",

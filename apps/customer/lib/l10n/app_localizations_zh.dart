@@ -346,6 +346,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get orderStatusRejected => '已拒绝';
 
   @override
+  String get orderMarkPickedUp => '已取餐';
+
+  @override
   String get orderNotifyAccepted => '您的订单已被接受，正在备餐。';
 
   @override

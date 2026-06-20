@@ -498,6 +498,18 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get inboxReady => 'Ready for pickup';
+
+  @override
+  String get inboxNoneReady => 'Nothing waiting for pickup.';
+
+  @override
+  String get inboxMarkPickedUp => 'Mark picked up';
+
+  @override
+  String get inboxMarkedPickedUp => 'Order completed.';
+
+  @override
   String get inboxAcceptedAdded => 'Accepted — added to orders.';
 
   @override
