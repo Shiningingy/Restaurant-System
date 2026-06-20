@@ -881,13 +881,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get roleAccessRequired => '需要经理权限';
 
   @override
-  String get pinEnterTitle => '输入 PIN';
+  String get pinEnterTitle => '登录';
+
+  @override
+  String get pinNameLabel => '姓名';
 
   @override
   String get pinFieldLabel => '4 位 PIN';
 
   @override
-  String get pinIncorrect => 'PIN 不正确';
+  String get pinIncorrect => '姓名或 PIN 不正确';
 
   @override
   String get pinUnlock => '解锁';

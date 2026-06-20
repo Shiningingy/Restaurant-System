@@ -21,7 +21,14 @@ final supabaseAuthProvider = Provider<SupabaseAuth?>((ref) {
   final settings = ref.watch(syncSettingsProvider);
   final config = settings.config;
   if (!config.isConfigured) return null;
-  final auth = SupabaseAuth(url: config.url!, anonKey: config.anonKey!);
+  final auth = SupabaseAuth(
+    url: config.url!,
+    anonKey: config.anonKey!,
+    // Supabase rotates the refresh token on every refresh; persist the new one
+    // so the stored token never goes stale (which would 400 the next launch).
+    onSession: (session) =>
+        settings.updateRestaurantRefreshToken(session.refreshToken),
+  );
   final refresh = settings.restaurantRefreshToken;
   if (refresh != null) {
     auth.restore(

@@ -282,9 +282,10 @@
   "roleNoStaffYet": "尚未设置员工",
   "roleAccessRequired": "需要经理权限",
 
-  "pinEnterTitle": "输入 PIN",
+  "pinEnterTitle": "登录",
+  "pinNameLabel": "姓名",
   "pinFieldLabel": "4 位 PIN",
-  "pinIncorrect": "PIN 不正确",
+  "pinIncorrect": "姓名或 PIN 不正确",
   "pinUnlock": "解锁",
 
   "adminStaffSection": "员工与角色",

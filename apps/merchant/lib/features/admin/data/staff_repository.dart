@@ -69,4 +69,19 @@ class StaffRepository {
     }
     return null;
   }
+
+  /// The staff member whose **name and** PIN both match, or null. Requiring the
+  /// name disambiguates two people who happen to share a PIN. Name match is
+  /// case-insensitive and trims surrounding spaces.
+  Future<Staff?> findByNameAndPin(String name, String pin) async {
+    final target = name.trim().toLowerCase();
+    if (target.isEmpty) return null;
+    for (final s in await all()) {
+      if (s.name.trim().toLowerCase() == target &&
+          s.pinHash == hashPin(s.id, pin)) {
+        return s;
+      }
+    }
+    return null;
+  }
 }

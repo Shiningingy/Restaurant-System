@@ -126,6 +126,12 @@ class SyncSettings {
     await _set(_restaurantRefreshKey, refreshToken);
   }
 
+  /// Persists a rotated refresh token (after a refresh) without touching the
+  /// stored email. Keeps the saved token from going stale, which otherwise
+  /// makes the next launch's refresh fail with a 400.
+  Future<void> updateRestaurantRefreshToken(String refreshToken) =>
+      _set(_restaurantRefreshKey, refreshToken);
+
   Future<void> clearRestaurantSession() async {
     await _remove(_restaurantEmailKey);
     await _remove(_restaurantRefreshKey);

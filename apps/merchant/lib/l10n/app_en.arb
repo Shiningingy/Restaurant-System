@@ -411,9 +411,10 @@
   "roleNoStaffYet": "No staff set up yet",
   "roleAccessRequired": "Manager access required",
 
-  "pinEnterTitle": "Enter PIN",
+  "pinEnterTitle": "Sign in",
+  "pinNameLabel": "Name",
   "pinFieldLabel": "4-digit PIN",
-  "pinIncorrect": "Incorrect PIN",
+  "pinIncorrect": "Incorrect name or PIN",
   "pinUnlock": "Unlock",
 
   "adminStaffSection": "Staff & roles",

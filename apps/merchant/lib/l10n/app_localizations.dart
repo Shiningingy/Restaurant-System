@@ -1625,8 +1625,14 @@ abstract class AppLocalizations {
   /// No description provided for @pinEnterTitle.
   ///
   /// In en, this message translates to:
-  /// **'Enter PIN'**
+  /// **'Sign in'**
   String get pinEnterTitle;
+
+  /// No description provided for @pinNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get pinNameLabel;
 
   /// No description provided for @pinFieldLabel.
   ///
@@ -1637,7 +1643,7 @@ abstract class AppLocalizations {
   /// No description provided for @pinIncorrect.
   ///
   /// In en, this message translates to:
-  /// **'Incorrect PIN'**
+  /// **'Incorrect name or PIN'**
   String get pinIncorrect;
 
   /// No description provided for @pinUnlock.

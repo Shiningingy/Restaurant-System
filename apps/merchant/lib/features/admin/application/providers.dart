@@ -19,8 +19,11 @@ class SessionController extends Notifier<Staff?> {
   Staff? build() => null;
 
   /// Returns the matched staff on success (and signs them in), else null.
-  Future<Staff?> signInWithPin(String pin) async {
-    final staff = await ref.read(staffRepositoryProvider).findByPin(pin);
+  /// Requires both name and PIN so two staff sharing a PIN stay distinct.
+  Future<Staff?> signIn(String name, String pin) async {
+    final staff = await ref
+        .read(staffRepositoryProvider)
+        .findByNameAndPin(name, pin);
     if (staff != null) state = staff;
     return staff;
   }

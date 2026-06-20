@@ -898,13 +898,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get roleAccessRequired => 'Manager access required';
 
   @override
-  String get pinEnterTitle => 'Enter PIN';
+  String get pinEnterTitle => 'Sign in';
+
+  @override
+  String get pinNameLabel => 'Name';
 
   @override
   String get pinFieldLabel => '4-digit PIN';
 
   @override
-  String get pinIncorrect => 'Incorrect PIN';
+  String get pinIncorrect => 'Incorrect name or PIN';
 
   @override
   String get pinUnlock => 'Unlock';

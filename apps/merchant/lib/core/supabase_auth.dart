@@ -35,12 +35,19 @@ class SupabaseAuth {
   final http.Client _client;
   final Duration timeout;
 
+  /// Called with every newly-minted session (sign-in and, crucially, refresh).
+  /// Supabase rotates the refresh token on each refresh, so the caller must
+  /// persist the new one — otherwise the stored token becomes stale/consumed
+  /// and the next launch's refresh fails with a 400.
+  final void Function(SupabaseSession session)? onSession;
+
   SupabaseSession? _session;
 
   SupabaseAuth({
     required String url,
     required this.anonKey,
     http.Client? client,
+    this.onSession,
     this.timeout = const Duration(seconds: 15),
   }) : baseUrl = Uri.parse(url.endsWith('/') ? url : '$url/'),
        _client = client ?? http.Client();
@@ -112,7 +119,7 @@ class SupabaseAuth {
     }
     final j = jsonDecode(resp.body) as Map<String, dynamic>;
     final user = j['user'] as Map<String, dynamic>;
-    return SupabaseSession(
+    final session = SupabaseSession(
       accessToken: j['access_token'] as String,
       refreshToken: j['refresh_token'] as String,
       userId: user['id'] as String,
@@ -121,5 +128,7 @@ class SupabaseAuth {
         Duration(seconds: (j['expires_in'] as num).toInt()),
       ),
     );
+    onSession?.call(session);
+    return session;
   }
 }
