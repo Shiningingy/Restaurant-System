@@ -37,6 +37,11 @@
   "scanTitle": "扫描店铺二维码",
   "scanHint": "将相机对准餐厅的二维码。",
   "scanInvalid": "该二维码不是餐厅链接。",
+  "scanCameraNeeded": "扫描餐厅二维码需要使用相机。",
+  "scanAllowCamera": "允许使用相机",
+  "scanCameraBlocked": "相机权限已关闭。请在系统设置中为本应用开启，然后返回。",
+  "scanOpenSettings": "打开设置",
+  "scanCameraError": "无法启动相机。请检查系统设置中是否已允许使用相机。",
 
   "shareTitle": "分享 {name}",
   "shareHint": "让朋友扫描此码即可添加同一家餐厅。",

@@ -290,6 +290,36 @@ abstract class AppLocalizations {
   /// **'That QR code isn\'t a restaurant link.'**
   String get scanInvalid;
 
+  /// No description provided for @scanCameraNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera access is needed to scan a restaurant\'s QR code.'**
+  String get scanCameraNeeded;
+
+  /// No description provided for @scanAllowCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow camera'**
+  String get scanAllowCamera;
+
+  /// No description provided for @scanCameraBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera access is turned off. Enable it for this app in Settings, then come back.'**
+  String get scanCameraBlocked;
+
+  /// No description provided for @scanOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get scanOpenSettings;
+
+  /// No description provided for @scanCameraError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t start the camera. Check that camera access is allowed in Settings.'**
+  String get scanCameraError;
+
   /// No description provided for @shareTitle.
   ///
   /// In en, this message translates to:

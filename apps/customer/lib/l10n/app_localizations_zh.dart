@@ -107,6 +107,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get scanInvalid => '该二维码不是餐厅链接。';
 
   @override
+  String get scanCameraNeeded => '扫描餐厅二维码需要使用相机。';
+
+  @override
+  String get scanAllowCamera => '允许使用相机';
+
+  @override
+  String get scanCameraBlocked => '相机权限已关闭。请在系统设置中为本应用开启，然后返回。';
+
+  @override
+  String get scanOpenSettings => '打开设置';
+
+  @override
+  String get scanCameraError => '无法启动相机。请检查系统设置中是否已允许使用相机。';
+
+  @override
   String shareTitle(String name) {
     return '分享 $name';
   }

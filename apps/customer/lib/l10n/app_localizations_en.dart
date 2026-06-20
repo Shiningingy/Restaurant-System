@@ -110,6 +110,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scanInvalid => 'That QR code isn\'t a restaurant link.';
 
   @override
+  String get scanCameraNeeded =>
+      'Camera access is needed to scan a restaurant\'s QR code.';
+
+  @override
+  String get scanAllowCamera => 'Allow camera';
+
+  @override
+  String get scanCameraBlocked =>
+      'Camera access is turned off. Enable it for this app in Settings, then come back.';
+
+  @override
+  String get scanOpenSettings => 'Open settings';
+
+  @override
+  String get scanCameraError =>
+      'Couldn\'t start the camera. Check that camera access is allowed in Settings.';
+
+  @override
   String shareTitle(String name) {
     return 'Share $name';
   }

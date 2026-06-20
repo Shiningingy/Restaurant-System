@@ -40,6 +40,11 @@
   "scanTitle": "Scan storefront QR",
   "scanHint": "Point your camera at the restaurant's QR code.",
   "scanInvalid": "That QR code isn't a restaurant link.",
+  "scanCameraNeeded": "Camera access is needed to scan a restaurant's QR code.",
+  "scanAllowCamera": "Allow camera",
+  "scanCameraBlocked": "Camera access is turned off. Enable it for this app in Settings, then come back.",
+  "scanOpenSettings": "Open settings",
+  "scanCameraError": "Couldn't start the camera. Check that camera access is allowed in Settings.",
 
   "shareTitle": "Share {name}",
   "@shareTitle": {
