@@ -1358,6 +1358,24 @@ abstract class AppLocalizations {
   /// **'Restore from cloud'**
   String get setRestoreFromCloud;
 
+  /// No description provided for @setCustomerQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer connect code'**
+  String get setCustomerQr;
+
+  /// No description provided for @setCustomerQrTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan to order'**
+  String get setCustomerQrTitle;
+
+  /// No description provided for @setCustomerQrHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Customers scan this with the ordering app to add your restaurant and preorder for pickup.'**
+  String get setCustomerQrHint;
+
   /// No description provided for @setRestaurantSignIn.
   ///
   /// In en, this message translates to:
