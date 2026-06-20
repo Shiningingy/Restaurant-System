@@ -149,6 +149,7 @@
   "orderStatusReady": "Ready",
   "orderStatusPickedUp": "Picked up",
   "orderStatusRejected": "Declined",
+  "orderMarkPickedUp": "Picked up",
 
   "orderNotifyAccepted": "Your order was accepted and is being prepared.",
   "orderNotifyReady": "Your order is ready for pickup!",

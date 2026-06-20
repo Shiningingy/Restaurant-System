@@ -79,10 +79,25 @@ class _ItemSheetState extends State<_ItemSheet> {
               nameSecondary: widget.item.nameSecondary,
               style: Theme.of(context).textTheme.titleLarge,
             ),
+            const SizedBox(height: 4),
+            Text(
+              widget.item.price.format(),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
             Flexible(
               child: ListView(
                 shrinkWrap: true,
                 children: [
+                  if (widget.item.description != null &&
+                      widget.item.description!.trim().isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      widget.item.description!.trim(),
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ],
                   for (final g in widget.item.modifierGroups) ...[
                     Padding(
                       padding: const EdgeInsets.only(top: 12, bottom: 4),

@@ -233,6 +233,10 @@
   "@inboxProposedWaiting": {
     "placeholders": { "time": { "type": "String" } }
   },
+  "inboxReady": "Ready for pickup",
+  "inboxNoneReady": "Nothing waiting for pickup.",
+  "inboxMarkPickedUp": "Mark picked up",
+  "inboxMarkedPickedUp": "Order completed.",
   "inboxAcceptedAdded": "Accepted — added to orders.",
   "inboxPreorderRejected": "Preorder rejected.",
   "inboxCustomerNotifiedReady": "Customer notified: ready.",

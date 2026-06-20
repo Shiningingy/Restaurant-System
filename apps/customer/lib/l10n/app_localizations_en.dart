@@ -361,6 +361,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get orderStatusRejected => 'Declined';
 
   @override
+  String get orderMarkPickedUp => 'Picked up';
+
+  @override
   String get orderNotifyAccepted =>
       'Your order was accepted and is being prepared.';
 

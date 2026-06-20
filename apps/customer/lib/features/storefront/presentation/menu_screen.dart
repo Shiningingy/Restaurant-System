@@ -162,12 +162,9 @@ class MenuScreen extends ConsumerWidget {
     domain.PublishedItem item,
   ) async {
     final l10n = context.l10n;
-    final CartLine? line;
-    if (item.modifierGroups.isEmpty) {
-      line = CartLine(item: item);
-    } else {
-      line = await showItemSheet(context, item);
-    }
+    // Always open the detail sheet — description, options and quantity — even
+    // for items with no options, so the customer can review before adding.
+    final line = await showItemSheet(context, item);
     if (line == null) return;
     ref.read(cartProvider.notifier).add(line);
     if (context.mounted) {
