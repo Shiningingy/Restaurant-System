@@ -227,6 +227,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuNoItemsInCategory => 'No items in this category yet.';
 
   @override
+  String get menuLoadSample => 'Load sample menu';
+
+  @override
+  String get menuLoadSampleConfirm =>
+      'Add the Yee Sushi sample menu (7 categories, 29 bilingual items) to try out ordering and printing? Re-loading just refreshes the same items.';
+
+  @override
+  String get menuLoadSampleDone => 'Sample menu loaded.';
+
+  @override
   String get menuNewItem => 'New item';
 
   @override

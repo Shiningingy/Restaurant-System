@@ -494,6 +494,24 @@ abstract class AppLocalizations {
   /// **'No items in this category yet.'**
   String get menuNoItemsInCategory;
 
+  /// No description provided for @menuLoadSample.
+  ///
+  /// In en, this message translates to:
+  /// **'Load sample menu'**
+  String get menuLoadSample;
+
+  /// No description provided for @menuLoadSampleConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the Yee Sushi sample menu (7 categories, 29 bilingual items) to try out ordering and printing? Re-loading just refreshes the same items.'**
+  String get menuLoadSampleConfirm;
+
+  /// No description provided for @menuLoadSampleDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Sample menu loaded.'**
+  String get menuLoadSampleDone;
+
   /// No description provided for @menuNewItem.
   ///
   /// In en, this message translates to:

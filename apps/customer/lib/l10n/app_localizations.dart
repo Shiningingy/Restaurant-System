@@ -122,6 +122,12 @@ abstract class AppLocalizations {
   /// **'Connect to a restaurant'**
   String get connectTitle;
 
+  /// No description provided for @connectAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a restaurant'**
+  String get connectAddTitle;
+
   /// No description provided for @connectIntro.
   ///
   /// In en, this message translates to:
@@ -140,6 +146,24 @@ abstract class AppLocalizations {
   /// **'Access key'**
   String get connectKeyLabel;
 
+  /// No description provided for @connectNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Restaurant name (optional)'**
+  String get connectNameLabel;
+
+  /// No description provided for @connectScanButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan QR code'**
+  String get connectScanButton;
+
+  /// No description provided for @connectOrDivider.
+  ///
+  /// In en, this message translates to:
+  /// **'or enter it by hand'**
+  String get connectOrDivider;
+
   /// No description provided for @connectButton.
   ///
   /// In en, this message translates to:
@@ -151,6 +175,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter the restaurant URL and key.'**
   String get connectErrorEmptyFields;
+
+  /// No description provided for @walletTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My restaurants'**
+  String get walletTitle;
+
+  /// No description provided for @walletEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No restaurants yet'**
+  String get walletEmptyTitle;
+
+  /// No description provided for @walletEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a restaurant by scanning its QR code, or enter its link by hand.'**
+  String get walletEmptyBody;
+
+  /// No description provided for @walletAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add restaurant'**
+  String get walletAdd;
+
+  /// No description provided for @walletProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'My details'**
+  String get walletProfile;
+
+  /// No description provided for @walletShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get walletShare;
+
+  /// No description provided for @walletRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get walletRemove;
+
+  /// No description provided for @walletRemoveConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name} from your restaurants?'**
+  String walletRemoveConfirm(String name);
+
+  /// No description provided for @commonCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get commonCancel;
+
+  /// No description provided for @profileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My details'**
+  String get profileTitle;
+
+  /// No description provided for @profileIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved on this device to prefill your pickup orders. No account, no sign-in.'**
+  String get profileIntro;
+
+  /// No description provided for @profileNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name or nickname'**
+  String get profileNameLabel;
+
+  /// No description provided for @profilePhoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone (optional)'**
+  String get profilePhoneLabel;
+
+  /// No description provided for @profileEmailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email (optional)'**
+  String get profileEmailLabel;
+
+  /// No description provided for @profileSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get profileSave;
+
+  /// No description provided for @profileSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get profileSaved;
+
+  /// No description provided for @scanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan storefront QR'**
+  String get scanTitle;
+
+  /// No description provided for @scanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Point your camera at the restaurant\'s QR code.'**
+  String get scanHint;
+
+  /// No description provided for @scanInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'That QR code isn\'t a restaurant link.'**
+  String get scanInvalid;
+
+  /// No description provided for @shareTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share {name}'**
+  String shareTitle(String name);
+
+  /// No description provided for @shareHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Let a friend scan this to add the same restaurant.'**
+  String get shareHint;
+
+  /// No description provided for @shareClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get shareClose;
 
   /// No description provided for @menuTitle.
   ///

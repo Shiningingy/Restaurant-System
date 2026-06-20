@@ -4,9 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/l10n_ext.dart';
 import '../../../core/language_menu.dart';
 import '../application/providers.dart';
+import '../data/storefront_link.dart';
+import 'scan_screen.dart';
 
-/// First-run screen: the customer connects to a restaurant's storefront
-/// using the URL + key the restaurant shares (e.g. via a QR code).
+/// Adds a restaurant to the wallet using the URL + key the restaurant shares
+/// (scanned from its QR code, or typed by hand). On success the restaurant
+/// opens and this screen pops back to its menu.
 class ConnectScreen extends ConsumerStatefulWidget {
   const ConnectScreen({super.key});
 
@@ -17,6 +20,7 @@ class ConnectScreen extends ConsumerStatefulWidget {
 class _ConnectScreenState extends ConsumerState<ConnectScreen> {
   final _url = TextEditingController();
   final _key = TextEditingController();
+  final _name = TextEditingController();
   bool _busy = false;
   String? _error;
 
@@ -24,7 +28,19 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
   void dispose() {
     _url.dispose();
     _key.dispose();
+    _name.dispose();
     super.dispose();
+  }
+
+  Future<void> _scan() async {
+    final link = await Navigator.of(context).push<StorefrontLink>(
+      MaterialPageRoute(builder: (_) => const ScanScreen()),
+    );
+    if (link == null) return;
+    _url.text = link.url;
+    _key.text = link.anonKey;
+    if (link.name != null) _name.text = link.name!;
+    await _connect();
   }
 
   Future<void> _connect() async {
@@ -36,17 +52,27 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
       _busy = true;
       _error = null;
     });
-    // The home gate switches to the menu once the config becomes connected.
-    await ref
-        .read(storefrontConfigProvider.notifier)
-        .connect(url: _url.text, anonKey: _key.text);
+    try {
+      await ref
+          .read(walletProvider.notifier)
+          .addAndConnect(url: _url.text, anonKey: _key.text, name: _name.text);
+      // The restaurant is now active; the home gate shows its menu beneath us.
+      if (mounted) Navigator.of(context).pop();
+    } on Object catch (e) {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _error = context.l10n.menuLoadError(e.toString());
+        });
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.connectTitle),
+        title: Text(context.l10n.connectAddTitle),
         actions: const [LanguageMenu()],
       ),
       body: Center(
@@ -58,6 +84,28 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
             children: [
               Text(context.l10n.connectIntro),
               const SizedBox(height: 24),
+              if (qrScanSupported) ...[
+                FilledButton.icon(
+                  onPressed: _busy ? null : _scan,
+                  icon: const Icon(Icons.qr_code_scanner),
+                  label: Text(context.l10n.connectScanButton),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    const Expanded(child: Divider()),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(
+                        context.l10n.connectOrDivider,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                    const Expanded(child: Divider()),
+                  ],
+                ),
+                const SizedBox(height: 12),
+              ],
               TextField(
                 controller: _url,
                 decoration: InputDecoration(
@@ -72,6 +120,14 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
                   labelText: context.l10n.connectKeyLabel,
                 ),
                 maxLines: 2,
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _name,
+                decoration: InputDecoration(
+                  labelText: context.l10n.connectNameLabel,
+                ),
+                textCapitalization: TextCapitalization.words,
               ),
               if (_error != null) ...[
                 const SizedBox(height: 12),

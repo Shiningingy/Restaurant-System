@@ -223,6 +223,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get menuNoItemsInCategory => '此分类暂无菜品。';
 
   @override
+  String get menuLoadSample => '加载示例菜单';
+
+  @override
+  String get menuLoadSampleConfirm =>
+      '添加忆寿司示例菜单（7 个分类、29 个中英双语菜品）以试用点单和打印？重复加载只会刷新相同的菜品。';
+
+  @override
+  String get menuLoadSampleDone => '示例菜单已加载。';
+
+  @override
   String get menuNewItem => '新建菜品';
 
   @override

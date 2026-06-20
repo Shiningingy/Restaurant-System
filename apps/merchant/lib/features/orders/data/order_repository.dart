@@ -119,6 +119,10 @@ class OrderRepository {
 
   // --- Mutating lines (each mutation recomputes the order totals) ---
 
+  /// Adds [item] to the order. If an active line already holds the **same**
+  /// item with the same modifiers and note, its quantity is bumped instead of
+  /// adding a duplicate line (3 taps of Burger → one `3 x Burger`). Lines that
+  /// differ in modifiers or note stay separate.
   Future<void> addLine({
     required String orderId,
     required domain.MenuItem item,
@@ -127,6 +131,43 @@ class OrderRepository {
     String? note,
   }) {
     return db.transaction(() async {
+      final wantedSig = _lineSignature(
+        item.id,
+        note,
+        selectedModifiers.map((m) => (m.name, m.priceDelta)),
+      );
+      final existing = await (db.select(
+        db.orderLines,
+      )..where((t) => t.orderId.equals(orderId))).get();
+      for (final line in existing) {
+        if (line.status != domain.OrderLineStatus.active) continue;
+        if (line.menuItemId != item.id) continue;
+        final mods = await (db.select(
+          db.orderLineModifiers,
+        )..where((t) => t.lineId.equals(line.id))).get();
+        final sig = _lineSignature(
+          line.menuItemId,
+          line.note,
+          mods.map((m) => (m.nameSnapshot, m.priceDeltaSnapshot)),
+        );
+        if (sig != wantedSig) continue;
+        // Found a match — stack onto it, keeping the original price snapshot.
+        final newQty = line.qty + qty;
+        final lineTotal = domain.OrderTotals.lineTotal(
+          unitPrice: line.priceSnapshot,
+          modifierDeltas: mods.map((m) => m.priceDeltaSnapshot),
+          qty: newQty,
+        );
+        await (db.update(
+          db.orderLines,
+        )..where((t) => t.id.equals(line.id))).write(
+          OrderLinesCompanion(qty: Value(newQty), lineTotal: Value(lineTotal)),
+        );
+        await _recomputeTotals(orderId);
+        await _journalOrder(orderId);
+        return;
+      }
+
       final lineId = domain.newId();
       final lineTotal = domain.OrderTotals.lineTotal(
         unitPrice: item.price,
@@ -165,6 +206,18 @@ class OrderRepository {
       await _recomputeTotals(orderId);
       await _journalOrder(orderId);
     });
+  }
+
+  /// A canonical key for "this is the same orderable thing": item + note +
+  /// the multiset of modifier (name, price-delta) pairs. Order-independent so
+  /// the same modifiers picked in any order still merge.
+  static String _lineSignature(
+    String menuItemId,
+    String? note,
+    Iterable<(String, domain.Money)> modifiers,
+  ) {
+    final mods = modifiers.map((m) => '${m.$1}=${m.$2.cents}').toList()..sort();
+    return '$menuItemId|${(note ?? '').trim()}|${mods.join(',')}';
   }
 
   Future<void> setLineQty(String lineId, int qty) {

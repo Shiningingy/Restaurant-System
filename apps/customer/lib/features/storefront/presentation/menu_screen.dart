@@ -22,10 +22,12 @@ class MenuScreen extends ConsumerWidget {
         title: Text(menuAsync.value?.restaurantName ?? context.l10n.menuTitle),
         actions: [
           IconButton(
-            tooltip: context.l10n.menuDisconnect,
-            icon: const Icon(Icons.logout),
-            onPressed: () =>
-                ref.read(storefrontConfigProvider.notifier).disconnect(),
+            tooltip: context.l10n.walletTitle,
+            icon: const Icon(Icons.storefront_outlined),
+            onPressed: () {
+              ref.read(cartProvider.notifier).clear();
+              ref.read(walletProvider.notifier).leave();
+            },
           ),
           const LanguageMenu(),
         ],
