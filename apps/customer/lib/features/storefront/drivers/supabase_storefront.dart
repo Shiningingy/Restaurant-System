@@ -202,6 +202,13 @@ class SupabaseStorefront {
     'status': domain.OnlineOrderStatus.rejected.name,
   });
 
+  /// Customer confirms they collected the order (ready -> pickedUp), so both
+  /// sides see it completed. Requires the RLS policy + guard that lets a row
+  /// owner make this transition (docs/CLOUD_SECURITY.md).
+  Future<void> markPickedUp(String orderId) => _patchOwnOrder(orderId, {
+    'status': domain.OnlineOrderStatus.pickedUp.name,
+  });
+
   Future<void> _patchOwnOrder(String orderId, Map<String, dynamic> body) async {
     final resp = await _client
         .patch(

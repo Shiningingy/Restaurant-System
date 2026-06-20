@@ -130,39 +130,62 @@ or DELETE policy, so they cannot change a price or flip a status — only the
 restaurant can. And `customer_uid = auth.uid()` means one customer can never
 read another's order.
 
-### Pickup-time negotiation (added for in-place approve/decline)
+### Customer order updates (pickup-time negotiation + pickup confirmation)
 
-The merchant can propose a new pickup time (`status -> 'timeProposed'`,
-`proposed_pickup_at` set); the customer then **approves** (the order goes back
-to `submitted` at the agreed time, so the merchant accepts it normally and the
-new-order chime confirms it) or **declines** (`rejected`). That is the customer
-app's **only** write besides the original insert. Apply this once, then re-run
-`apps/customer/tool/live_cloud_smoke_test.dart`:
+The customer app may update its own order in exactly two situations:
+
+1. **Pickup-time negotiation.** The merchant proposes a new time
+   (`status -> 'timeProposed'`, `proposed_pickup_at` set); the customer
+   **approves** (back to `submitted` at the agreed time, so the merchant
+   accepts it normally) or **declines** (`rejected`).
+2. **Pickup confirmation.** A `ready` order can be confirmed collected
+   (`ready -> 'pickedUp'`) by either side, so both see it completed.
+
+Those are the customer app's **only** writes besides the original insert. Apply
+this once, then re-run `apps/customer/tool/live_cloud_smoke_test.dart`:
 
 ```sql
 -- New column for the merchant's proposed time.
 alter table online_orders add column if not exists proposed_pickup_at timestamptz;
 
--- Customer may UPDATE only their own row, only out of 'timeProposed', and only
--- into 'submitted' (approve) or 'rejected' (decline).
+-- Customer may UPDATE only their own row, only out of 'timeProposed' (respond)
+-- or 'ready' (confirm pickup). The exact transitions are pinned by the trigger.
 create policy oo_customer_respond on online_orders for update
   to authenticated
-  using (customer_uid = auth.uid() and status = 'timeProposed')
-  with check (customer_uid = auth.uid() and status in ('submitted', 'rejected'));
+  using (customer_uid = auth.uid() and status in ('timeProposed', 'ready'))
+  with check (
+    customer_uid = auth.uid()
+    and status in ('submitted', 'rejected', 'pickedUp')
+  );
 
 -- RLS WITH CHECK only sees the NEW row, so it can't tell whether the customer
--- also tampered with price/lines. This trigger pins every field except status
--- and the agreed pickup time whenever an anonymous (customer) actor updates.
+-- also tampered with price/lines, nor which transition this is. This trigger
+-- pins the exact allowed transitions and freezes everything else whenever an
+-- anonymous (customer) actor updates.
 create or replace function oo_guard_customer_update()
 returns trigger language plpgsql as $$
 begin
   if coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false) then
-    if old.status <> 'timeProposed' then
-      raise exception 'customer may only respond to a proposed time';
+    if old.status = 'timeProposed' then
+      if new.status not in ('submitted', 'rejected') then
+        raise exception 'invalid customer status transition';
+      end if;
+      -- The agreed time may only become the time the restaurant proposed.
+      if new.requested_pickup_at is distinct from old.requested_pickup_at
+         and new.requested_pickup_at is distinct from old.proposed_pickup_at then
+        raise exception 'pickup time must match the proposed time';
+      end if;
+    elsif old.status = 'ready' then
+      if new.status <> 'pickedUp' then
+        raise exception 'a ready order may only be marked picked up';
+      end if;
+      if new.requested_pickup_at is distinct from old.requested_pickup_at then
+        raise exception 'pickup time is fixed';
+      end if;
+    else
+      raise exception 'customer may not update this order now';
     end if;
-    if new.status not in ('submitted', 'rejected') then
-      raise exception 'invalid customer status transition';
-    end if;
+    -- Order contents are immutable for the customer in every case.
     if new.lines        is distinct from old.lines
        or new.id           is distinct from old.id
        or new.customer_uid is distinct from old.customer_uid
@@ -170,11 +193,6 @@ begin
        or new.customer_phone is distinct from old.customer_phone
        or new.submitted_at is distinct from old.submitted_at then
       raise exception 'customer may not change order contents';
-    end if;
-    -- The agreed time may only become the time the restaurant proposed.
-    if new.requested_pickup_at is distinct from old.requested_pickup_at
-       and new.requested_pickup_at is distinct from old.proposed_pickup_at then
-      raise exception 'pickup time must match the proposed time';
     end if;
   end if;
   return new;
@@ -187,8 +205,8 @@ create trigger oo_guard_customer_update
   for each row execute function oo_guard_customer_update();
 ```
 
-Without this, the negotiation's Approve/Decline buttons return a permission
-error (the customer has no UPDATE policy) — which fails safe.
+Without this, the Approve/Decline and customer-side "Picked up" buttons return a
+permission error (the customer has no UPDATE policy) — which fails safe.
 
 ## What this guarantees
 

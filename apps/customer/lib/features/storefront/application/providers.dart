@@ -151,11 +151,9 @@ final storefrontProvider = Provider<SupabaseStorefront?>((ref) {
     // Supabase rotates the refresh token on each refresh. Persist the new one
     // straight to the repository (not the notifier), so it survives a restart
     // without rebuilding this provider mid-refresh (which would loop).
-    onSession: (session) =>
-        ref.read(storefrontConfigRepositoryProvider).saveSession(
-          refreshToken: session.refreshToken,
-          uid: session.userId,
-        ),
+    onSession: (session) => ref
+        .read(storefrontConfigRepositoryProvider)
+        .saveSession(refreshToken: session.refreshToken, uid: session.userId),
   );
   final refresh = config.sessionRefreshToken;
   if (refresh != null) {

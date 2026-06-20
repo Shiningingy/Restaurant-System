@@ -66,12 +66,7 @@ class _OrderTile extends ConsumerWidget {
       ),
       trailing: status == domain.OnlineOrderStatus.ready
           ? FilledButton.tonal(
-              onPressed: () => ref
-                  .read(orderHistoryProvider.notifier)
-                  .updateStatus(
-                    order.orderId,
-                    domain.OnlineOrderStatus.pickedUp,
-                  ),
+              onPressed: () => _markPickedUp(context, ref),
               child: Text(context.l10n.orderMarkPickedUp),
             )
           : Text(
@@ -89,6 +84,23 @@ class _OrderTile extends ConsumerWidget {
     );
   }
 
+  /// Confirms pickup on the backend so the merchant sees it too, then updates
+  /// the local history. Falls back with a message if the write fails.
+  Future<void> _markPickedUp(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final failed = context.l10n.orderMarkPickedUpFailed;
+    final storefront = ref.read(storefrontProvider);
+    if (storefront == null) return;
+    try {
+      await storefront.markPickedUp(order.orderId);
+      await ref
+          .read(orderHistoryProvider.notifier)
+          .updateStatus(order.orderId, domain.OnlineOrderStatus.pickedUp);
+    } on Object {
+      messenger.showSnackBar(SnackBar(content: Text(failed)));
+    }
+  }
+
   IconData _icon(domain.OnlineOrderStatus s) => switch (s) {
     domain.OnlineOrderStatus.timeProposed => Icons.schedule,
     domain.OnlineOrderStatus.accepted => Icons.restaurant,
@@ -102,7 +114,9 @@ class _OrderTile extends ConsumerWidget {
       switch (s) {
         domain.OnlineOrderStatus.ready => Colors.green,
         domain.OnlineOrderStatus.timeProposed => Colors.orange,
-        domain.OnlineOrderStatus.rejected => Theme.of(context).colorScheme.error,
+        domain.OnlineOrderStatus.rejected => Theme.of(
+          context,
+        ).colorScheme.error,
         _ => Theme.of(context).colorScheme.primary,
       };
 

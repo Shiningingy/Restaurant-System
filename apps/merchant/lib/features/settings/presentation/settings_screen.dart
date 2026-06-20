@@ -299,9 +299,7 @@ class SettingsScreen extends ConsumerWidget {
           for (final opt in options)
             ListTile(
               title: Text(opt.label),
-              trailing: current == opt.code
-                  ? const Icon(Icons.check)
-                  : null,
+              trailing: current == opt.code ? const Icon(Icons.check) : null,
               onTap: () =>
                   Navigator.pop(context, (chosen: true, code: opt.code)),
             ),

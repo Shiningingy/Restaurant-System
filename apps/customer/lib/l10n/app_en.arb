@@ -150,6 +150,7 @@
   "orderStatusPickedUp": "Picked up",
   "orderStatusRejected": "Declined",
   "orderMarkPickedUp": "Picked up",
+  "orderMarkPickedUpFailed": "Couldn't confirm pickup. Please try again.",
 
   "orderNotifyAccepted": "Your order was accepted and is being prepared.",
   "orderNotifyReady": "Your order is ready for pickup!",

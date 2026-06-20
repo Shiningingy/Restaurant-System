@@ -232,15 +232,14 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
   ) async {
     final l10n = context.l10n;
     final repo = ref.read(menuRepositoryProvider);
-    final itemCount = (await repo.watchItemsInCategory(category.id).first).length;
+    final itemCount =
+        (await repo.watchItemsInCategory(category.id).first).length;
     if (!context.mounted) return;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(l10n.menuDeleteCategory),
-        content: Text(
-          l10n.menuDeleteCategoryConfirm(category.name, itemCount),
-        ),
+        content: Text(l10n.menuDeleteCategoryConfirm(category.name, itemCount)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
