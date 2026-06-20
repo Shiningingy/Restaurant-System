@@ -40,6 +40,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connectScanButton => 'Scan QR code';
 
   @override
+  String get connectUploadQr => 'Upload QR image';
+
+  @override
+  String get connectQrImageInvalid =>
+      'No restaurant QR code found in that image.';
+
+  @override
   String get connectEnterManually => 'Enter details manually';
 
   @override

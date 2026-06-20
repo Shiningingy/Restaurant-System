@@ -12,6 +12,8 @@
   "connectKeyLabel": "访问密钥",
   "connectNameLabel": "餐厅名称（可选）",
   "connectScanButton": "扫描二维码",
+  "connectUploadQr": "上传二维码图片",
+  "connectQrImageInvalid": "未在该图片中找到餐厅二维码。",
   "connectEnterManually": "手动输入信息",
   "connectOrDivider": "或手动输入",
   "connectButton": "连接",

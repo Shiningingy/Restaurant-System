@@ -12,6 +12,8 @@
   "connectKeyLabel": "Access key",
   "connectNameLabel": "Restaurant name (optional)",
   "connectScanButton": "Scan QR code",
+  "connectUploadQr": "Upload QR image",
+  "connectQrImageInvalid": "No restaurant QR code found in that image.",
   "connectEnterManually": "Enter details manually",
   "connectOrDivider": "or enter it by hand",
   "connectButton": "Connect",

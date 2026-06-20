@@ -158,6 +158,18 @@ abstract class AppLocalizations {
   /// **'Scan QR code'**
   String get connectScanButton;
 
+  /// No description provided for @connectUploadQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload QR image'**
+  String get connectUploadQr;
+
+  /// No description provided for @connectQrImageInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'No restaurant QR code found in that image.'**
+  String get connectQrImageInvalid;
+
   /// No description provided for @connectEnterManually.
   ///
   /// In en, this message translates to:

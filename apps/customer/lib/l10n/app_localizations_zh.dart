@@ -39,6 +39,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get connectScanButton => '扫描二维码';
 
   @override
+  String get connectUploadQr => '上传二维码图片';
+
+  @override
+  String get connectQrImageInvalid => '未在该图片中找到餐厅二维码。';
+
+  @override
   String get connectEnterManually => '手动输入信息';
 
   @override

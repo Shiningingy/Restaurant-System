@@ -1,9 +1,11 @@
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n_ext.dart';
 import '../../../core/language_menu.dart';
 import '../application/providers.dart';
+import '../data/qr_image_decoder.dart';
 import '../data/storefront_link.dart';
 import 'scan_screen.dart';
 
@@ -41,10 +43,42 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
       MaterialPageRoute(builder: (_) => const ScanScreen()),
     );
     if (link == null) return;
+    _applyLink(link);
+    await _connect();
+  }
+
+  /// Picks a saved QR-code image and decodes it (no camera needed — works on
+  /// desktop). Connects on a valid storefront QR, explains otherwise.
+  Future<void> _uploadQr() async {
+    const group = XTypeGroup(
+      label: 'images',
+      extensions: ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'gif'],
+    );
+    final file = await openFile(acceptedTypeGroups: [group]);
+    if (file == null) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    final bytes = await file.readAsBytes();
+    final link = decodeStorefrontQrFromImageBytes(bytes);
+    if (link == null) {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _error = context.l10n.connectQrImageInvalid;
+        });
+      }
+      return;
+    }
+    _applyLink(link);
+    await _connect();
+  }
+
+  void _applyLink(StorefrontLink link) {
     _url.text = link.url;
     _key.text = link.anonKey;
     if (link.name != null) _name.text = link.name!;
-    await _connect();
   }
 
   Future<void> _connect() async {
@@ -97,36 +131,51 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
                     minimumSize: const Size.fromHeight(52),
                   ),
                 ),
-                if (!_manual) ...[
-                  const SizedBox(height: 12),
-                  TextButton(
-                    onPressed: _busy
-                        ? null
-                        : () => setState(() => _manual = true),
-                    child: Text(context.l10n.connectEnterManually),
-                  ),
-                ],
+                const SizedBox(height: 12),
               ],
-              // Manual fields: always on desktop (no scanner), or once the
-              // customer chooses "enter manually" on mobile.
-              if (!qrScanSupported || _manual) ...[
-                if (qrScanSupported) ...[
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      const Expanded(child: Divider()),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Text(
-                          context.l10n.connectOrDivider,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ),
-                      const Expanded(child: Divider()),
-                    ],
+              // Upload a saved QR image — the no-camera path. Primary action on
+              // desktop (no scanner); a secondary option alongside Scan on mobile.
+              if (qrScanSupported)
+                OutlinedButton.icon(
+                  onPressed: _busy ? null : _uploadQr,
+                  icon: const Icon(Icons.image_outlined),
+                  label: Text(context.l10n.connectUploadQr),
+                )
+              else
+                FilledButton.icon(
+                  onPressed: _busy ? null : _uploadQr,
+                  icon: const Icon(Icons.image_outlined),
+                  label: Text(context.l10n.connectUploadQr),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size.fromHeight(52),
                   ),
-                  const SizedBox(height: 12),
-                ],
+                ),
+              if (!_manual) ...[
+                const SizedBox(height: 12),
+                TextButton(
+                  onPressed: _busy
+                      ? null
+                      : () => setState(() => _manual = true),
+                  child: Text(context.l10n.connectEnterManually),
+                ),
+              ],
+              // Manual fields: shown once the customer chooses "enter manually".
+              if (_manual) ...[
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    const Expanded(child: Divider()),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(
+                        context.l10n.connectOrDivider,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ),
+                    const Expanded(child: Divider()),
+                  ],
+                ),
+                const SizedBox(height: 12),
                 TextField(
                   controller: _url,
                   decoration: InputDecoration(
