@@ -61,6 +61,9 @@ enum AppPermission {
   /// Open the Admin tab.
   accessAdmin,
 
+  /// Apply a discount above the threshold staff may grant on their own.
+  largeDiscount,
+
   /// Add/edit/delete staff and change roles.
   manageStaff,
 }
@@ -70,6 +73,7 @@ StaffRole _minRole(AppPermission permission) => switch (permission) {
   AppPermission.editMenu ||
   AppPermission.viewReports ||
   AppPermission.refundPaidOrder ||
+  AppPermission.largeDiscount ||
   AppPermission.accessAdmin => StaffRole.manager,
 };
 

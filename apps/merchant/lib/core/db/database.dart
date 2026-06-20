@@ -32,7 +32,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.open() : super(driftDatabase(name: 'restaurant_pos'));
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -53,6 +53,12 @@ class AppDatabase extends _$AppDatabase {
       if (from < 6) {
         // v6: optional menu-item description.
         await m.addColumn(menuItems, menuItems.description);
+      }
+      if (from < 7) {
+        // v7: order-level discount + service fee.
+        await m.addColumn(orders, orders.serviceFeeBp);
+        await m.addColumn(orders, orders.discount);
+        await m.addColumn(orders, orders.serviceFee);
       }
     },
   );

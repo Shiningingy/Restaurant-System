@@ -22,9 +22,19 @@ abstract class Order with _$Order {
     /// Tax rate in basis points (1300 = 13%), snapshotted at creation so a
     /// settings change never rewrites an existing order.
     required int taxRateBp,
+
+    /// Service-fee rate in basis points, snapshotted at creation like
+    /// [taxRateBp] so a settings change never rewrites an existing order.
+    @Default(0) int serviceFeeBp,
     String? tableId,
     DateTime? closedAt,
     @Default(Money.zero) Money subtotal,
+
+    /// Discount applied to the order (off the subtotal, before tax).
+    @Default(Money.zero) Money discount,
+
+    /// Service fee charged on the discounted subtotal.
+    @Default(Money.zero) Money serviceFee,
     @Default(Money.zero) Money tax,
     @Default(Money.zero) Money total,
     String? note,

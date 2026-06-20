@@ -105,10 +105,11 @@ class OrdersScreen extends ConsumerWidget {
     String? tableId,
   }) async {
     final repo = ref.read(orderRepositoryProvider);
-    final taxRateBp = ref.read(taxRateBpProvider);
+    final settings = ref.read(settingsRepositoryProvider);
     final id = await repo.createOrder(
       type: type,
-      taxRateBp: taxRateBp,
+      taxRateBp: settings.taxRateBp,
+      serviceFeeBp: settings.serviceFeeBp,
       tableId: tableId,
     );
     if (context.mounted) context.go('/orders/$id');

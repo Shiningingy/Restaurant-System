@@ -140,6 +140,12 @@ abstract class AppLocalizations {
   /// **'Cancel'**
   String get commonCancel;
 
+  /// No description provided for @commonApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get commonApply;
+
   /// No description provided for @commonSave.
   ///
   /// In en, this message translates to:
@@ -343,6 +349,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tax ({rate}%)'**
   String ordTaxPercent(String rate);
+
+  /// No description provided for @ordServiceFeePercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Service fee ({rate}%)'**
+  String ordServiceFeePercent(String rate);
+
+  /// No description provided for @ordDiscount.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount'**
+  String get ordDiscount;
+
+  /// No description provided for @ordDiscountPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount percent'**
+  String get ordDiscountPercent;
+
+  /// No description provided for @ordAddDiscount.
+  ///
+  /// In en, this message translates to:
+  /// **'Add discount'**
+  String get ordAddDiscount;
+
+  /// No description provided for @ordEditDiscount.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit discount'**
+  String get ordEditDiscount;
+
+  /// No description provided for @ordRemoveDiscount.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get ordRemoveDiscount;
 
   /// No description provided for @ordTotal.
   ///
@@ -1093,6 +1135,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Applied to new orders; existing orders keep their rate.'**
   String get setSalesTaxRateSubtitle;
+
+  /// No description provided for @setCheckout.
+  ///
+  /// In en, this message translates to:
+  /// **'Checkout'**
+  String get setCheckout;
+
+  /// No description provided for @setServiceFee.
+  ///
+  /// In en, this message translates to:
+  /// **'Service fee'**
+  String get setServiceFee;
+
+  /// No description provided for @setServiceFeeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Charged on every order. 0% for none.'**
+  String get setServiceFeeHint;
+
+  /// No description provided for @setDiscountPresets.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount presets'**
+  String get setDiscountPresets;
+
+  /// No description provided for @setDiscountPresetsNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None set'**
+  String get setDiscountPresetsNone;
+
+  /// No description provided for @setDiscountPresetsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Comma-separated percentages, e.g. 5, 10, 15'**
+  String get setDiscountPresetsHint;
+
+  /// No description provided for @setDiscountThreshold.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount without manager'**
+  String get setDiscountThreshold;
+
+  /// No description provided for @setDiscountThresholdHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Larger discounts need a manager PIN.'**
+  String get setDiscountThresholdHint;
 
   /// No description provided for @setOnlineOrdering.
   ///

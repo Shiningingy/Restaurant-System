@@ -110,6 +110,8 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => _editTaxRate(context, ref, taxRateBp),
           ),
           const Divider(height: 32),
+          _CheckoutPricingSection(pricing: ref.watch(checkoutPricingProvider)),
+          const Divider(height: 32),
           _OnlineOrderingSection(
             settings: ref.watch(onlineOrderSettingsProvider),
           ),
@@ -706,6 +708,151 @@ class _PrinterDialogState extends State<_PrinterDialog> {
         FilledButton(onPressed: _save, child: Text(l10n.commonSave)),
       ],
     );
+  }
+}
+
+/// Checkout pricing: a service fee on every order, the discount presets staff
+/// can pick, and the cap they may discount without a manager's PIN.
+class _CheckoutPricingSection extends ConsumerWidget {
+  final CheckoutPricing pricing;
+
+  const _CheckoutPricingSection({required this.pricing});
+
+  static String _pct(int bp) =>
+      bp % 100 == 0 ? '${bp ~/ 100}%' : '${(bp / 100).toStringAsFixed(2)}%';
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          context.l10n.setCheckout,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        ListTile(
+          leading: const Icon(Icons.room_service_outlined),
+          title: Text(context.l10n.setServiceFee),
+          subtitle: Text(context.l10n.setServiceFeeHint),
+          trailing: Text(
+            _pct(pricing.serviceFeeBp),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          onTap: () => _editPercent(
+            context,
+            title: context.l10n.setServiceFee,
+            currentBp: pricing.serviceFeeBp,
+            onPicked: (bp) =>
+                ref.read(checkoutPricingProvider.notifier).setServiceFeeBp(bp),
+          ),
+        ),
+        ListTile(
+          leading: const Icon(Icons.local_offer_outlined),
+          title: Text(context.l10n.setDiscountPresets),
+          subtitle: Text(
+            pricing.discountPresetsBp.isEmpty
+                ? context.l10n.setDiscountPresetsNone
+                : pricing.discountPresetsBp.map(_pct).join(', '),
+          ),
+          onTap: () => _editPresets(context, ref),
+        ),
+        ListTile(
+          leading: const Icon(Icons.shield_outlined),
+          title: Text(context.l10n.setDiscountThreshold),
+          subtitle: Text(context.l10n.setDiscountThresholdHint),
+          trailing: Text(
+            _pct(pricing.discountThresholdBp),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          onTap: () => _editPercent(
+            context,
+            title: context.l10n.setDiscountThreshold,
+            currentBp: pricing.discountThresholdBp,
+            onPicked: (bp) => ref
+                .read(checkoutPricingProvider.notifier)
+                .setDiscountThresholdBp(bp),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _editPercent(
+    BuildContext context, {
+    required String title,
+    required int currentBp,
+    required void Function(int bp) onPicked,
+  }) async {
+    final controller = TextEditingController(
+      text: currentBp == 0 ? '' : (currentBp / 100).toString(),
+    );
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(suffixText: '%'),
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(context.l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(context.l10n.commonSave),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) {
+      final pct = double.tryParse(controller.text.trim()) ?? 0;
+      onPicked((pct * 100).round().clamp(0, 10000));
+    }
+  }
+
+  Future<void> _editPresets(BuildContext context, WidgetRef ref) async {
+    final controller = TextEditingController(
+      text: pricing.discountPresetsBp.map((bp) => bp / 100).join(', '),
+    );
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.l10n.setDiscountPresets),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: InputDecoration(
+            helperText: context.l10n.setDiscountPresetsHint,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(context.l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(context.l10n.commonSave),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) {
+      final presets = controller.text
+          .split(RegExp(r'[,\s]+'))
+          .map((s) => double.tryParse(s.trim()))
+          .whereType<double>()
+          .map((pct) => (pct * 100).round())
+          .where((bp) => bp > 0 && bp <= 10000)
+          .toList();
+      await ref
+          .read(checkoutPricingProvider.notifier)
+          .setDiscountPresetsBp(presets);
+    }
   }
 }
 

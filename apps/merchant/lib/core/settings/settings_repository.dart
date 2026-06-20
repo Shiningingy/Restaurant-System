@@ -58,6 +58,12 @@ class SettingsRepository {
   static const _pickupLeadKey = 'pickupLeadMinutes';
   static const _newOrderSoundKey = 'newOrderSound';
   static const _secondNameLangKey = 'secondNameLanguage';
+  static const _serviceFeeBpKey = 'serviceFeeBp';
+  static const _discountPresetsKey = 'discountPresetsBp';
+  static const _discountThresholdKey = 'discountThresholdBp';
+
+  /// Staff may apply a manual discount up to this without a manager — 15%.
+  static const defaultDiscountThresholdBp = 1500;
 
   /// 13% HST (Ontario) as the default — the user configures their own rate.
   static const defaultTaxRateBp = 1300;
@@ -149,4 +155,30 @@ class SettingsRepository {
       (code == null || code.isEmpty)
       ? prefs.remove(_secondNameLangKey)
       : prefs.setString(_secondNameLangKey, code);
+
+  /// Service-fee rate in basis points charged on every order (0 = none).
+  int get serviceFeeBp => prefs.getInt(_serviceFeeBpKey) ?? 0;
+
+  Future<void> setServiceFeeBp(int bp) => prefs.setInt(_serviceFeeBpKey, bp);
+
+  /// Preset discount percentages (basis points) offered at checkout, e.g.
+  /// [500, 1000, 1500]. Set by a manager+.
+  List<int> get discountPresetsBp =>
+      (prefs.getStringList(_discountPresetsKey) ?? const [])
+          .map(int.tryParse)
+          .whereType<int>()
+          .toList();
+
+  Future<void> setDiscountPresetsBp(List<int> presets) => prefs.setStringList(
+    _discountPresetsKey,
+    presets.map((e) => e.toString()).toList(),
+  );
+
+  /// The most a manual discount can be (basis points) before it needs a
+  /// manager's approval. Set by a manager+.
+  int get discountThresholdBp =>
+      prefs.getInt(_discountThresholdKey) ?? defaultDiscountThresholdBp;
+
+  Future<void> setDiscountThresholdBp(int bp) =>
+      prefs.setInt(_discountThresholdKey, bp);
 }

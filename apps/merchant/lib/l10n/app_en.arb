@@ -12,6 +12,7 @@
   "navSettings": "Settings",
 
   "commonCancel": "Cancel",
+  "commonApply": "Apply",
   "commonSave": "Save",
   "commonDelete": "Delete",
   "commonAdd": "Add",
@@ -61,6 +62,15 @@
   "@ordTaxPercent": {
     "placeholders": { "rate": { "type": "String" } }
   },
+  "ordServiceFeePercent": "Service fee ({rate}%)",
+  "@ordServiceFeePercent": {
+    "placeholders": { "rate": { "type": "String" } }
+  },
+  "ordDiscount": "Discount",
+  "ordDiscountPercent": "Discount percent",
+  "ordAddDiscount": "Add discount",
+  "ordEditDiscount": "Edit discount",
+  "ordRemoveDiscount": "Remove",
   "ordTotal": "Total",
   "ordPaidMethod": "Paid — {method}",
   "@ordPaidMethod": {
@@ -285,6 +295,14 @@
   "setTax": "Tax",
   "setSalesTaxRate": "Sales tax rate",
   "setSalesTaxRateSubtitle": "Applied to new orders; existing orders keep their rate.",
+  "setCheckout": "Checkout",
+  "setServiceFee": "Service fee",
+  "setServiceFeeHint": "Charged on every order. 0% for none.",
+  "setDiscountPresets": "Discount presets",
+  "setDiscountPresetsNone": "None set",
+  "setDiscountPresetsHint": "Comma-separated percentages, e.g. 5, 10, 15",
+  "setDiscountThreshold": "Discount without manager",
+  "setDiscountThresholdHint": "Larger discounts need a manager PIN.",
   "setOnlineOrdering": "Online ordering",
   "setPickupLead": "Minimum pickup time",
   "setPickupLeadSubtitle": "Soonest a customer can ask to pick up. Sent with the menu.",

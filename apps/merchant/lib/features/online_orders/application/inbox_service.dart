@@ -64,6 +64,7 @@ class InboxService {
     final orderId = await orders.createOrder(
       type: domain.OrderType.online,
       taxRateBp: settings.taxRateBp,
+      serviceFeeBp: settings.serviceFeeBp,
       note: 'Online: ${incoming.customerName} - pickup $pickup',
     );
     for (final line in lines) {

@@ -6,6 +6,8 @@ import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 import '../../../core/l10n_ext.dart';
 import '../../../core/labels.dart';
 import '../../../core/widgets/item_name_lines.dart';
+import '../../admin/domain/staff.dart';
+import '../../admin/presentation/pin_dialog.dart';
 import '../../menu/application/providers.dart';
 import '../../payments/application/payment_service.dart';
 import '../../payments/application/providers.dart';
@@ -324,6 +326,20 @@ class _Ticket extends ConsumerWidget {
           child: Column(
             children: [
               _totalRow(context, context.l10n.ordSubtotal, order.subtotal),
+              if (!order.discount.isZero)
+                _totalRow(
+                  context,
+                  context.l10n.ordDiscount,
+                  domain.Money.zero - order.discount,
+                ),
+              if (!order.serviceFee.isZero)
+                _totalRow(
+                  context,
+                  context.l10n.ordServiceFeePercent(
+                    (order.serviceFeeBp / 100).toStringAsFixed(2),
+                  ),
+                  order.serviceFee,
+                ),
               _totalRow(
                 context,
                 context.l10n.ordTaxPercent(
@@ -338,6 +354,19 @@ class _Ticket extends ConsumerWidget {
                 order.total,
                 emphasized: true,
               ),
+              if (isOpen)
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: () => _editDiscount(context, ref, order),
+                    icon: const Icon(Icons.local_offer_outlined, size: 18),
+                    label: Text(
+                      order.discount.isZero
+                          ? context.l10n.ordAddDiscount
+                          : context.l10n.ordEditDiscount,
+                    ),
+                  ),
+                ),
               if (settled.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 for (final p in settled)
@@ -431,6 +460,38 @@ class _Ticket extends ConsumerWidget {
     );
   }
 
+  /// Apply or change the order discount. Offers the manager-set presets plus a
+  /// manual percent; a manual percent above the threshold needs a manager PIN.
+  Future<void> _editDiscount(
+    BuildContext context,
+    WidgetRef ref,
+    domain.Order order,
+  ) async {
+    final settings = ref.read(settingsRepositoryProvider);
+    final chosenBp = await showDialog<int>(
+      context: context,
+      builder: (context) => _DiscountDialog(
+        presetsBp: settings.discountPresetsBp,
+        currentBp: order.subtotal.isZero
+            ? 0
+            : (order.discount.cents * 10000 / order.subtotal.cents).round(),
+      ),
+    );
+    if (chosenBp == null) return; // cancelled
+    // A manual discount above the free-staff threshold needs a manager.
+    if (chosenBp > settings.discountThresholdBp) {
+      if (!context.mounted) return;
+      final ok = await requirePermission(
+        context,
+        ref,
+        AppPermission.largeDiscount,
+      );
+      if (!ok) return;
+    }
+    final discount = order.subtotal.percent(chosenBp / 100);
+    await ref.read(orderRepositoryProvider).setDiscount(order.id, discount);
+  }
+
   Future<void> _pay(
     BuildContext context,
     WidgetRef ref,
@@ -465,5 +526,92 @@ class _Ticket extends ConsumerWidget {
           SnackBar(content: Text(l10n.ordPaymentFailed(result.message ?? ''))),
         );
     }
+  }
+}
+
+/// Picks a discount: a manager-set preset, or a manual percent. Returns the
+/// chosen rate in basis points (0 removes the discount), or null if cancelled.
+class _DiscountDialog extends StatefulWidget {
+  final List<int> presetsBp;
+  final int currentBp;
+
+  const _DiscountDialog({required this.presetsBp, required this.currentBp});
+
+  @override
+  State<_DiscountDialog> createState() => _DiscountDialogState();
+}
+
+class _DiscountDialogState extends State<_DiscountDialog> {
+  late final TextEditingController _manual;
+
+  @override
+  void initState() {
+    super.initState();
+    _manual = TextEditingController(
+      text: widget.currentBp == 0 ? '' : _fmt(widget.currentBp),
+    );
+  }
+
+  @override
+  void dispose() {
+    _manual.dispose();
+    super.dispose();
+  }
+
+  static String _fmt(int bp) =>
+      (bp % 100 == 0) ? '${bp ~/ 100}' : (bp / 100).toStringAsFixed(2);
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return AlertDialog(
+      title: Text(l10n.ordDiscount),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (widget.presetsBp.isNotEmpty)
+            Wrap(
+              spacing: 8,
+              children: [
+                for (final bp in widget.presetsBp)
+                  ActionChip(
+                    label: Text('${_fmt(bp)}%'),
+                    onPressed: () => Navigator.pop(context, bp),
+                  ),
+              ],
+            ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _manual,
+            autofocus: widget.presetsBp.isEmpty,
+            decoration: InputDecoration(
+              labelText: l10n.ordDiscountPercent,
+              suffixText: '%',
+            ),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.commonCancel),
+        ),
+        if (widget.currentBp != 0)
+          TextButton(
+            onPressed: () => Navigator.pop(context, 0),
+            child: Text(l10n.ordRemoveDiscount),
+          ),
+        FilledButton(
+          onPressed: () {
+            final pct = double.tryParse(_manual.text.trim()) ?? 0;
+            final bp = (pct * 100).round().clamp(0, 10000);
+            Navigator.pop(context, bp);
+          },
+          child: Text(l10n.commonApply),
+        ),
+      ],
+    );
   }
 }

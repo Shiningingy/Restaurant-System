@@ -2122,6 +2122,18 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, OrderRow> {
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _serviceFeeBpMeta = const VerificationMeta(
+    'serviceFeeBp',
+  );
+  @override
+  late final GeneratedColumn<int> serviceFeeBp = GeneratedColumn<int>(
+    'service_fee_bp',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   @override
   late final GeneratedColumnWithTypeConverter<domain.Money, int> subtotal =
       GeneratedColumn<int>(
@@ -2131,6 +2143,26 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, OrderRow> {
         type: DriftSqlType.int,
         requiredDuringInsert: true,
       ).withConverter<domain.Money>($OrdersTable.$convertersubtotal);
+  @override
+  late final GeneratedColumnWithTypeConverter<domain.Money, int> discount =
+      GeneratedColumn<int>(
+        'discount',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+        defaultValue: const Constant(0),
+      ).withConverter<domain.Money>($OrdersTable.$converterdiscount);
+  @override
+  late final GeneratedColumnWithTypeConverter<domain.Money, int> serviceFee =
+      GeneratedColumn<int>(
+        'service_fee',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+        defaultValue: const Constant(0),
+      ).withConverter<domain.Money>($OrdersTable.$converterserviceFee);
   @override
   late final GeneratedColumnWithTypeConverter<domain.Money, int> tax =
       GeneratedColumn<int>(
@@ -2167,7 +2199,10 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, OrderRow> {
     createdAt,
     closedAt,
     taxRateBp,
+    serviceFeeBp,
     subtotal,
+    discount,
+    serviceFee,
     tax,
     total,
     note,
@@ -2217,6 +2252,15 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, OrderRow> {
     } else if (isInserting) {
       context.missing(_taxRateBpMeta);
     }
+    if (data.containsKey('service_fee_bp')) {
+      context.handle(
+        _serviceFeeBpMeta,
+        serviceFeeBp.isAcceptableOrUnknown(
+          data['service_fee_bp']!,
+          _serviceFeeBpMeta,
+        ),
+      );
+    }
     if (data.containsKey('note')) {
       context.handle(
         _noteMeta,
@@ -2264,10 +2308,26 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, OrderRow> {
         DriftSqlType.int,
         data['${effectivePrefix}tax_rate_bp'],
       )!,
+      serviceFeeBp: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}service_fee_bp'],
+      )!,
       subtotal: $OrdersTable.$convertersubtotal.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.int,
           data['${effectivePrefix}subtotal'],
+        )!,
+      ),
+      discount: $OrdersTable.$converterdiscount.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}discount'],
+        )!,
+      ),
+      serviceFee: $OrdersTable.$converterserviceFee.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}service_fee'],
         )!,
       ),
       tax: $OrdersTable.$convertertax.fromSql(
@@ -2302,6 +2362,10 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, OrderRow> {
   );
   static TypeConverter<domain.Money, int> $convertersubtotal =
       const MoneyConverter();
+  static TypeConverter<domain.Money, int> $converterdiscount =
+      const MoneyConverter();
+  static TypeConverter<domain.Money, int> $converterserviceFee =
+      const MoneyConverter();
   static TypeConverter<domain.Money, int> $convertertax =
       const MoneyConverter();
   static TypeConverter<domain.Money, int> $convertertotal =
@@ -2316,7 +2380,10 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
   final DateTime createdAt;
   final DateTime? closedAt;
   final int taxRateBp;
+  final int serviceFeeBp;
   final domain.Money subtotal;
+  final domain.Money discount;
+  final domain.Money serviceFee;
   final domain.Money tax;
   final domain.Money total;
   final String? note;
@@ -2328,7 +2395,10 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
     required this.createdAt,
     this.closedAt,
     required this.taxRateBp,
+    required this.serviceFeeBp,
     required this.subtotal,
+    required this.discount,
+    required this.serviceFee,
     required this.tax,
     required this.total,
     this.note,
@@ -2353,9 +2423,20 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
       map['closed_at'] = Variable<DateTime>(closedAt);
     }
     map['tax_rate_bp'] = Variable<int>(taxRateBp);
+    map['service_fee_bp'] = Variable<int>(serviceFeeBp);
     {
       map['subtotal'] = Variable<int>(
         $OrdersTable.$convertersubtotal.toSql(subtotal),
+      );
+    }
+    {
+      map['discount'] = Variable<int>(
+        $OrdersTable.$converterdiscount.toSql(discount),
+      );
+    }
+    {
+      map['service_fee'] = Variable<int>(
+        $OrdersTable.$converterserviceFee.toSql(serviceFee),
       );
     }
     {
@@ -2383,7 +2464,10 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
           ? const Value.absent()
           : Value(closedAt),
       taxRateBp: Value(taxRateBp),
+      serviceFeeBp: Value(serviceFeeBp),
       subtotal: Value(subtotal),
+      discount: Value(discount),
+      serviceFee: Value(serviceFee),
       tax: Value(tax),
       total: Value(total),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
@@ -2407,7 +2491,10 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       closedAt: serializer.fromJson<DateTime?>(json['closedAt']),
       taxRateBp: serializer.fromJson<int>(json['taxRateBp']),
+      serviceFeeBp: serializer.fromJson<int>(json['serviceFeeBp']),
       subtotal: serializer.fromJson<domain.Money>(json['subtotal']),
+      discount: serializer.fromJson<domain.Money>(json['discount']),
+      serviceFee: serializer.fromJson<domain.Money>(json['serviceFee']),
       tax: serializer.fromJson<domain.Money>(json['tax']),
       total: serializer.fromJson<domain.Money>(json['total']),
       note: serializer.fromJson<String?>(json['note']),
@@ -2428,7 +2515,10 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'closedAt': serializer.toJson<DateTime?>(closedAt),
       'taxRateBp': serializer.toJson<int>(taxRateBp),
+      'serviceFeeBp': serializer.toJson<int>(serviceFeeBp),
       'subtotal': serializer.toJson<domain.Money>(subtotal),
+      'discount': serializer.toJson<domain.Money>(discount),
+      'serviceFee': serializer.toJson<domain.Money>(serviceFee),
       'tax': serializer.toJson<domain.Money>(tax),
       'total': serializer.toJson<domain.Money>(total),
       'note': serializer.toJson<String?>(note),
@@ -2443,7 +2533,10 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
     DateTime? createdAt,
     Value<DateTime?> closedAt = const Value.absent(),
     int? taxRateBp,
+    int? serviceFeeBp,
     domain.Money? subtotal,
+    domain.Money? discount,
+    domain.Money? serviceFee,
     domain.Money? tax,
     domain.Money? total,
     Value<String?> note = const Value.absent(),
@@ -2455,7 +2548,10 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
     createdAt: createdAt ?? this.createdAt,
     closedAt: closedAt.present ? closedAt.value : this.closedAt,
     taxRateBp: taxRateBp ?? this.taxRateBp,
+    serviceFeeBp: serviceFeeBp ?? this.serviceFeeBp,
     subtotal: subtotal ?? this.subtotal,
+    discount: discount ?? this.discount,
+    serviceFee: serviceFee ?? this.serviceFee,
     tax: tax ?? this.tax,
     total: total ?? this.total,
     note: note.present ? note.value : this.note,
@@ -2469,7 +2565,14 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       closedAt: data.closedAt.present ? data.closedAt.value : this.closedAt,
       taxRateBp: data.taxRateBp.present ? data.taxRateBp.value : this.taxRateBp,
+      serviceFeeBp: data.serviceFeeBp.present
+          ? data.serviceFeeBp.value
+          : this.serviceFeeBp,
       subtotal: data.subtotal.present ? data.subtotal.value : this.subtotal,
+      discount: data.discount.present ? data.discount.value : this.discount,
+      serviceFee: data.serviceFee.present
+          ? data.serviceFee.value
+          : this.serviceFee,
       tax: data.tax.present ? data.tax.value : this.tax,
       total: data.total.present ? data.total.value : this.total,
       note: data.note.present ? data.note.value : this.note,
@@ -2486,7 +2589,10 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
           ..write('createdAt: $createdAt, ')
           ..write('closedAt: $closedAt, ')
           ..write('taxRateBp: $taxRateBp, ')
+          ..write('serviceFeeBp: $serviceFeeBp, ')
           ..write('subtotal: $subtotal, ')
+          ..write('discount: $discount, ')
+          ..write('serviceFee: $serviceFee, ')
           ..write('tax: $tax, ')
           ..write('total: $total, ')
           ..write('note: $note')
@@ -2503,7 +2609,10 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
     createdAt,
     closedAt,
     taxRateBp,
+    serviceFeeBp,
     subtotal,
+    discount,
+    serviceFee,
     tax,
     total,
     note,
@@ -2519,7 +2628,10 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
           other.createdAt == this.createdAt &&
           other.closedAt == this.closedAt &&
           other.taxRateBp == this.taxRateBp &&
+          other.serviceFeeBp == this.serviceFeeBp &&
           other.subtotal == this.subtotal &&
+          other.discount == this.discount &&
+          other.serviceFee == this.serviceFee &&
           other.tax == this.tax &&
           other.total == this.total &&
           other.note == this.note);
@@ -2533,7 +2645,10 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
   final Value<DateTime> createdAt;
   final Value<DateTime?> closedAt;
   final Value<int> taxRateBp;
+  final Value<int> serviceFeeBp;
   final Value<domain.Money> subtotal;
+  final Value<domain.Money> discount;
+  final Value<domain.Money> serviceFee;
   final Value<domain.Money> tax;
   final Value<domain.Money> total;
   final Value<String?> note;
@@ -2546,7 +2661,10 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
     this.createdAt = const Value.absent(),
     this.closedAt = const Value.absent(),
     this.taxRateBp = const Value.absent(),
+    this.serviceFeeBp = const Value.absent(),
     this.subtotal = const Value.absent(),
+    this.discount = const Value.absent(),
+    this.serviceFee = const Value.absent(),
     this.tax = const Value.absent(),
     this.total = const Value.absent(),
     this.note = const Value.absent(),
@@ -2560,7 +2678,10 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
     required DateTime createdAt,
     this.closedAt = const Value.absent(),
     required int taxRateBp,
+    this.serviceFeeBp = const Value.absent(),
     required domain.Money subtotal,
+    this.discount = const Value.absent(),
+    this.serviceFee = const Value.absent(),
     required domain.Money tax,
     required domain.Money total,
     this.note = const Value.absent(),
@@ -2581,7 +2702,10 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
     Expression<DateTime>? createdAt,
     Expression<DateTime>? closedAt,
     Expression<int>? taxRateBp,
+    Expression<int>? serviceFeeBp,
     Expression<int>? subtotal,
+    Expression<int>? discount,
+    Expression<int>? serviceFee,
     Expression<int>? tax,
     Expression<int>? total,
     Expression<String>? note,
@@ -2595,7 +2719,10 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
       if (createdAt != null) 'created_at': createdAt,
       if (closedAt != null) 'closed_at': closedAt,
       if (taxRateBp != null) 'tax_rate_bp': taxRateBp,
+      if (serviceFeeBp != null) 'service_fee_bp': serviceFeeBp,
       if (subtotal != null) 'subtotal': subtotal,
+      if (discount != null) 'discount': discount,
+      if (serviceFee != null) 'service_fee': serviceFee,
       if (tax != null) 'tax': tax,
       if (total != null) 'total': total,
       if (note != null) 'note': note,
@@ -2611,7 +2738,10 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
     Value<DateTime>? createdAt,
     Value<DateTime?>? closedAt,
     Value<int>? taxRateBp,
+    Value<int>? serviceFeeBp,
     Value<domain.Money>? subtotal,
+    Value<domain.Money>? discount,
+    Value<domain.Money>? serviceFee,
     Value<domain.Money>? tax,
     Value<domain.Money>? total,
     Value<String?>? note,
@@ -2625,7 +2755,10 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
       createdAt: createdAt ?? this.createdAt,
       closedAt: closedAt ?? this.closedAt,
       taxRateBp: taxRateBp ?? this.taxRateBp,
+      serviceFeeBp: serviceFeeBp ?? this.serviceFeeBp,
       subtotal: subtotal ?? this.subtotal,
+      discount: discount ?? this.discount,
+      serviceFee: serviceFee ?? this.serviceFee,
       tax: tax ?? this.tax,
       total: total ?? this.total,
       note: note ?? this.note,
@@ -2661,9 +2794,22 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
     if (taxRateBp.present) {
       map['tax_rate_bp'] = Variable<int>(taxRateBp.value);
     }
+    if (serviceFeeBp.present) {
+      map['service_fee_bp'] = Variable<int>(serviceFeeBp.value);
+    }
     if (subtotal.present) {
       map['subtotal'] = Variable<int>(
         $OrdersTable.$convertersubtotal.toSql(subtotal.value),
+      );
+    }
+    if (discount.present) {
+      map['discount'] = Variable<int>(
+        $OrdersTable.$converterdiscount.toSql(discount.value),
+      );
+    }
+    if (serviceFee.present) {
+      map['service_fee'] = Variable<int>(
+        $OrdersTable.$converterserviceFee.toSql(serviceFee.value),
       );
     }
     if (tax.present) {
@@ -2693,7 +2839,10 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
           ..write('createdAt: $createdAt, ')
           ..write('closedAt: $closedAt, ')
           ..write('taxRateBp: $taxRateBp, ')
+          ..write('serviceFeeBp: $serviceFeeBp, ')
           ..write('subtotal: $subtotal, ')
+          ..write('discount: $discount, ')
+          ..write('serviceFee: $serviceFee, ')
           ..write('tax: $tax, ')
           ..write('total: $total, ')
           ..write('note: $note, ')
@@ -8707,7 +8856,10 @@ typedef $$OrdersTableCreateCompanionBuilder =
       required DateTime createdAt,
       Value<DateTime?> closedAt,
       required int taxRateBp,
+      Value<int> serviceFeeBp,
       required domain.Money subtotal,
+      Value<domain.Money> discount,
+      Value<domain.Money> serviceFee,
       required domain.Money tax,
       required domain.Money total,
       Value<String?> note,
@@ -8722,7 +8874,10 @@ typedef $$OrdersTableUpdateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime?> closedAt,
       Value<int> taxRateBp,
+      Value<int> serviceFeeBp,
       Value<domain.Money> subtotal,
+      Value<domain.Money> discount,
+      Value<domain.Money> serviceFee,
       Value<domain.Money> tax,
       Value<domain.Money> total,
       Value<String?> note,
@@ -8828,9 +8983,26 @@ class $$OrdersTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<int> get serviceFeeBp => $composableBuilder(
+    column: $table.serviceFeeBp,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnWithTypeConverterFilters<domain.Money, domain.Money, int>
   get subtotal => $composableBuilder(
     column: $table.subtotal,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<domain.Money, domain.Money, int>
+  get discount => $composableBuilder(
+    column: $table.discount,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<domain.Money, domain.Money, int>
+  get serviceFee => $composableBuilder(
+    column: $table.serviceFee,
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
@@ -8964,8 +9136,23 @@ class $$OrdersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get serviceFeeBp => $composableBuilder(
+    column: $table.serviceFeeBp,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get subtotal => $composableBuilder(
     column: $table.subtotal,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get discount => $composableBuilder(
+    column: $table.discount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get serviceFee => $composableBuilder(
+    column: $table.serviceFee,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -9035,8 +9222,22 @@ class $$OrdersTableAnnotationComposer
   GeneratedColumn<int> get taxRateBp =>
       $composableBuilder(column: $table.taxRateBp, builder: (column) => column);
 
+  GeneratedColumn<int> get serviceFeeBp => $composableBuilder(
+    column: $table.serviceFeeBp,
+    builder: (column) => column,
+  );
+
   GeneratedColumnWithTypeConverter<domain.Money, int> get subtotal =>
       $composableBuilder(column: $table.subtotal, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<domain.Money, int> get discount =>
+      $composableBuilder(column: $table.discount, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<domain.Money, int> get serviceFee =>
+      $composableBuilder(
+        column: $table.serviceFee,
+        builder: (column) => column,
+      );
 
   GeneratedColumnWithTypeConverter<domain.Money, int> get tax =>
       $composableBuilder(column: $table.tax, builder: (column) => column);
@@ -9160,7 +9361,10 @@ class $$OrdersTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime?> closedAt = const Value.absent(),
                 Value<int> taxRateBp = const Value.absent(),
+                Value<int> serviceFeeBp = const Value.absent(),
                 Value<domain.Money> subtotal = const Value.absent(),
+                Value<domain.Money> discount = const Value.absent(),
+                Value<domain.Money> serviceFee = const Value.absent(),
                 Value<domain.Money> tax = const Value.absent(),
                 Value<domain.Money> total = const Value.absent(),
                 Value<String?> note = const Value.absent(),
@@ -9173,7 +9377,10 @@ class $$OrdersTableTableManager
                 createdAt: createdAt,
                 closedAt: closedAt,
                 taxRateBp: taxRateBp,
+                serviceFeeBp: serviceFeeBp,
                 subtotal: subtotal,
+                discount: discount,
+                serviceFee: serviceFee,
                 tax: tax,
                 total: total,
                 note: note,
@@ -9188,7 +9395,10 @@ class $$OrdersTableTableManager
                 required DateTime createdAt,
                 Value<DateTime?> closedAt = const Value.absent(),
                 required int taxRateBp,
+                Value<int> serviceFeeBp = const Value.absent(),
                 required domain.Money subtotal,
+                Value<domain.Money> discount = const Value.absent(),
+                Value<domain.Money> serviceFee = const Value.absent(),
                 required domain.Money tax,
                 required domain.Money total,
                 Value<String?> note = const Value.absent(),
@@ -9201,7 +9411,10 @@ class $$OrdersTableTableManager
                 createdAt: createdAt,
                 closedAt: closedAt,
                 taxRateBp: taxRateBp,
+                serviceFeeBp: serviceFeeBp,
                 subtotal: subtotal,
+                discount: discount,
+                serviceFee: serviceFee,
                 tax: tax,
                 total: total,
                 note: note,

@@ -141,6 +141,13 @@ TicketDoc buildCustomerReceipt({
     ],
     const TicketDivider(),
     TicketRow('Subtotal', order.subtotal.format()),
+    if (!order.discount.isZero)
+      TicketRow('Discount', '-${order.discount.format()}'),
+    if (!order.serviceFee.isZero)
+      TicketRow(
+        'Service fee (${(order.serviceFeeBp / 100).toStringAsFixed(2)}%)',
+        order.serviceFee.format(),
+      ),
     TicketRow(taxLabel, order.tax.format()),
     TicketRow('TOTAL', order.total.format(), style: TicketStyle.emphasized),
     if (settled.isNotEmpty) ...[

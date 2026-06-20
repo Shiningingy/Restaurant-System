@@ -32,7 +32,6 @@ class _PaymentSheet extends ConsumerStatefulWidget {
 
 class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
   late final TextEditingController _amount;
-  final TextEditingController _tip = TextEditingController();
   String? _error;
   bool _busy = false;
 
@@ -47,12 +46,13 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
   @override
   void dispose() {
     _amount.dispose();
-    _tip.dispose();
     super.dispose();
   }
 
-  /// Validated amount + tip, or null (with [_error] set).
-  (domain.Money, domain.Money)? _validate() {
+  /// Validated amount, or null (with [_error] set). The amount may be lowered
+  /// to split the bill, but never raised above the balance — the price itself
+  /// is fixed (only discounts change it).
+  domain.Money? _validate() {
     final amount = domain.Money.tryParse(_amount.text);
     if (amount == null || amount.isZero || amount.isNegative) {
       setState(() => _error = context.l10n.pmtEnterValidAmount);
@@ -66,111 +66,75 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
       );
       return null;
     }
-    final tip = _tip.text.trim().isEmpty
-        ? domain.Money.zero
-        : domain.Money.tryParse(_tip.text);
-    if (tip == null || tip.isNegative) {
-      setState(() => _error = context.l10n.pmtEnterValidTip);
-      return null;
-    }
-    return (amount, tip);
+    return amount;
   }
 
   Future<void> _cash() async {
-    final parsed = _validate();
-    if (parsed == null) return;
-    final (amount, tip) = parsed;
+    final amount = _validate();
+    if (amount == null) return;
     setState(() => _busy = true);
     final result = await ref
         .read(paymentServiceProvider)
-        .takeCash(orderId: widget.order.id, amount: amount, tip: tip);
+        .takeCash(
+          orderId: widget.order.id,
+          amount: amount,
+          tip: domain.Money.zero,
+        );
     if (mounted) Navigator.pop(context, result);
   }
 
   Future<void> _card() async {
-    final parsed = _validate();
-    if (parsed == null) return;
-    final (amount, tip) = parsed;
+    final amount = _validate();
+    if (amount == null) return;
     setState(() => _busy = true);
     final result = await ref
         .read(paymentServiceProvider)
         .takeCard(
           orderId: widget.order.id,
           amount: amount,
-          prompt: (chargeAmount) =>
-              _confirmManualCharge(chargeAmount, defaultTip: tip),
+          prompt: _confirmManualCharge,
         );
     if (mounted) Navigator.pop(context, result);
   }
 
-  /// The ManualEntryTerminal prompt: staff key the amount on the
-  /// standalone terminal and report what it said.
+  /// The ManualEntryTerminal prompt: staff key the amount on the standalone
+  /// terminal and report what it said (approved / declined).
   Future<domain.PaymentResult?> _confirmManualCharge(
-    domain.Money amount, {
-    required domain.Money defaultTip,
-  }) async {
-    final tipController = TextEditingController(
-      text: defaultTip.isZero
-          ? ''
-          : (defaultTip.cents / 100).toStringAsFixed(2),
-    );
-    try {
-      return await showDialog<domain.PaymentResult>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text(context.l10n.pmtKeyAmountOnTerminal(amount.format())),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(context.l10n.pmtKeyOnTerminalBody),
-              const SizedBox(height: 16),
-              TextField(
-                controller: tipController,
-                decoration: InputDecoration(
-                  labelText: context.l10n.pmtTipFromTerminal,
-                  prefixText: r'$',
-                ),
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-              ),
-            ],
+    domain.Money amount,
+  ) async {
+    return showDialog<domain.PaymentResult>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.l10n.pmtKeyAmountOnTerminal(amount.format())),
+        content: Text(context.l10n.pmtKeyOnTerminalBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(context.l10n.commonCancel),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(context.l10n.commonCancel),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(
-                context,
-                domain.PaymentResult(
-                  status: domain.ChargeOutcome.declined,
-                  amount: amount,
-                ),
+          TextButton(
+            onPressed: () => Navigator.pop(
+              context,
+              domain.PaymentResult(
+                status: domain.ChargeOutcome.declined,
+                amount: amount,
               ),
-              child: Text(context.l10n.pmtDeclined),
             ),
-            FilledButton(
-              onPressed: () => Navigator.pop(
-                context,
-                domain.PaymentResult(
-                  status: domain.ChargeOutcome.approved,
-                  amount: amount,
-                  tip:
-                      domain.Money.tryParse(tipController.text) ??
-                      domain.Money.zero,
-                ),
+            child: Text(context.l10n.pmtDeclined),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(
+              context,
+              domain.PaymentResult(
+                status: domain.ChargeOutcome.approved,
+                amount: amount,
               ),
-              child: Text(context.l10n.pmtApproved),
             ),
-          ],
-        ),
-      );
-    } finally {
-      tipController.dispose();
-    }
+            child: Text(context.l10n.pmtApproved),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -195,18 +159,6 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
                 helperText: partial
                     ? context.l10n.pmtPartialPaymentHint
                     : context.l10n.pmtLowerToSplitHint,
-              ),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              onChanged: (_) => setState(() => _error = null),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _tip,
-              decoration: InputDecoration(
-                labelText: context.l10n.pmtTipOptional,
-                prefixText: r'$',
               ),
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,

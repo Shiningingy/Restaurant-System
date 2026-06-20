@@ -23,6 +23,7 @@ class OrderRepository {
   Future<String> createOrder({
     required domain.OrderType type,
     required int taxRateBp,
+    int serviceFeeBp = 0,
     String? tableId,
     String? note,
   }) async {
@@ -38,6 +39,7 @@ class OrderRepository {
               tableId: Value(tableId),
               createdAt: DateTime.now(),
               taxRateBp: taxRateBp,
+              serviceFeeBp: Value(serviceFeeBp),
               subtotal: domain.Money.zero,
               tax: domain.Money.zero,
               total: domain.Money.zero,
@@ -47,6 +49,18 @@ class OrderRepository {
       await _journalOrder(id);
     });
     return id;
+  }
+
+  /// Sets the order's discount (off the subtotal, before tax) and recomputes
+  /// the totals. Capped to the subtotal by the totals math.
+  Future<void> setDiscount(String orderId, domain.Money discount) async {
+    await db.transaction(() async {
+      await (db.update(db.orders)..where((t) => t.id.equals(orderId))).write(
+        OrdersCompanion(discount: Value(discount)),
+      );
+      await _recomputeTotals(orderId);
+      await _journalOrder(orderId);
+    });
   }
 
   /// Active orders for the board: `open` plus `sent` (sent to kitchen but
@@ -300,10 +314,14 @@ class OrderRepository {
     final totals = domain.OrderTotals.compute(
       lines: lines.map(_lineFromRow),
       taxRateBp: order.taxRateBp,
+      discount: order.discount,
+      serviceFeeBp: order.serviceFeeBp,
     );
     await (db.update(db.orders)..where((t) => t.id.equals(orderId))).write(
       OrdersCompanion(
         subtotal: Value(totals.subtotal),
+        discount: Value(totals.discount),
+        serviceFee: Value(totals.serviceFee),
         tax: Value(totals.tax),
         total: Value(totals.total),
       ),
@@ -318,7 +336,10 @@ class OrderRepository {
     createdAt: r.createdAt,
     closedAt: r.closedAt,
     taxRateBp: r.taxRateBp,
+    serviceFeeBp: r.serviceFeeBp,
     subtotal: r.subtotal,
+    discount: r.discount,
+    serviceFee: r.serviceFee,
     tax: r.tax,
     total: r.total,
     note: r.note,
