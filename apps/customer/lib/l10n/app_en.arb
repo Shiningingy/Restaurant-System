@@ -130,5 +130,14 @@
   "@statusTotalPayAtPickup": {
     "placeholders": { "total": { "type": "String" } }
   },
-  "statusBackToMenu": "Back to menu"
+  "statusBackToMenu": "Back to menu",
+
+  "ordersTitle": "My orders",
+  "ordersEmpty": "Orders you place here will show up here, with their status.",
+  "orderStatusSubmitted": "Waiting",
+  "orderStatusTimeProposed": "New time",
+  "orderStatusAccepted": "Preparing",
+  "orderStatusReady": "Ready",
+  "orderStatusPickedUp": "Picked up",
+  "orderStatusRejected": "Declined"
 }

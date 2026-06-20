@@ -103,5 +103,14 @@
   "statusApproveTime": "确认",
   "statusDeclineTime": "拒绝",
   "statusTotalPayAtPickup": "合计 {total} — 取餐时支付",
-  "statusBackToMenu": "返回菜单"
+  "statusBackToMenu": "返回菜单",
+
+  "ordersTitle": "我的订单",
+  "ordersEmpty": "您在这里下的订单及其状态会显示在此处。",
+  "orderStatusSubmitted": "等待中",
+  "orderStatusTimeProposed": "新时间",
+  "orderStatusAccepted": "备餐中",
+  "orderStatusReady": "可取餐",
+  "orderStatusPickedUp": "已取餐",
+  "orderStatusRejected": "已拒绝"
 }

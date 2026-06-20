@@ -293,4 +293,28 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get statusBackToMenu => '返回菜单';
+
+  @override
+  String get ordersTitle => '我的订单';
+
+  @override
+  String get ordersEmpty => '您在这里下的订单及其状态会显示在此处。';
+
+  @override
+  String get orderStatusSubmitted => '等待中';
+
+  @override
+  String get orderStatusTimeProposed => '新时间';
+
+  @override
+  String get orderStatusAccepted => '备餐中';
+
+  @override
+  String get orderStatusReady => '可取餐';
+
+  @override
+  String get orderStatusPickedUp => '已取餐';
+
+  @override
+  String get orderStatusRejected => '已拒绝';
 }

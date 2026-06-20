@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../../core/l10n_ext.dart';
+import '../../orders/application/providers.dart';
+import '../../orders/data/order_history.dart';
 import '../../storefront/application/providers.dart';
 import '../../storefront/presentation/status_screen.dart';
 import '../cart.dart';
@@ -110,6 +112,19 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         submission,
         customerUid: ref.read(storefrontConfigProvider).customerUid,
       );
+      final active = ref.read(walletProvider).active;
+      if (active != null) {
+        await ref.read(orderHistoryProvider.notifier).add(
+          PlacedOrder(
+            orderId: orderId,
+            storefrontId: active.id,
+            restaurantLabel: active.label,
+            totalCents: submission.total.cents,
+            placedAt: DateTime.now(),
+            status: domain.OnlineOrderStatus.submitted,
+          ),
+        );
+      }
       await ref
           .read(walletProvider.notifier)
           .rememberCustomer(name: _name.text.trim(), phone: _phone.text.trim());

@@ -601,6 +601,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back to menu'**
   String get statusBackToMenu;
+
+  /// No description provided for @ordersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My orders'**
+  String get ordersTitle;
+
+  /// No description provided for @ordersEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders you place here will show up here, with their status.'**
+  String get ordersEmpty;
+
+  /// No description provided for @orderStatusSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get orderStatusSubmitted;
+
+  /// No description provided for @orderStatusTimeProposed.
+  ///
+  /// In en, this message translates to:
+  /// **'New time'**
+  String get orderStatusTimeProposed;
+
+  /// No description provided for @orderStatusAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing'**
+  String get orderStatusAccepted;
+
+  /// No description provided for @orderStatusReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready'**
+  String get orderStatusReady;
+
+  /// No description provided for @orderStatusPickedUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Picked up'**
+  String get orderStatusPickedUp;
+
+  /// No description provided for @orderStatusRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Declined'**
+  String get orderStatusRejected;
 }
 
 class _AppLocalizationsDelegate

@@ -304,4 +304,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statusBackToMenu => 'Back to menu';
+
+  @override
+  String get ordersTitle => 'My orders';
+
+  @override
+  String get ordersEmpty =>
+      'Orders you place here will show up here, with their status.';
+
+  @override
+  String get orderStatusSubmitted => 'Waiting';
+
+  @override
+  String get orderStatusTimeProposed => 'New time';
+
+  @override
+  String get orderStatusAccepted => 'Preparing';
+
+  @override
+  String get orderStatusReady => 'Ready';
+
+  @override
+  String get orderStatusPickedUp => 'Picked up';
+
+  @override
+  String get orderStatusRejected => 'Declined';
 }
