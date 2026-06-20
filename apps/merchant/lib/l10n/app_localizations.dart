@@ -866,6 +866,36 @@ abstract class AppLocalizations {
   /// **'Accept'**
   String get inboxAccept;
 
+  /// No description provided for @inboxProposeTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Propose time'**
+  String get inboxProposeTime;
+
+  /// No description provided for @inboxTimeProposed.
+  ///
+  /// In en, this message translates to:
+  /// **'New time proposed — waiting for the customer.'**
+  String get inboxTimeProposed;
+
+  /// No description provided for @inboxAwaitingApproval.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting customer approval'**
+  String get inboxAwaitingApproval;
+
+  /// No description provided for @inboxNoneAwaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'No orders awaiting customer approval.'**
+  String get inboxNoneAwaiting;
+
+  /// No description provided for @inboxProposedWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Proposed {time} — waiting for the customer to approve.'**
+  String inboxProposedWaiting(String time);
+
   /// No description provided for @inboxAcceptedAdded.
   ///
   /// In en, this message translates to:

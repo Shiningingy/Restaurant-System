@@ -100,6 +100,11 @@ class InboxService {
     domain.OnlineOrderStatus.rejected,
   );
 
+  /// Proposes a new pickup time; the order waits for the customer to approve
+  /// or decline (it does not become a local order until they accept).
+  Future<void> proposePickupTime(String onlineOrderId, DateTime when) =>
+      channel.proposePickupTime(onlineOrderId, when);
+
   Future<void> markReady(String onlineOrderId) =>
       channel.updateOrderStatus(onlineOrderId, domain.OnlineOrderStatus.ready);
 

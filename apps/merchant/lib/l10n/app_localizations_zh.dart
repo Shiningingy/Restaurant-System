@@ -448,6 +448,23 @@ class AppLocalizationsZh extends AppLocalizations {
   String get inboxAccept => '接受';
 
   @override
+  String get inboxProposeTime => '建议时间';
+
+  @override
+  String get inboxTimeProposed => '已建议新时间——等待顾客确认。';
+
+  @override
+  String get inboxAwaitingApproval => '等待顾客确认';
+
+  @override
+  String get inboxNoneAwaiting => '没有等待顾客确认的订单。';
+
+  @override
+  String inboxProposedWaiting(String time) {
+    return '已建议 $time——等待顾客确认。';
+  }
+
+  @override
   String get inboxAcceptedAdded => '已接受，已添加到订单。';
 
   @override

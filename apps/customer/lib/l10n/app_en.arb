@@ -115,10 +115,17 @@
   "statusReadyHeadline": "Ready for pickup!",
   "statusPickedUpHeadline": "Picked up — enjoy!",
   "statusRejectedHeadline": "Order declined",
+  "statusTimeProposedHeadline": "New pickup time suggested",
   "statusSubmittedDetail": "The restaurant will confirm your order shortly.",
   "statusAcceptedDetail": "We'll let you know when it's ready to collect.",
   "statusReadyDetail": "Head to the counter to pick up and pay.",
   "statusRejectedDetail": "Sorry — the restaurant could not take this order.",
+  "statusTimeProposedDetail": "The restaurant suggested {time} instead. Approve to continue, or decline to cancel.",
+  "@statusTimeProposedDetail": {
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "statusApproveTime": "Approve",
+  "statusDeclineTime": "Decline",
   "statusTotalPayAtPickup": "Total {total} — pay at pickup",
   "@statusTotalPayAtPickup": {
     "placeholders": { "total": { "type": "String" } }

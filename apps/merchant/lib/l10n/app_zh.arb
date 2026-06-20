@@ -146,6 +146,14 @@
   "inboxTotalPayAtPickup": "合计 {total} · 取餐时支付",
   "inboxReject": "拒绝",
   "inboxAccept": "接受",
+  "inboxProposeTime": "建议时间",
+  "inboxTimeProposed": "已建议新时间——等待顾客确认。",
+  "inboxAwaitingApproval": "等待顾客确认",
+  "inboxNoneAwaiting": "没有等待顾客确认的订单。",
+  "inboxProposedWaiting": "已建议 {time}——等待顾客确认。",
+  "@inboxProposedWaiting": {
+    "placeholders": { "time": { "type": "String" } }
+  },
   "inboxAcceptedAdded": "已接受，已添加到订单。",
   "inboxPreorderRejected": "预订单已拒绝。",
   "inboxCustomerNotifiedReady": "已通知顾客：已就绪。",

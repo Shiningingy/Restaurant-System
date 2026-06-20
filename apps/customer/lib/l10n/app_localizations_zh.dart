@@ -261,6 +261,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get statusRejectedHeadline => '订单已被拒绝';
 
   @override
+  String get statusTimeProposedHeadline => '建议了新的取餐时间';
+
+  @override
   String get statusSubmittedDetail => '餐厅将很快确认您的订单。';
 
   @override
@@ -271,6 +274,17 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get statusRejectedDetail => '抱歉 — 餐厅无法接受此订单。';
+
+  @override
+  String statusTimeProposedDetail(String time) {
+    return '餐厅建议改为 $time。确认以继续，或拒绝以取消。';
+  }
+
+  @override
+  String get statusApproveTime => '确认';
+
+  @override
+  String get statusDeclineTime => '拒绝';
 
   @override
   String statusTotalPayAtPickup(String total) {

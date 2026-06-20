@@ -542,6 +542,12 @@ abstract class AppLocalizations {
   /// **'Order declined'**
   String get statusRejectedHeadline;
 
+  /// No description provided for @statusTimeProposedHeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'New pickup time suggested'**
+  String get statusTimeProposedHeadline;
+
   /// No description provided for @statusSubmittedDetail.
   ///
   /// In en, this message translates to:
@@ -565,6 +571,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sorry — the restaurant could not take this order.'**
   String get statusRejectedDetail;
+
+  /// No description provided for @statusTimeProposedDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'The restaurant suggested {time} instead. Approve to continue, or decline to cancel.'**
+  String statusTimeProposedDetail(String time);
+
+  /// No description provided for @statusApproveTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve'**
+  String get statusApproveTime;
+
+  /// No description provided for @statusDeclineTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get statusDeclineTime;
 
   /// No description provided for @statusTotalPayAtPickup.
   ///

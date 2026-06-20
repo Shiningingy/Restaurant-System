@@ -215,6 +215,14 @@
   },
   "inboxReject": "Reject",
   "inboxAccept": "Accept",
+  "inboxProposeTime": "Propose time",
+  "inboxTimeProposed": "New time proposed — waiting for the customer.",
+  "inboxAwaitingApproval": "Awaiting customer approval",
+  "inboxNoneAwaiting": "No orders awaiting customer approval.",
+  "inboxProposedWaiting": "Proposed {time} — waiting for the customer to approve.",
+  "@inboxProposedWaiting": {
+    "placeholders": { "time": { "type": "String" } }
+  },
   "inboxAcceptedAdded": "Accepted — added to orders.",
   "inboxPreorderRejected": "Preorder rejected.",
   "inboxCustomerNotifiedReady": "Customer notified: ready.",

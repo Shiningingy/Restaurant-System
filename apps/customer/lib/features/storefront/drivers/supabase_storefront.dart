@@ -121,19 +121,96 @@ class SupabaseStorefront {
     );
   }
 
-  /// Polls [fetchStatus] until the order reaches a terminal state.
-  Stream<domain.OnlineOrderStatus> watchStatus(
+  /// Current status plus the merchant's proposed pickup time (when the
+  /// status is timeProposed).
+  Future<OrderState> fetchState(String orderId) async {
+    final resp = await _client
+        .get(
+          _rest(domain.OnlineOrderingTables.onlineOrders, {
+            'select': 'status,proposed_pickup_at',
+            'id': 'eq.$orderId',
+          }),
+          headers: await _authHeaders(),
+        )
+        .timeout(timeout);
+    if (resp.statusCode >= 300) {
+      throw domain.SyncException('fetch status (${resp.statusCode})');
+    }
+    final rows = (jsonDecode(resp.body) as List).cast<Map<String, dynamic>>();
+    if (rows.isEmpty) {
+      return (
+        status: domain.OnlineOrderStatus.submitted,
+        proposedPickupAt: null,
+      );
+    }
+    final row = rows.first;
+    final proposed = row['proposed_pickup_at'];
+    return (
+      status: domain.OnlineOrderStatus.values.byName(row['status'] as String),
+      proposedPickupAt: proposed == null
+          ? null
+          : DateTime.parse(proposed as String).toLocal(),
+    );
+  }
+
+  /// Polls [fetchState] until the order reaches a terminal state.
+  Stream<OrderState> watchState(
     String orderId, {
     Duration interval = const Duration(seconds: 4),
   }) async* {
     while (true) {
-      final status = await fetchStatus(orderId);
-      yield status;
-      if (status == domain.OnlineOrderStatus.rejected ||
-          status == domain.OnlineOrderStatus.pickedUp) {
+      final state = await fetchState(orderId);
+      yield state;
+      if (state.status == domain.OnlineOrderStatus.rejected ||
+          state.status == domain.OnlineOrderStatus.pickedUp) {
         return;
       }
       await Future<void>.delayed(interval);
     }
   }
+
+  /// Customer accepts the merchant's proposed time: it becomes the agreed
+  /// pickup time and the order returns to `submitted` so the merchant accepts
+  /// it normally (creating the local order that drives printing/POS/reports),
+  /// and the new-order chime tells them it was confirmed. Requires the RLS
+  /// policy that lets a row owner update their own order (docs/CLOUD_SECURITY).
+  Future<void> approveProposedTime(String orderId) async {
+    final state = await fetchState(orderId);
+    final body = <String, dynamic>{
+      'status': domain.OnlineOrderStatus.submitted.name,
+      'proposed_pickup_at': null,
+    };
+    if (state.proposedPickupAt != null) {
+      body['requested_pickup_at'] = state.proposedPickupAt!
+          .toUtc()
+          .toIso8601String();
+    }
+    await _patchOwnOrder(orderId, body);
+  }
+
+  /// Customer rejects the proposed time, cancelling the order.
+  Future<void> declineProposedTime(String orderId) => _patchOwnOrder(orderId, {
+    'status': domain.OnlineOrderStatus.rejected.name,
+  });
+
+  Future<void> _patchOwnOrder(String orderId, Map<String, dynamic> body) async {
+    final resp = await _client
+        .patch(
+          _rest(domain.OnlineOrderingTables.onlineOrders, {
+            'id': 'eq.$orderId',
+          }),
+          headers: await _authHeaders(),
+          body: jsonEncode(body),
+        )
+        .timeout(timeout);
+    if (resp.statusCode >= 300) {
+      throw domain.SyncException('update order (${resp.statusCode})');
+    }
+  }
 }
+
+/// Status of a placed order plus any proposed pickup time.
+typedef OrderState = ({
+  domain.OnlineOrderStatus status,
+  DateTime? proposedPickupAt,
+});

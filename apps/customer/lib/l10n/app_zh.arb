@@ -91,10 +91,17 @@
   "statusReadyHeadline": "可以取餐了！",
   "statusPickedUpHeadline": "已取餐 — 请慢用！",
   "statusRejectedHeadline": "订单已被拒绝",
+  "statusTimeProposedHeadline": "建议了新的取餐时间",
   "statusSubmittedDetail": "餐厅将很快确认您的订单。",
   "statusAcceptedDetail": "准备好取餐时我们会通知您。",
   "statusReadyDetail": "请前往柜台取餐并付款。",
   "statusRejectedDetail": "抱歉 — 餐厅无法接受此订单。",
+  "statusTimeProposedDetail": "餐厅建议改为 {time}。确认以继续，或拒绝以取消。",
+  "@statusTimeProposedDetail": {
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "statusApproveTime": "确认",
+  "statusDeclineTime": "拒绝",
   "statusTotalPayAtPickup": "合计 {total} — 取餐时支付",
   "statusBackToMenu": "返回菜单"
 }

@@ -457,6 +457,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get inboxAccept => 'Accept';
 
   @override
+  String get inboxProposeTime => 'Propose time';
+
+  @override
+  String get inboxTimeProposed =>
+      'New time proposed — waiting for the customer.';
+
+  @override
+  String get inboxAwaitingApproval => 'Awaiting customer approval';
+
+  @override
+  String get inboxNoneAwaiting => 'No orders awaiting customer approval.';
+
+  @override
+  String inboxProposedWaiting(String time) {
+    return 'Proposed $time — waiting for the customer to approve.';
+  }
+
+  @override
   String get inboxAcceptedAdded => 'Accepted — added to orders.';
 
   @override

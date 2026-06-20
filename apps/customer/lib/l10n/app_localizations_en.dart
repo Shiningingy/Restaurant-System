@@ -269,6 +269,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statusRejectedHeadline => 'Order declined';
 
   @override
+  String get statusTimeProposedHeadline => 'New pickup time suggested';
+
+  @override
   String get statusSubmittedDetail =>
       'The restaurant will confirm your order shortly.';
 
@@ -282,6 +285,17 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get statusRejectedDetail =>
       'Sorry — the restaurant could not take this order.';
+
+  @override
+  String statusTimeProposedDetail(String time) {
+    return 'The restaurant suggested $time instead. Approve to continue, or decline to cancel.';
+  }
+
+  @override
+  String get statusApproveTime => 'Approve';
+
+  @override
+  String get statusDeclineTime => 'Decline';
 
   @override
   String statusTotalPayAtPickup(String total) {
