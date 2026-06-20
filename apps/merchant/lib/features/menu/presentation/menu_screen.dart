@@ -6,6 +6,7 @@ import '../../../core/l10n_ext.dart';
 import '../../../core/widgets/item_name_lines.dart';
 import '../../menu_capture/presentation/capture_screen.dart';
 import '../application/providers.dart';
+import '../data/sample_menu.dart';
 import 'item_editor_screen.dart';
 import 'modifier_groups_tab.dart';
 
@@ -36,6 +37,21 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                 icon: const Icon(Icons.photo_camera_outlined),
                 label: Text(context.l10n.captureImportFromPhoto),
               ),
+            ),
+            PopupMenuButton<String>(
+              onSelected: (v) {
+                if (v == 'sample') _loadSampleMenu(context);
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'sample',
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.restaurant_menu),
+                    title: Text(context.l10n.menuLoadSample),
+                  ),
+                ),
+              ],
             ),
           ],
           bottom: TabBar(
@@ -105,6 +121,36 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
         ),
       ],
     );
+  }
+
+  /// Loads the Yee Sushi sample menu — a realistic bilingual menu for trying
+  /// out ordering and printing. Idempotent (deterministic ids), so re-loading
+  /// just refreshes the same rows.
+  Future<void> _loadSampleMenu(BuildContext context) async {
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        content: Text(l10n.menuLoadSampleConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.menuLoadSample),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    await seedYeeSushiMenu(ref.read(menuRepositoryProvider));
+    if (context.mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.menuLoadSampleDone)));
+    }
   }
 
   Future<void> _editCategory(

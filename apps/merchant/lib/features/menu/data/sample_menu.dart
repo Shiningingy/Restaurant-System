@@ -1,61 +1,78 @@
-import 'package:merchant/features/menu/data/menu_repository.dart';
-import 'package:restaurant_domain/restaurant_domain.dart';
+import 'package:restaurant_domain/restaurant_domain.dart' as domain;
+
+import 'menu_repository.dart';
 
 /// The Yee Sushi menu (8200 Birchmount Rd Unit L, Unionville, ON) transcribed
-/// from the restaurant's bilingual menu — a realistic English + 中文 fixture
+/// from the restaurant's bilingual menu — a realistic English + 中文 sample
 /// exercising item codes, second-name lines and integer-cents prices.
+///
+/// Used both as a test fixture and as optional in-app sample data (Menu tab →
+/// "Load sample menu"). Ids are deterministic, so [seedYeeSushiMenu] is
+/// idempotent — loading twice upserts the same rows rather than duplicating.
 ///
 /// Chinese second names are transcribed from the menu photo; correct them
 /// here if any differ from the printed menu. Prices are integer cents
 /// ($8.49 → `Money(849)`), per docs/PRINCIPLES.md.
 class YeeSushiMenu {
-  final List<Category> categories;
-  final List<MenuItem> items;
+  final List<domain.Category> categories;
+  final List<domain.MenuItem> items;
   const YeeSushiMenu({required this.categories, required this.items});
 
   /// Items belonging to [category], in menu order.
-  List<MenuItem> itemsIn(Category category) =>
+  List<domain.MenuItem> itemsIn(domain.Category category) =>
       items.where((i) => i.categoryId == category.id).toList()
         ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
 }
 
 /// Builds the full menu with deterministic ids (stable across runs so tests
-/// can reference specific rows).
+/// can reference specific rows and re-seeding is idempotent).
 YeeSushiMenu yeeSushiMenu() {
-  const pokeBowls = Category(id: 'cat-poke', name: 'Yee poke bowls');
-  const platters = Category(
+  const pokeBowls = domain.Category(id: 'cat-poke', name: 'Yee poke bowls');
+  const platters = domain.Category(
     id: 'cat-platter',
     name: 'Yee platters',
     sortOrder: 1,
   );
-  const rolls = Category(id: 'cat-roll', name: 'Yee rolls', sortOrder: 2);
-  const specialRolls = Category(
+  const rolls = domain.Category(
+    id: 'cat-roll',
+    name: 'Yee rolls',
+    sortOrder: 2,
+  );
+  const specialRolls = domain.Category(
     id: 'cat-special',
     name: 'Yee special rolls',
     sortOrder: 3,
   );
-  const combos = Category(id: 'cat-combo', name: 'Yee combos', sortOrder: 4);
-  const torch = Category(id: 'cat-torch', name: 'Torch combo', sortOrder: 5);
-  const sides = Category(id: 'cat-sides', name: 'Sides', sortOrder: 6);
+  const combos = domain.Category(
+    id: 'cat-combo',
+    name: 'Yee combos',
+    sortOrder: 4,
+  );
+  const torch = domain.Category(
+    id: 'cat-torch',
+    name: 'Torch combo',
+    sortOrder: 5,
+  );
+  const sides = domain.Category(id: 'cat-sides', name: 'Sides', sortOrder: 6);
 
-  MenuItem item(
-    Category category,
+  domain.MenuItem item(
+    domain.Category category,
     int order, {
     String? code,
     required String name,
     String? second,
     required int cents,
-  }) => MenuItem(
+  }) => domain.MenuItem(
     id: 'item-${code ?? name.toLowerCase().replaceAll(' ', '-')}',
     categoryId: category.id,
     code: code,
     name: name,
     nameSecondary: second,
-    price: Money(cents),
+    price: domain.Money(cents),
     sortOrder: order,
   );
 
-  final items = <MenuItem>[
+  final items = <domain.MenuItem>[
     // --- Yee poke bowls (忆之波奇饭) — all $13.99 ---
     item(
       pokeBowls,
@@ -283,7 +300,7 @@ YeeSushiMenu yeeSushiMenu() {
 }
 
 /// Seeds the whole Yee Sushi menu into [menu] — categories first (items
-/// reference them by id), then items.
+/// reference them by id), then items. Idempotent (deterministic ids).
 Future<void> seedYeeSushiMenu(MenuRepository menu) async {
   final data = yeeSushiMenu();
   for (final category in data.categories) {

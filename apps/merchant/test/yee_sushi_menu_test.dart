@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:merchant/core/db/database.dart';
 import 'package:merchant/features/menu/data/menu_repository.dart';
+import 'package:merchant/features/menu/data/sample_menu.dart';
 import 'package:restaurant_domain/restaurant_domain.dart';
 
 import 'helpers/test_db.dart';
-import 'helpers/yee_sushi_menu.dart';
 
 /// Exercises the menu stack against a real bilingual restaurant menu
 /// (Yee Sushi): item codes, stacked second-name lines and integer-cents
