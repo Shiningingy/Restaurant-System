@@ -1250,6 +1250,18 @@ abstract class AppLocalizations {
   /// **'Leave empty to disable printing.'**
   String get setPrinterIpHelper;
 
+  /// No description provided for @setPrinterSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search for printers'**
+  String get setPrinterSearch;
+
+  /// No description provided for @setPrinterSearching.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching the network…'**
+  String get setPrinterSearching;
+
   /// No description provided for @setPort.
   ///
   /// In en, this message translates to:

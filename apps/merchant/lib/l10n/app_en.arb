@@ -320,6 +320,8 @@
   },
   "setPrinterIp": "Printer IP address",
   "setPrinterIpHelper": "Leave empty to disable printing.",
+  "setPrinterSearch": "Search for printers",
+  "setPrinterSearching": "Searching the network…",
   "setPort": "Port",
   "setPaper58": "58mm paper",
   "setPaper80": "80mm paper",

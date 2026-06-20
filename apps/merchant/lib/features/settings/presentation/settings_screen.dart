@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -9,6 +11,7 @@ import '../../../core/settings/providers.dart';
 import '../../../core/settings/settings_repository.dart';
 import '../../../core/supabase_auth.dart';
 import '../../printing/application/providers.dart';
+import '../../printing/data/printer_discovery.dart';
 import '../../sync/application/providers.dart';
 import '../../sync/data/sync_settings.dart';
 import 'storefront_qr_dialog.dart';
@@ -313,73 +316,12 @@ class SettingsScreen extends ConsumerWidget {
     WidgetRef ref,
     PrinterSettings current,
   ) async {
-    final hostController = TextEditingController(text: current.host ?? '');
-    final portController = TextEditingController(text: current.port.toString());
-    var widthChars = current.paperWidthChars;
-    final saved = await showDialog<bool>(
+    final result = await showDialog<PrinterSettings>(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: Text(context.l10n.setNetworkPrinter),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: hostController,
-                autofocus: true,
-                decoration: InputDecoration(
-                  labelText: context.l10n.setPrinterIp,
-                  helperText: context.l10n.setPrinterIpHelper,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: portController,
-                decoration: InputDecoration(labelText: context.l10n.setPort),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 16),
-              SegmentedButton<int>(
-                segments: [
-                  ButtonSegment(
-                    value: domain.EscPos.width58mm,
-                    label: Text(context.l10n.setPaper58),
-                  ),
-                  ButtonSegment(
-                    value: domain.EscPos.width80mm,
-                    label: Text(context.l10n.setPaper80),
-                  ),
-                ],
-                selected: {widthChars},
-                onSelectionChanged: (s) => setState(() => widthChars = s.first),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text(context.l10n.commonCancel),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: Text(context.l10n.commonSave),
-            ),
-          ],
-        ),
-      ),
+      builder: (context) => _PrinterDialog(current: current),
     );
-    if (saved == true) {
-      await ref
-          .read(printerSettingsProvider.notifier)
-          .save(
-            PrinterSettings(
-              host: hostController.text.trim(),
-              port:
-                  int.tryParse(portController.text.trim()) ??
-                  SettingsRepository.defaultPrinterPort,
-              paperWidthChars: widthChars,
-            ),
-          );
+    if (result != null) {
+      await ref.read(printerSettingsProvider.notifier).save(result);
       // A reachable printer may now be configured: retry what's queued.
       ref.read(printServiceProvider).kick();
     }
@@ -534,6 +476,180 @@ class _PrintJobTile extends ConsumerWidget {
               ],
             )
           : null,
+    );
+  }
+}
+
+/// Network-printer setup with a "search" that scans the local network (wired
+/// and Wi-Fi) for ESC/POS printers, plus manual host/port + paper width.
+/// Returns the chosen [PrinterSettings] on save, or null if cancelled.
+class _PrinterDialog extends StatefulWidget {
+  final PrinterSettings current;
+
+  const _PrinterDialog({required this.current});
+
+  @override
+  State<_PrinterDialog> createState() => _PrinterDialogState();
+}
+
+class _PrinterDialogState extends State<_PrinterDialog> {
+  late final TextEditingController _host;
+  late final TextEditingController _port;
+  late int _widthChars;
+
+  final List<DiscoveredPrinter> _found = [];
+  StreamSubscription<DiscoveredPrinter>? _scan;
+  bool _scanning = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _host = TextEditingController(text: widget.current.host ?? '');
+    _port = TextEditingController(text: widget.current.port.toString());
+    _widthChars = widget.current.paperWidthChars;
+  }
+
+  @override
+  void dispose() {
+    _scan?.cancel();
+    _host.dispose();
+    _port.dispose();
+    super.dispose();
+  }
+
+  void _toggleScan() {
+    if (_scanning) {
+      _scan?.cancel();
+      setState(() => _scanning = false);
+      return;
+    }
+    setState(() {
+      _scanning = true;
+      _found.clear();
+    });
+    _scan = PrinterDiscovery().discover().listen(
+      (printer) {
+        if (!_found.contains(printer)) setState(() => _found.add(printer));
+      },
+      onDone: () {
+        if (mounted) setState(() => _scanning = false);
+      },
+      onError: (_) {
+        if (mounted) setState(() => _scanning = false);
+      },
+    );
+  }
+
+  void _pick(DiscoveredPrinter printer) {
+    setState(() {
+      _host.text = printer.host;
+      _port.text = printer.port.toString();
+    });
+  }
+
+  void _save() {
+    Navigator.pop(
+      context,
+      PrinterSettings(
+        host: _host.text.trim(),
+        port:
+            int.tryParse(_port.text.trim()) ??
+            SettingsRepository.defaultPrinterPort,
+        paperWidthChars: _widthChars,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return AlertDialog(
+      title: Text(l10n.setNetworkPrinter),
+      content: SizedBox(
+        width: 400,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            OutlinedButton.icon(
+              onPressed: _toggleScan,
+              icon: _scanning
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.wifi_find_outlined),
+              label: Text(
+                _scanning ? l10n.setPrinterSearching : l10n.setPrinterSearch,
+              ),
+            ),
+            if (_found.isNotEmpty || _scanning) ...[
+              const SizedBox(height: 8),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 160),
+                child: _found.isEmpty
+                    ? Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          l10n.setPrinterSearching,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      )
+                    : ListView(
+                        shrinkWrap: true,
+                        children: [
+                          for (final p in _found)
+                            ListTile(
+                              dense: true,
+                              leading: const Icon(Icons.print_outlined),
+                              title: Text('${p.host}:${p.port}'),
+                              onTap: () => _pick(p),
+                            ),
+                        ],
+                      ),
+              ),
+            ],
+            if (!_scanning && _found.isEmpty) const SizedBox(height: 8),
+            const Divider(),
+            TextField(
+              controller: _host,
+              decoration: InputDecoration(
+                labelText: l10n.setPrinterIp,
+                helperText: l10n.setPrinterIpHelper,
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _port,
+              decoration: InputDecoration(labelText: l10n.setPort),
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 16),
+            SegmentedButton<int>(
+              segments: [
+                ButtonSegment(
+                  value: domain.EscPos.width58mm,
+                  label: Text(l10n.setPaper58),
+                ),
+                ButtonSegment(
+                  value: domain.EscPos.width80mm,
+                  label: Text(l10n.setPaper80),
+                ),
+              ],
+              selected: {_widthChars},
+              onSelectionChanged: (s) => setState(() => _widthChars = s.first),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.commonCancel),
+        ),
+        FilledButton(onPressed: _save, child: Text(l10n.commonSave)),
+      ],
     );
   }
 }

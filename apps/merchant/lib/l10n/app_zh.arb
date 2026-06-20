@@ -218,6 +218,8 @@
   "setTestPrintFailed": "测试打印失败：{message}",
   "setPrinterIp": "打印机 IP 地址",
   "setPrinterIpHelper": "留空以停用打印。",
+  "setPrinterSearch": "搜索打印机",
+  "setPrinterSearching": "正在搜索网络…",
   "setPort": "端口",
   "setPaper58": "58mm 纸",
   "setPaper80": "80mm 纸",
