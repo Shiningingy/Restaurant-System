@@ -16,6 +16,8 @@ dependencies:
   flutter_riverpod: ^3.0.0
   http: ^1.2.0
   intl: ^0.20.0
+  mobile_scanner: ^5.2.3
+  qr_flutter: ^4.1.0
   restaurant_domain:
     path: ../../packages/domain
   shared_preferences: ^2.5.0

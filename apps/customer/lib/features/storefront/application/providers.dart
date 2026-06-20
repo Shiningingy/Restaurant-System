@@ -32,39 +32,84 @@ final localePreferenceProvider = NotifierProvider<LocaleController, Locale?>(
   LocaleController.new,
 );
 
-/// The connected storefront config. Refresh with `ref.invalidate` after
-/// connecting/disconnecting.
-class StorefrontConfigNotifier extends Notifier<StorefrontConfig> {
+/// The device-local wallet — saved restaurants + the customer profile + which
+/// restaurant is open. The single source of truth; [storefrontConfigProvider]
+/// derives the active-storefront view from it.
+class WalletNotifier extends Notifier<Wallet> {
   @override
-  StorefrontConfig build() =>
-      ref.watch(storefrontConfigRepositoryProvider).config;
+  Wallet build() => ref.watch(storefrontConfigRepositoryProvider).wallet;
 
-  /// Saves the storefront and signs in **anonymously** so this device has
-  /// a stable identity (its preorders are scoped to it by RLS — see
-  /// docs/CLOUD_SECURITY.md). Throws if sign-in fails, so "connected"
-  /// always implies a usable session.
-  Future<void> connect({required String url, required String anonKey}) async {
-    final repo = ref.read(storefrontConfigRepositoryProvider);
+  StorefrontConfigRepository get _repo =>
+      ref.read(storefrontConfigRepositoryProvider);
+
+  /// Saves a restaurant and signs in **anonymously** so this device has a
+  /// stable identity on that backend (its preorders are scoped to it by RLS —
+  /// see docs/CLOUD_SECURITY.md), then opens it. Throws if sign-in fails, so a
+  /// saved+active storefront always implies a usable session.
+  Future<void> addAndConnect({
+    required String url,
+    required String anonKey,
+    String? name,
+  }) async {
     final auth = SupabaseAuth(url: url, anonKey: anonKey);
     final session = await auth.signInAnonymously();
-    await repo.connect(url: url, anonKey: anonKey);
-    await repo.saveSession(
+    await _repo.addStorefront(
+      url: url,
+      anonKey: anonKey,
+      name: name,
       refreshToken: session.refreshToken,
       uid: session.userId,
     );
-    state = repo.config;
+    state = _repo.wallet;
   }
 
-  Future<void> disconnect() async {
-    await ref.read(storefrontConfigRepositoryProvider).disconnect();
-    state = ref.read(storefrontConfigRepositoryProvider).config;
+  /// Opens an already-saved restaurant (no re-auth — its session is stored).
+  Future<void> open(String id) async {
+    await _repo.setActive(id);
+    state = _repo.wallet;
+  }
+
+  /// Closes the current restaurant and returns to the wallet, keeping it saved.
+  Future<void> leave() async {
+    await _repo.setActive(null);
+    state = _repo.wallet;
+  }
+
+  /// Forgets a saved restaurant entirely.
+  Future<void> remove(String id) async {
+    await _repo.removeStorefront(id);
+    state = _repo.wallet;
+  }
+
+  Future<void> saveProfile(CustomerProfile profile) async {
+    await _repo.saveProfile(profile);
+    state = _repo.wallet;
+  }
+
+  Future<void> rememberCustomer({required String name, String? phone}) async {
+    await _repo.rememberCustomer(name: name, phone: phone);
+    state = _repo.wallet;
   }
 }
 
-final storefrontConfigProvider =
-    NotifierProvider<StorefrontConfigNotifier, StorefrontConfig>(
-      StorefrontConfigNotifier.new,
-    );
+final walletProvider = NotifierProvider<WalletNotifier, Wallet>(
+  WalletNotifier.new,
+);
+
+/// The active storefront merged with the customer profile. Derived from
+/// [walletProvider] so the existing menu/cart/status flow needs no changes.
+final storefrontConfigProvider = Provider<StorefrontConfig>((ref) {
+  final wallet = ref.watch(walletProvider);
+  final active = wallet.active;
+  return StorefrontConfig(
+    url: active?.url,
+    anonKey: active?.anonKey,
+    customerName: wallet.profile.name,
+    customerPhone: wallet.profile.phone,
+    sessionRefreshToken: active?.sessionRefreshToken,
+    customerUid: active?.customerUid,
+  );
+});
 
 /// The HTTP client for the connected storefront (carrying the device's
 /// anonymous session), or null when not connected.

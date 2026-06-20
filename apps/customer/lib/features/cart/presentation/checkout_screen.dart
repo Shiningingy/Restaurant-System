@@ -76,7 +76,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         customerUid: ref.read(storefrontConfigProvider).customerUid,
       );
       await ref
-          .read(storefrontConfigRepositoryProvider)
+          .read(walletProvider.notifier)
           .rememberCustomer(name: _name.text.trim(), phone: _phone.text.trim());
       ref.read(cartProvider.notifier).clear();
       if (!mounted) return;
