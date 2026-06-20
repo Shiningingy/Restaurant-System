@@ -34,8 +34,12 @@ class SavedStorefront {
   final String url;
   final String anonKey;
 
-  /// Display name shown in the wallet; falls back to the URL host.
+  /// The name the merchant set (carried in their connect QR/link).
   final String? name;
+
+  /// A nickname the customer chose for this restaurant, overriding the
+  /// merchant's name in their own wallet.
+  final String? nickname;
 
   /// The device's anonymous Supabase session for *this* storefront.
   final String? sessionRefreshToken;
@@ -46,13 +50,15 @@ class SavedStorefront {
     required this.url,
     required this.anonKey,
     this.name,
+    this.nickname,
     this.sessionRefreshToken,
     this.customerUid,
   });
 
-  /// A human label even when no name was given: the URL host (e.g. the
-  /// Supabase project ref) so each saved restaurant is still distinguishable.
+  /// What to show in the wallet. Priority: the customer's own nickname, then
+  /// the merchant's name, then the URL host (so it's always distinguishable).
   String get label {
+    if (nickname != null && nickname!.isNotEmpty) return nickname!;
     if (name != null && name!.isNotEmpty) return name!;
     final host = Uri.tryParse(url)?.host;
     return (host == null || host.isEmpty) ? url : host;
@@ -60,6 +66,7 @@ class SavedStorefront {
 
   SavedStorefront copyWith({
     String? name,
+    String? nickname,
     String? sessionRefreshToken,
     String? customerUid,
   }) => SavedStorefront(
@@ -67,6 +74,7 @@ class SavedStorefront {
     url: url,
     anonKey: anonKey,
     name: name ?? this.name,
+    nickname: nickname ?? this.nickname,
     sessionRefreshToken: sessionRefreshToken ?? this.sessionRefreshToken,
     customerUid: customerUid ?? this.customerUid,
   );
@@ -76,6 +84,7 @@ class SavedStorefront {
     'url': url,
     'anonKey': anonKey,
     if (name != null && name!.isNotEmpty) 'name': name,
+    if (nickname != null && nickname!.isNotEmpty) 'nickname': nickname,
     if (sessionRefreshToken != null) 'refresh': sessionRefreshToken,
     if (customerUid != null) 'uid': customerUid,
   };
@@ -85,6 +94,7 @@ class SavedStorefront {
     url: j['url'] as String,
     anonKey: j['anonKey'] as String,
     name: j['name'] as String?,
+    nickname: j['nickname'] as String?,
     sessionRefreshToken: j['refresh'] as String?,
     customerUid: j['uid'] as String?,
   );
@@ -274,6 +284,27 @@ class StorefrontConfigRepository {
     final list = storefronts.where((s) => s.id != id).toList();
     final active = activeStorefrontId == id ? null : activeStorefrontId;
     await _persist(list, active);
+  }
+
+  /// Sets (or clears, when blank) the customer's nickname for a restaurant.
+  /// Built fresh rather than via copyWith so an empty nickname truly clears.
+  Future<void> renameStorefront(String id, String? nickname) async {
+    final clean = (nickname == null || nickname.trim().isEmpty)
+        ? null
+        : nickname.trim();
+    final list = storefronts.map((s) {
+      if (s.id != id) return s;
+      return SavedStorefront(
+        id: s.id,
+        url: s.url,
+        anonKey: s.anonKey,
+        name: s.name,
+        nickname: clean,
+        sessionRefreshToken: s.sessionRefreshToken,
+        customerUid: s.customerUid,
+      );
+    }).toList();
+    await _persist(list, activeStorefrontId);
   }
 
   /// Updates the active storefront's stored session.

@@ -39,6 +39,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get connectScanButton => '扫描二维码';
 
   @override
+  String get connectEnterManually => '手动输入信息';
+
+  @override
   String get connectOrDivider => '或手动输入';
 
   @override
@@ -64,6 +67,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get walletShare => '分享';
+
+  @override
+  String get walletRename => '重命名';
+
+  @override
+  String get walletRenameLabel => '您给这家餐厅起的昵称';
 
   @override
   String get walletRemove => '移除';

@@ -158,6 +158,12 @@ abstract class AppLocalizations {
   /// **'Scan QR code'**
   String get connectScanButton;
 
+  /// No description provided for @connectEnterManually.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter details manually'**
+  String get connectEnterManually;
+
   /// No description provided for @connectOrDivider.
   ///
   /// In en, this message translates to:
@@ -211,6 +217,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Share'**
   String get walletShare;
+
+  /// No description provided for @walletRename.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get walletRename;
+
+  /// No description provided for @walletRenameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Your nickname for this restaurant'**
+  String get walletRenameLabel;
 
   /// No description provided for @walletRemove.
   ///

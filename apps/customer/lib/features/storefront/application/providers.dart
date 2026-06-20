@@ -81,6 +81,12 @@ class WalletNotifier extends Notifier<Wallet> {
     state = _repo.wallet;
   }
 
+  /// Sets (or clears, when blank) the customer's nickname for a restaurant.
+  Future<void> rename(String id, String? nickname) async {
+    await _repo.renameStorefront(id, nickname);
+    state = _repo.wallet;
+  }
+
   Future<void> saveProfile(CustomerProfile profile) async {
     await _repo.saveProfile(profile);
     state = _repo.wallet;

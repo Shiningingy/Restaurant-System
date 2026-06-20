@@ -24,6 +24,10 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
   bool _busy = false;
   String? _error;
 
+  /// Manual URL/key entry is collapsed by default — scanning the restaurant's
+  /// QR is the intended path. On desktop (no scanner) it's shown from the start.
+  bool _manual = false;
+
   @override
   void dispose() {
     _url.dispose();
@@ -89,46 +93,75 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
                   onPressed: _busy ? null : _scan,
                   icon: const Icon(Icons.qr_code_scanner),
                   label: Text(context.l10n.connectScanButton),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size.fromHeight(52),
+                  ),
                 ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    const Expanded(child: Divider()),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Text(
-                        context.l10n.connectOrDivider,
-                        style: Theme.of(context).textTheme.bodySmall,
+                if (!_manual) ...[
+                  const SizedBox(height: 12),
+                  TextButton(
+                    onPressed: _busy
+                        ? null
+                        : () => setState(() => _manual = true),
+                    child: Text(context.l10n.connectEnterManually),
+                  ),
+                ],
+              ],
+              // Manual fields: always on desktop (no scanner), or once the
+              // customer chooses "enter manually" on mobile.
+              if (!qrScanSupported || _manual) ...[
+                if (qrScanSupported) ...[
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      const Expanded(child: Divider()),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Text(
+                          context.l10n.connectOrDivider,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
                       ),
-                    ),
-                    const Expanded(child: Divider()),
-                  ],
+                      const Expanded(child: Divider()),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                TextField(
+                  controller: _url,
+                  decoration: InputDecoration(
+                    labelText: context.l10n.connectUrlLabel,
+                    hintText: 'https://xxxx.supabase.co',
+                  ),
                 ),
                 const SizedBox(height: 12),
+                TextField(
+                  controller: _key,
+                  decoration: InputDecoration(
+                    labelText: context.l10n.connectKeyLabel,
+                  ),
+                  maxLines: 2,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _name,
+                  decoration: InputDecoration(
+                    labelText: context.l10n.connectNameLabel,
+                  ),
+                  textCapitalization: TextCapitalization.words,
+                ),
+                const SizedBox(height: 24),
+                FilledButton(
+                  onPressed: _busy ? null : _connect,
+                  child: _busy
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(context.l10n.connectButton),
+                ),
               ],
-              TextField(
-                controller: _url,
-                decoration: InputDecoration(
-                  labelText: context.l10n.connectUrlLabel,
-                  hintText: 'https://xxxx.supabase.co',
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _key,
-                decoration: InputDecoration(
-                  labelText: context.l10n.connectKeyLabel,
-                ),
-                maxLines: 2,
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _name,
-                decoration: InputDecoration(
-                  labelText: context.l10n.connectNameLabel,
-                ),
-                textCapitalization: TextCapitalization.words,
-              ),
               if (_error != null) ...[
                 const SizedBox(height: 12),
                 Text(
@@ -136,17 +169,6 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
                   style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
               ],
-              const SizedBox(height: 24),
-              FilledButton(
-                onPressed: _busy ? null : _connect,
-                child: _busy
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(context.l10n.connectButton),
-              ),
             ],
           ),
         ),

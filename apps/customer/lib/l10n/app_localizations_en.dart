@@ -40,6 +40,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connectScanButton => 'Scan QR code';
 
   @override
+  String get connectEnterManually => 'Enter details manually';
+
+  @override
   String get connectOrDivider => 'or enter it by hand';
 
   @override
@@ -66,6 +69,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get walletShare => 'Share';
+
+  @override
+  String get walletRename => 'Rename';
+
+  @override
+  String get walletRenameLabel => 'Your nickname for this restaurant';
 
   @override
   String get walletRemove => 'Remove';

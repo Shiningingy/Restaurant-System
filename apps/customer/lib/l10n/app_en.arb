@@ -12,6 +12,7 @@
   "connectKeyLabel": "Access key",
   "connectNameLabel": "Restaurant name (optional)",
   "connectScanButton": "Scan QR code",
+  "connectEnterManually": "Enter details manually",
   "connectOrDivider": "or enter it by hand",
   "connectButton": "Connect",
   "connectErrorEmptyFields": "Enter the restaurant URL and key.",
@@ -22,6 +23,8 @@
   "walletAdd": "Add restaurant",
   "walletProfile": "My details",
   "walletShare": "Share",
+  "walletRename": "Rename",
+  "walletRenameLabel": "Your nickname for this restaurant",
   "walletRemove": "Remove",
   "walletRemoveConfirm": "Remove {name} from your restaurants?",
   "@walletRemoveConfirm": {
