@@ -1179,4 +1179,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get setSecondNameReceipt => '在顾客收据';
+
+  @override
+  String get setSecondNameLanguage => '第二名称语言';
+
+  @override
+  String get setSecondNameLanguageHint => '当顾客的应用为该语言时，会优先显示此名称。';
+
+  @override
+  String get setSecondNameLanguageNone => '未设置';
 }

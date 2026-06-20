@@ -82,10 +82,7 @@ class MenuScreen extends ConsumerWidget {
                       isThreeLine:
                           item.description != null &&
                           item.description!.isNotEmpty,
-                      title: ItemName(
-                        name: item.name,
-                        nameSecondary: item.nameSecondary,
-                      ),
+                      title: _itemName(context, menu, item),
                       subtitle: _itemSubtitle(context, item),
                       trailing: Text(item.price.format()),
                       onTap: () => _addItem(context, ref, item),
@@ -115,6 +112,27 @@ class MenuScreen extends ConsumerWidget {
                 ),
               ),
             ),
+    );
+  }
+
+  /// Shows the item name, surfacing the second name as the primary line when
+  /// the app's language matches the merchant-set second-name language.
+  Widget _itemName(
+    BuildContext context,
+    domain.PublishedMenu menu,
+    domain.PublishedItem item,
+  ) {
+    final lang = menu.secondNameLanguage;
+    final second = item.nameSecondary;
+    final swap =
+        lang != null &&
+        lang.isNotEmpty &&
+        second != null &&
+        second.isNotEmpty &&
+        Localizations.localeOf(context).languageCode == lang;
+    return ItemName(
+      name: swap ? second : item.name,
+      nameSecondary: swap ? item.name : second,
     );
   }
 

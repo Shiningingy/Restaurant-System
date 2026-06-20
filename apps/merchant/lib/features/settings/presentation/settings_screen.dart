@@ -79,6 +79,22 @@ class SettingsScreen extends ConsumerWidget {
                 .read(nameDisplayProvider.notifier)
                 .save(nameDisplay.copyWith(receipt: v)),
           ),
+          ListTile(
+            leading: const Icon(Icons.translate_outlined),
+            title: Text(context.l10n.setSecondNameLanguage),
+            subtitle: Text(context.l10n.setSecondNameLanguageHint),
+            trailing: Text(
+              _secondNameLangLabel(
+                context,
+                ref.watch(secondNameLanguageProvider),
+              ),
+            ),
+            onTap: () => _editSecondNameLanguage(
+              context,
+              ref,
+              ref.read(secondNameLanguageProvider),
+            ),
+          ),
           const Divider(height: 32),
           Text(
             context.l10n.setTax,
@@ -253,6 +269,45 @@ class SettingsScreen extends ConsumerWidget {
     );
     if (choice != null && choice.chosen) {
       await ref.read(localePreferenceProvider.notifier).set(choice.locale);
+    }
+  }
+
+  String _secondNameLangLabel(BuildContext context, String? code) =>
+      switch (code) {
+        'en' => 'English',
+        'zh' => '中文',
+        _ => context.l10n.setSecondNameLanguageNone,
+      };
+
+  Future<void> _editSecondNameLanguage(
+    BuildContext context,
+    WidgetRef ref,
+    String? current,
+  ) async {
+    final options = <({String label, String? code})>[
+      (label: context.l10n.setSecondNameLanguageNone, code: null),
+      (label: 'English', code: 'en'),
+      (label: '中文', code: 'zh'),
+    ];
+    final choice = await showDialog<({bool chosen, String? code})>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text(context.l10n.setSecondNameLanguage),
+        children: [
+          for (final opt in options)
+            ListTile(
+              title: Text(opt.label),
+              trailing: current == opt.code
+                  ? const Icon(Icons.check)
+                  : null,
+              onTap: () =>
+                  Navigator.pop(context, (chosen: true, code: opt.code)),
+            ),
+        ],
+      ),
+    );
+    if (choice != null && choice.chosen) {
+      await ref.read(secondNameLanguageProvider.notifier).set(choice.code);
     }
   }
 

@@ -521,5 +521,8 @@
   "setSecondNameHint": "Where the optional second (e.g. native-language) name appears.",
   "setSecondNameOrderScreen": "On order screen",
   "setSecondNameKitchen": "On kitchen ticket",
-  "setSecondNameReceipt": "On customer receipt"
+  "setSecondNameReceipt": "On customer receipt",
+  "setSecondNameLanguage": "Second name language",
+  "setSecondNameLanguageHint": "Customers see this name first when their app is in this language.",
+  "setSecondNameLanguageNone": "Not set"
 }

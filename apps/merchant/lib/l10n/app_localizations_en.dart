@@ -1203,4 +1203,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setSecondNameReceipt => 'On customer receipt';
+
+  @override
+  String get setSecondNameLanguage => 'Second name language';
+
+  @override
+  String get setSecondNameLanguageHint =>
+      'Customers see this name first when their app is in this language.';
+
+  @override
+  String get setSecondNameLanguageNone => 'Not set';
 }

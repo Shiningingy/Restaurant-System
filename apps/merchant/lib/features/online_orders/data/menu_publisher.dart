@@ -64,6 +64,7 @@ class MenuPublisher {
       restaurantName: settings.receiptConfig.businessName,
       pickupLeadMinutes: settings.pickupLeadMinutes,
       taxRateBp: settings.taxRateBp,
+      secondNameLanguage: settings.secondNameLanguage,
       categories: categories,
     );
   }

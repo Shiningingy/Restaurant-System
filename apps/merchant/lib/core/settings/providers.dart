@@ -111,6 +111,23 @@ final nameDisplayProvider = NotifierProvider<NameDisplayNotifier, NameDisplay>(
   NameDisplayNotifier.new,
 );
 
+/// The language the item second names are written in (e.g. 'zh'), or null. Sent
+/// with the published menu so the customer app can surface the matching name.
+class SecondNameLanguageNotifier extends Notifier<String?> {
+  @override
+  String? build() => ref.watch(settingsRepositoryProvider).secondNameLanguage;
+
+  Future<void> set(String? code) async {
+    await ref.read(settingsRepositoryProvider).setSecondNameLanguage(code);
+    ref.invalidateSelf();
+  }
+}
+
+final secondNameLanguageProvider =
+    NotifierProvider<SecondNameLanguageNotifier, String?>(
+      SecondNameLanguageNotifier.new,
+    );
+
 /// Online-ordering preferences: how soon a pickup can be requested, and
 /// whether to chime when a new order lands.
 class OnlineOrderSettings {

@@ -2203,6 +2203,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'On customer receipt'**
   String get setSecondNameReceipt;
+
+  /// No description provided for @setSecondNameLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Second name language'**
+  String get setSecondNameLanguage;
+
+  /// No description provided for @setSecondNameLanguageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Customers see this name first when their app is in this language.'**
+  String get setSecondNameLanguageHint;
+
+  /// No description provided for @setSecondNameLanguageNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get setSecondNameLanguageNone;
 }
 
 class _AppLocalizationsDelegate

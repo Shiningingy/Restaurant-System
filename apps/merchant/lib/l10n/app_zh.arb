@@ -380,5 +380,8 @@
   "setSecondNameHint": "可选的第二名称（如本地语言名称）显示在何处。",
   "setSecondNameOrderScreen": "在点单界面",
   "setSecondNameKitchen": "在厨房小票",
-  "setSecondNameReceipt": "在顾客收据"
+  "setSecondNameReceipt": "在顾客收据",
+  "setSecondNameLanguage": "第二名称语言",
+  "setSecondNameLanguageHint": "当顾客的应用为该语言时，会优先显示此名称。",
+  "setSecondNameLanguageNone": "未设置"
 }

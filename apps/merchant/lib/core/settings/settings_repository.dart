@@ -57,6 +57,7 @@ class SettingsRepository {
   static const _secondNameReceiptKey = 'secondNameReceipt';
   static const _pickupLeadKey = 'pickupLeadMinutes';
   static const _newOrderSoundKey = 'newOrderSound';
+  static const _secondNameLangKey = 'secondNameLanguage';
 
   /// 13% HST (Ontario) as the default — the user configures their own rate.
   static const defaultTaxRateBp = 1300;
@@ -138,4 +139,14 @@ class SettingsRepository {
 
   Future<void> setNewOrderSound(bool on) =>
       prefs.setBool(_newOrderSoundKey, on);
+
+  /// The language code the item second names are written in (e.g. 'zh'), or
+  /// null/empty if not set. Published so the customer app can surface the
+  /// second name as the primary line when its language matches.
+  String? get secondNameLanguage => prefs.getString(_secondNameLangKey);
+
+  Future<void> setSecondNameLanguage(String? code) =>
+      (code == null || code.isEmpty)
+      ? prefs.remove(_secondNameLangKey)
+      : prefs.setString(_secondNameLangKey, code);
 }
