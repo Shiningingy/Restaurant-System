@@ -153,21 +153,29 @@ class PublishedMenu {
   /// Defaults to 0 for menus published before this field existed.
   final int pickupLeadMinutes;
 
+  /// The restaurant's tax rate in basis points (e.g. 1300 = 13%), so the
+  /// customer app can show an *estimated* tax + total before pickup. The
+  /// merchant still applies tax authoritatively on its side. 0 if unpublished.
+  final int taxRateBp;
+
   const PublishedMenu({
     required this.restaurantName,
     required this.categories,
     this.pickupLeadMinutes = 0,
+    this.taxRateBp = 0,
   });
 
   Map<String, dynamic> toJson() => {
         'restaurantName': restaurantName,
         'pickupLeadMinutes': pickupLeadMinutes,
+        'taxRateBp': taxRateBp,
         'categories': categories.map((c) => c.toJson()).toList(),
       };
 
   factory PublishedMenu.fromJson(Map<String, dynamic> j) => PublishedMenu(
         restaurantName: j['restaurantName'] as String? ?? '',
         pickupLeadMinutes: j['pickupLeadMinutes'] as int? ?? 0,
+        taxRateBp: j['taxRateBp'] as int? ?? 0,
         categories: (j['categories'] as List)
             .cast<Map<String, dynamic>>()
             .map(PublishedCategory.fromJson)

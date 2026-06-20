@@ -506,6 +506,24 @@ abstract class AppLocalizations {
   /// **'{minutes, plural, other{That\'s too soon — pickup is at least {minutes} minutes away. Set to the earliest time.}}'**
   String checkoutPickupTooSoon(int minutes);
 
+  /// No description provided for @checkoutSubtotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtotal'**
+  String get checkoutSubtotal;
+
+  /// No description provided for @checkoutEstimatedTax.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated tax'**
+  String get checkoutEstimatedTax;
+
+  /// No description provided for @checkoutEstimateNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax is estimated; the restaurant confirms the final total. Pay at the counter when you pick up.'**
+  String get checkoutEstimateNote;
+
   /// No description provided for @checkoutTotal.
   ///
   /// In en, this message translates to:

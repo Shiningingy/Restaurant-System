@@ -98,6 +98,18 @@ class WalletNotifier extends Notifier<Wallet> {
     state = _repo.wallet;
   }
 
+  /// Fills in the active storefront's merchant name from the published menu
+  /// when it wasn't captured at connect (so the wallet shows the restaurant's
+  /// name, not the Supabase host). No-op once a name is set.
+  Future<void> backfillActiveName(String restaurantName) async {
+    final active = state.active;
+    if (active == null) return;
+    if (active.name != null && active.name!.isNotEmpty) return;
+    if (restaurantName.trim().isEmpty) return;
+    await _repo.setStorefrontName(active.id, restaurantName);
+    state = _repo.wallet;
+  }
+
   Future<void> saveProfile(CustomerProfile profile) async {
     await _repo.saveProfile(profile);
     state = _repo.wallet;

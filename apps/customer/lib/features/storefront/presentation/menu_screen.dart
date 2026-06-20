@@ -19,6 +19,15 @@ class MenuScreen extends ConsumerWidget {
     final menuAsync = ref.watch(menuProvider);
     final cart = ref.watch(cartProvider);
 
+    // Once the menu loads, learn the restaurant's name for the wallet if we
+    // didn't get one at connect time (idempotent — no-op once set).
+    ref.listen(menuProvider, (_, next) {
+      final menu = next.value;
+      if (menu != null) {
+        ref.read(walletProvider.notifier).backfillActiveName(menu.restaurantName);
+      }
+    });
+
     return Scaffold(
       appBar: AppBar(
         title: Text(menuAsync.value?.restaurantName ?? context.l10n.menuTitle),

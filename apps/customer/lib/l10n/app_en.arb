@@ -105,6 +105,9 @@
   "@checkoutPickupTooSoon": {
     "placeholders": { "minutes": { "type": "int" } }
   },
+  "checkoutSubtotal": "Subtotal",
+  "checkoutEstimatedTax": "Estimated tax",
+  "checkoutEstimateNote": "Tax is estimated; the restaurant confirms the final total. Pay at the counter when you pick up.",
   "checkoutTotal": "Total",
   "checkoutPayAtCounter": "Pay at the counter when you pick up.",
   "checkoutNameRequired": "Please enter your name.",
