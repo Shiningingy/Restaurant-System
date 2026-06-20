@@ -673,6 +673,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get setPrinterIpHelper => '留空以停用打印。';
 
   @override
+  String get setPrinterSearch => '搜索打印机';
+
+  @override
+  String get setPrinterSearching => '正在搜索网络…';
+
+  @override
   String get setPort => '端口';
 
   @override

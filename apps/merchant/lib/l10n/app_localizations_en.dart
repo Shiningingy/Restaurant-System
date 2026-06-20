@@ -687,6 +687,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setPrinterIpHelper => 'Leave empty to disable printing.';
 
   @override
+  String get setPrinterSearch => 'Search for printers';
+
+  @override
+  String get setPrinterSearching => 'Searching the network…';
+
+  @override
   String get setPort => 'Port';
 
   @override
