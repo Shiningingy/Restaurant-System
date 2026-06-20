@@ -155,6 +155,10 @@ class OrderLines extends Table {
   TextColumn get nameSecondarySnapshot => text().nullable()();
   TextColumn get note => text().nullable()();
 
+  /// Id of the payment that settled this line when the bill is split by item;
+  /// null while unpaid. Best-effort record — the order still closes on balance.
+  TextColumn get settledByPaymentId => text().nullable()();
+
   @override
   Set<Column<Object>> get primaryKey => {id};
 }

@@ -7,24 +7,41 @@ import '../application/payment_service.dart';
 import '../application/providers.dart';
 
 /// Collects one payment toward [order]: amount (defaults to the balance,
-/// staff lower it to split the bill), optional tip, cash or card.
-/// Returns null when dismissed without charging.
+/// staff lower it to split the bill), optional cash-tendered for change, cash
+/// or card. Returns null when dismissed without charging.
+///
+/// When [fixedAmount] is set (split-by-item), the amount is locked to it and
+/// [settleLineIds] are the order lines this payment settles.
 Future<PaymentFlowResult?> showPaymentSheet(
   BuildContext context, {
   required domain.Order order,
   required domain.Money balance,
+  domain.Money? fixedAmount,
+  List<String> settleLineIds = const [],
 }) {
   return showDialog<PaymentFlowResult>(
     context: context,
-    builder: (context) => _PaymentSheet(order: order, balance: balance),
+    builder: (context) => _PaymentSheet(
+      order: order,
+      balance: balance,
+      fixedAmount: fixedAmount,
+      settleLineIds: settleLineIds,
+    ),
   );
 }
 
 class _PaymentSheet extends ConsumerStatefulWidget {
   final domain.Order order;
   final domain.Money balance;
+  final domain.Money? fixedAmount;
+  final List<String> settleLineIds;
 
-  const _PaymentSheet({required this.order, required this.balance});
+  const _PaymentSheet({
+    required this.order,
+    required this.balance,
+    required this.fixedAmount,
+    required this.settleLineIds,
+  });
 
   @override
   ConsumerState<_PaymentSheet> createState() => _PaymentSheetState();
@@ -32,27 +49,42 @@ class _PaymentSheet extends ConsumerStatefulWidget {
 
 class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
   late final TextEditingController _amount;
+
+  /// Optional "cash tendered" — only a change-due aid; never the charged
+  /// amount, so the balance math stays exact.
+  late final TextEditingController _tendered;
   String? _error;
   bool _busy = false;
+
+  bool get _locked => widget.fixedAmount != null;
 
   @override
   void initState() {
     super.initState();
+    final initial = widget.fixedAmount ?? widget.balance;
     _amount = TextEditingController(
-      text: (widget.balance.cents / 100).toStringAsFixed(2),
+      text: (initial.cents / 100).toStringAsFixed(2),
     );
+    _tendered = TextEditingController();
   }
 
   @override
   void dispose() {
     _amount.dispose();
+    _tendered.dispose();
     super.dispose();
   }
+
+  /// The amount that will be charged, with no side effects (for the live
+  /// change readout). A locked sheet always charges [widget.fixedAmount].
+  domain.Money? get _chargeAmount =>
+      widget.fixedAmount ?? domain.Money.tryParse(_amount.text);
 
   /// Validated amount, or null (with [_error] set). The amount may be lowered
   /// to split the bill, but never raised above the balance — the price itself
   /// is fixed (only discounts change it).
   domain.Money? _validate() {
+    if (_locked) return widget.fixedAmount;
     final amount = domain.Money.tryParse(_amount.text);
     if (amount == null || amount.isZero || amount.isNegative) {
       setState(() => _error = context.l10n.pmtEnterValidAmount);
@@ -79,6 +111,7 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
           orderId: widget.order.id,
           amount: amount,
           tip: domain.Money.zero,
+          settleLineIds: widget.settleLineIds,
         );
     if (mounted) Navigator.pop(context, result);
   }
@@ -93,6 +126,7 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
           orderId: widget.order.id,
           amount: amount,
           prompt: _confirmManualCharge,
+          settleLineIds: widget.settleLineIds,
         );
     if (mounted) Navigator.pop(context, result);
   }
@@ -139,31 +173,71 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final partial =
+        !_locked &&
         domain.Money.tryParse(_amount.text) != widget.balance &&
         domain.Money.tryParse(_amount.text) != null;
+
+    // Live change-due: tendered minus the amount being charged.
+    final charge = _chargeAmount;
+    final tendered = domain.Money.tryParse(_tendered.text);
+    final change = (charge != null && tendered != null && tendered >= charge)
+        ? tendered - charge
+        : null;
+
     return AlertDialog(
-      title: Text(context.l10n.pmtCollect(widget.balance.format())),
+      title: Text(l10n.pmtCollect(widget.balance.format())),
       content: SizedBox(
         width: 360,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (_locked && widget.settleLineIds.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  l10n.pmtPayingForItems(widget.settleLineIds.length),
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
             TextField(
               controller: _amount,
-              autofocus: true,
+              autofocus: !_locked,
+              readOnly: _locked,
               decoration: InputDecoration(
-                labelText: context.l10n.pmtAmount,
+                labelText: l10n.pmtAmount,
                 prefixText: r'$',
-                helperText: partial
-                    ? context.l10n.pmtPartialPaymentHint
-                    : context.l10n.pmtLowerToSplitHint,
+                helperText: _locked
+                    ? null
+                    : (partial
+                          ? l10n.pmtPartialPaymentHint
+                          : l10n.pmtLowerToSplitHint),
               ),
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
               onChanged: (_) => setState(() => _error = null),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _tendered,
+              decoration: InputDecoration(
+                labelText: l10n.pmtCashTendered,
+                prefixText: r'$',
+                helperText: change != null
+                    ? l10n.pmtChangeDue(change.format())
+                    : null,
+                helperStyle: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              onChanged: (_) => setState(() {}),
             ),
             if (_error != null) ...[
               const SizedBox(height: 12),
@@ -178,17 +252,17 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
       actions: [
         TextButton(
           onPressed: _busy ? null : () => Navigator.pop(context),
-          child: Text(context.l10n.commonCancel),
+          child: Text(l10n.commonCancel),
         ),
         OutlinedButton.icon(
           onPressed: _busy ? null : _card,
           icon: const Icon(Icons.credit_card_outlined),
-          label: Text(context.l10n.payCard),
+          label: Text(l10n.payCard),
         ),
         FilledButton.icon(
           onPressed: _busy ? null : _cash,
           icon: const Icon(Icons.payments_outlined),
-          label: Text(context.l10n.payCash),
+          label: Text(l10n.payCash),
         ),
       ],
     );

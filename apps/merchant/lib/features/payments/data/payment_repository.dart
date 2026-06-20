@@ -34,9 +34,13 @@ class PaymentRepository {
     required domain.Money amount,
     domain.Money tip = domain.Money.zero,
     String? terminalRef,
+
+    /// When splitting the bill by item, the lines this payment settles. They
+    /// are stamped with the new payment id in the same transaction.
+    List<String> settleLineIds = const [],
   }) {
     return db.transaction(() async {
-      await _insert(
+      final paymentId = await _insert(
         orderId: orderId,
         method: method,
         status: domain.PaymentStatus.approved,
@@ -44,6 +48,12 @@ class PaymentRepository {
         tip: tip,
         terminalRef: terminalRef,
       );
+      if (settleLineIds.isNotEmpty) {
+        await (db.update(db.orderLines)..where((t) => t.id.isIn(settleLineIds)))
+            .write(OrderLinesCompanion(settledByPaymentId: Value(paymentId)));
+        // Lines changed — re-journal the order aggregate for sync.
+        await journal.recordUpsert(SyncEntities.order, orderId);
+      }
       final order = await (db.select(
         db.orders,
       )..where((t) => t.id.equals(orderId))).getSingle();
@@ -96,9 +106,9 @@ class PaymentRepository {
     );
   }
 
-  /// Inserts a payment and journals it for sync. Callers run this inside
-  /// a transaction so the insert and its journal entry are atomic.
-  Future<void> _insert({
+  /// Inserts a payment and journals it for sync, returning its id. Callers run
+  /// this inside a transaction so the insert and its journal entry are atomic.
+  Future<String> _insert({
     required String orderId,
     required domain.PaymentMethod method,
     required domain.PaymentStatus status,
@@ -122,6 +132,7 @@ class PaymentRepository {
           ),
         );
     await journal.recordUpsert(SyncEntities.payment, id);
+    return id;
   }
 
   domain.Payment _fromRow(PaymentRow r) => domain.Payment(

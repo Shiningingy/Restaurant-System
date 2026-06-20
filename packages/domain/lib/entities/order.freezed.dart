@@ -698,6 +698,11 @@ mixin _$OrderLine {
   Money get lineTotal;
   OrderLineStatus get status;
 
+  /// Set to the id of the payment that settled this line when the bill is
+  /// split by item; null while the line is still unpaid. Purely a record of
+  /// which split paid for it — the order still closes on the payment balance.
+  String? get settledByPaymentId;
+
   /// Item code + second name line, snapshotted at sale time so a later menu
   /// edit never rewrites order history (mirrors [nameSnapshot]).
   String? get codeSnapshot;
@@ -731,6 +736,8 @@ mixin _$OrderLine {
             (identical(other.lineTotal, lineTotal) ||
                 other.lineTotal == lineTotal) &&
             (identical(other.status, status) || other.status == status) &&
+            (identical(other.settledByPaymentId, settledByPaymentId) ||
+                other.settledByPaymentId == settledByPaymentId) &&
             (identical(other.codeSnapshot, codeSnapshot) ||
                 other.codeSnapshot == codeSnapshot) &&
             (identical(other.nameSecondarySnapshot, nameSecondarySnapshot) ||
@@ -750,6 +757,7 @@ mixin _$OrderLine {
       qty,
       lineTotal,
       status,
+      settledByPaymentId,
       codeSnapshot,
       nameSecondarySnapshot,
       note,
@@ -757,7 +765,7 @@ mixin _$OrderLine {
 
   @override
   String toString() {
-    return 'OrderLine(id: $id, orderId: $orderId, menuItemId: $menuItemId, nameSnapshot: $nameSnapshot, priceSnapshot: $priceSnapshot, qty: $qty, lineTotal: $lineTotal, status: $status, codeSnapshot: $codeSnapshot, nameSecondarySnapshot: $nameSecondarySnapshot, note: $note, modifiers: $modifiers)';
+    return 'OrderLine(id: $id, orderId: $orderId, menuItemId: $menuItemId, nameSnapshot: $nameSnapshot, priceSnapshot: $priceSnapshot, qty: $qty, lineTotal: $lineTotal, status: $status, settledByPaymentId: $settledByPaymentId, codeSnapshot: $codeSnapshot, nameSecondarySnapshot: $nameSecondarySnapshot, note: $note, modifiers: $modifiers)';
   }
 }
 
@@ -775,6 +783,7 @@ abstract mixin class $OrderLineCopyWith<$Res> {
       int qty,
       Money lineTotal,
       OrderLineStatus status,
+      String? settledByPaymentId,
       String? codeSnapshot,
       String? nameSecondarySnapshot,
       String? note,
@@ -801,6 +810,7 @@ class _$OrderLineCopyWithImpl<$Res> implements $OrderLineCopyWith<$Res> {
     Object? qty = null,
     Object? lineTotal = null,
     Object? status = null,
+    Object? settledByPaymentId = freezed,
     Object? codeSnapshot = freezed,
     Object? nameSecondarySnapshot = freezed,
     Object? note = freezed,
@@ -839,6 +849,10 @@ class _$OrderLineCopyWithImpl<$Res> implements $OrderLineCopyWith<$Res> {
           ? _self.status
           : status // ignore: cast_nullable_to_non_nullable
               as OrderLineStatus,
+      settledByPaymentId: freezed == settledByPaymentId
+          ? _self.settledByPaymentId
+          : settledByPaymentId // ignore: cast_nullable_to_non_nullable
+              as String?,
       codeSnapshot: freezed == codeSnapshot
           ? _self.codeSnapshot
           : codeSnapshot // ignore: cast_nullable_to_non_nullable
@@ -961,6 +975,7 @@ extension OrderLinePatterns on OrderLine {
             int qty,
             Money lineTotal,
             OrderLineStatus status,
+            String? settledByPaymentId,
             String? codeSnapshot,
             String? nameSecondarySnapshot,
             String? note,
@@ -980,6 +995,7 @@ extension OrderLinePatterns on OrderLine {
             _that.qty,
             _that.lineTotal,
             _that.status,
+            _that.settledByPaymentId,
             _that.codeSnapshot,
             _that.nameSecondarySnapshot,
             _that.note,
@@ -1013,6 +1029,7 @@ extension OrderLinePatterns on OrderLine {
             int qty,
             Money lineTotal,
             OrderLineStatus status,
+            String? settledByPaymentId,
             String? codeSnapshot,
             String? nameSecondarySnapshot,
             String? note,
@@ -1031,6 +1048,7 @@ extension OrderLinePatterns on OrderLine {
             _that.qty,
             _that.lineTotal,
             _that.status,
+            _that.settledByPaymentId,
             _that.codeSnapshot,
             _that.nameSecondarySnapshot,
             _that.note,
@@ -1063,6 +1081,7 @@ extension OrderLinePatterns on OrderLine {
             int qty,
             Money lineTotal,
             OrderLineStatus status,
+            String? settledByPaymentId,
             String? codeSnapshot,
             String? nameSecondarySnapshot,
             String? note,
@@ -1081,6 +1100,7 @@ extension OrderLinePatterns on OrderLine {
             _that.qty,
             _that.lineTotal,
             _that.status,
+            _that.settledByPaymentId,
             _that.codeSnapshot,
             _that.nameSecondarySnapshot,
             _that.note,
@@ -1103,6 +1123,7 @@ class _OrderLine implements OrderLine {
       required this.qty,
       required this.lineTotal,
       this.status = OrderLineStatus.active,
+      this.settledByPaymentId,
       this.codeSnapshot,
       this.nameSecondarySnapshot,
       this.note,
@@ -1126,6 +1147,12 @@ class _OrderLine implements OrderLine {
   @override
   @JsonKey()
   final OrderLineStatus status;
+
+  /// Set to the id of the payment that settled this line when the bill is
+  /// split by item; null while the line is still unpaid. Purely a record of
+  /// which split paid for it — the order still closes on the payment balance.
+  @override
+  final String? settledByPaymentId;
 
   /// Item code + second name line, snapshotted at sale time so a later menu
   /// edit never rewrites order history (mirrors [nameSnapshot]).
@@ -1173,6 +1200,8 @@ class _OrderLine implements OrderLine {
             (identical(other.lineTotal, lineTotal) ||
                 other.lineTotal == lineTotal) &&
             (identical(other.status, status) || other.status == status) &&
+            (identical(other.settledByPaymentId, settledByPaymentId) ||
+                other.settledByPaymentId == settledByPaymentId) &&
             (identical(other.codeSnapshot, codeSnapshot) ||
                 other.codeSnapshot == codeSnapshot) &&
             (identical(other.nameSecondarySnapshot, nameSecondarySnapshot) ||
@@ -1193,6 +1222,7 @@ class _OrderLine implements OrderLine {
       qty,
       lineTotal,
       status,
+      settledByPaymentId,
       codeSnapshot,
       nameSecondarySnapshot,
       note,
@@ -1200,7 +1230,7 @@ class _OrderLine implements OrderLine {
 
   @override
   String toString() {
-    return 'OrderLine(id: $id, orderId: $orderId, menuItemId: $menuItemId, nameSnapshot: $nameSnapshot, priceSnapshot: $priceSnapshot, qty: $qty, lineTotal: $lineTotal, status: $status, codeSnapshot: $codeSnapshot, nameSecondarySnapshot: $nameSecondarySnapshot, note: $note, modifiers: $modifiers)';
+    return 'OrderLine(id: $id, orderId: $orderId, menuItemId: $menuItemId, nameSnapshot: $nameSnapshot, priceSnapshot: $priceSnapshot, qty: $qty, lineTotal: $lineTotal, status: $status, settledByPaymentId: $settledByPaymentId, codeSnapshot: $codeSnapshot, nameSecondarySnapshot: $nameSecondarySnapshot, note: $note, modifiers: $modifiers)';
   }
 }
 
@@ -1221,6 +1251,7 @@ abstract mixin class _$OrderLineCopyWith<$Res>
       int qty,
       Money lineTotal,
       OrderLineStatus status,
+      String? settledByPaymentId,
       String? codeSnapshot,
       String? nameSecondarySnapshot,
       String? note,
@@ -1247,6 +1278,7 @@ class __$OrderLineCopyWithImpl<$Res> implements _$OrderLineCopyWith<$Res> {
     Object? qty = null,
     Object? lineTotal = null,
     Object? status = null,
+    Object? settledByPaymentId = freezed,
     Object? codeSnapshot = freezed,
     Object? nameSecondarySnapshot = freezed,
     Object? note = freezed,
@@ -1285,6 +1317,10 @@ class __$OrderLineCopyWithImpl<$Res> implements _$OrderLineCopyWith<$Res> {
           ? _self.status
           : status // ignore: cast_nullable_to_non_nullable
               as OrderLineStatus,
+      settledByPaymentId: freezed == settledByPaymentId
+          ? _self.settledByPaymentId
+          : settledByPaymentId // ignore: cast_nullable_to_non_nullable
+              as String?,
       codeSnapshot: freezed == codeSnapshot
           ? _self.codeSnapshot
           : codeSnapshot // ignore: cast_nullable_to_non_nullable

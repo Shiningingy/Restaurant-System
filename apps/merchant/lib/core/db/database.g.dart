@@ -2970,6 +2970,17 @@ class $OrderLinesTable extends OrderLines
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _settledByPaymentIdMeta =
+      const VerificationMeta('settledByPaymentId');
+  @override
+  late final GeneratedColumn<String> settledByPaymentId =
+      GeneratedColumn<String>(
+        'settled_by_payment_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -2983,6 +2994,7 @@ class $OrderLinesTable extends OrderLines
     codeSnapshot,
     nameSecondarySnapshot,
     note,
+    settledByPaymentId,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -3063,6 +3075,15 @@ class $OrderLinesTable extends OrderLines
         note.isAcceptableOrUnknown(data['note']!, _noteMeta),
       );
     }
+    if (data.containsKey('settled_by_payment_id')) {
+      context.handle(
+        _settledByPaymentIdMeta,
+        settledByPaymentId.isAcceptableOrUnknown(
+          data['settled_by_payment_id']!,
+          _settledByPaymentIdMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -3122,6 +3143,10 @@ class $OrderLinesTable extends OrderLines
         DriftSqlType.string,
         data['${effectivePrefix}note'],
       ),
+      settledByPaymentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}settled_by_payment_id'],
+      ),
     );
   }
 
@@ -3154,6 +3179,10 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
   final String? codeSnapshot;
   final String? nameSecondarySnapshot;
   final String? note;
+
+  /// Id of the payment that settled this line when the bill is split by item;
+  /// null while unpaid. Best-effort record — the order still closes on balance.
+  final String? settledByPaymentId;
   const OrderLineRow({
     required this.id,
     required this.orderId,
@@ -3166,6 +3195,7 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
     this.codeSnapshot,
     this.nameSecondarySnapshot,
     this.note,
+    this.settledByPaymentId,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -3199,6 +3229,9 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
     if (!nullToAbsent || note != null) {
       map['note'] = Variable<String>(note);
     }
+    if (!nullToAbsent || settledByPaymentId != null) {
+      map['settled_by_payment_id'] = Variable<String>(settledByPaymentId);
+    }
     return map;
   }
 
@@ -3219,6 +3252,9 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
           ? const Value.absent()
           : Value(nameSecondarySnapshot),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      settledByPaymentId: settledByPaymentId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(settledByPaymentId),
     );
   }
 
@@ -3243,6 +3279,9 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
         json['nameSecondarySnapshot'],
       ),
       note: serializer.fromJson<String?>(json['note']),
+      settledByPaymentId: serializer.fromJson<String?>(
+        json['settledByPaymentId'],
+      ),
     );
   }
   @override
@@ -3264,6 +3303,7 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
         nameSecondarySnapshot,
       ),
       'note': serializer.toJson<String?>(note),
+      'settledByPaymentId': serializer.toJson<String?>(settledByPaymentId),
     };
   }
 
@@ -3279,6 +3319,7 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
     Value<String?> codeSnapshot = const Value.absent(),
     Value<String?> nameSecondarySnapshot = const Value.absent(),
     Value<String?> note = const Value.absent(),
+    Value<String?> settledByPaymentId = const Value.absent(),
   }) => OrderLineRow(
     id: id ?? this.id,
     orderId: orderId ?? this.orderId,
@@ -3293,6 +3334,9 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
         ? nameSecondarySnapshot.value
         : this.nameSecondarySnapshot,
     note: note.present ? note.value : this.note,
+    settledByPaymentId: settledByPaymentId.present
+        ? settledByPaymentId.value
+        : this.settledByPaymentId,
   );
   OrderLineRow copyWithCompanion(OrderLinesCompanion data) {
     return OrderLineRow(
@@ -3317,6 +3361,9 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
           ? data.nameSecondarySnapshot.value
           : this.nameSecondarySnapshot,
       note: data.note.present ? data.note.value : this.note,
+      settledByPaymentId: data.settledByPaymentId.present
+          ? data.settledByPaymentId.value
+          : this.settledByPaymentId,
     );
   }
 
@@ -3333,7 +3380,8 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
           ..write('status: $status, ')
           ..write('codeSnapshot: $codeSnapshot, ')
           ..write('nameSecondarySnapshot: $nameSecondarySnapshot, ')
-          ..write('note: $note')
+          ..write('note: $note, ')
+          ..write('settledByPaymentId: $settledByPaymentId')
           ..write(')'))
         .toString();
   }
@@ -3351,6 +3399,7 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
     codeSnapshot,
     nameSecondarySnapshot,
     note,
+    settledByPaymentId,
   );
   @override
   bool operator ==(Object other) =>
@@ -3366,7 +3415,8 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
           other.status == this.status &&
           other.codeSnapshot == this.codeSnapshot &&
           other.nameSecondarySnapshot == this.nameSecondarySnapshot &&
-          other.note == this.note);
+          other.note == this.note &&
+          other.settledByPaymentId == this.settledByPaymentId);
 }
 
 class OrderLinesCompanion extends UpdateCompanion<OrderLineRow> {
@@ -3381,6 +3431,7 @@ class OrderLinesCompanion extends UpdateCompanion<OrderLineRow> {
   final Value<String?> codeSnapshot;
   final Value<String?> nameSecondarySnapshot;
   final Value<String?> note;
+  final Value<String?> settledByPaymentId;
   final Value<int> rowid;
   const OrderLinesCompanion({
     this.id = const Value.absent(),
@@ -3394,6 +3445,7 @@ class OrderLinesCompanion extends UpdateCompanion<OrderLineRow> {
     this.codeSnapshot = const Value.absent(),
     this.nameSecondarySnapshot = const Value.absent(),
     this.note = const Value.absent(),
+    this.settledByPaymentId = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   OrderLinesCompanion.insert({
@@ -3408,6 +3460,7 @@ class OrderLinesCompanion extends UpdateCompanion<OrderLineRow> {
     this.codeSnapshot = const Value.absent(),
     this.nameSecondarySnapshot = const Value.absent(),
     this.note = const Value.absent(),
+    this.settledByPaymentId = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        orderId = Value(orderId),
@@ -3429,6 +3482,7 @@ class OrderLinesCompanion extends UpdateCompanion<OrderLineRow> {
     Expression<String>? codeSnapshot,
     Expression<String>? nameSecondarySnapshot,
     Expression<String>? note,
+    Expression<String>? settledByPaymentId,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -3444,6 +3498,8 @@ class OrderLinesCompanion extends UpdateCompanion<OrderLineRow> {
       if (nameSecondarySnapshot != null)
         'name_secondary_snapshot': nameSecondarySnapshot,
       if (note != null) 'note': note,
+      if (settledByPaymentId != null)
+        'settled_by_payment_id': settledByPaymentId,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -3460,6 +3516,7 @@ class OrderLinesCompanion extends UpdateCompanion<OrderLineRow> {
     Value<String?>? codeSnapshot,
     Value<String?>? nameSecondarySnapshot,
     Value<String?>? note,
+    Value<String?>? settledByPaymentId,
     Value<int>? rowid,
   }) {
     return OrderLinesCompanion(
@@ -3475,6 +3532,7 @@ class OrderLinesCompanion extends UpdateCompanion<OrderLineRow> {
       nameSecondarySnapshot:
           nameSecondarySnapshot ?? this.nameSecondarySnapshot,
       note: note ?? this.note,
+      settledByPaymentId: settledByPaymentId ?? this.settledByPaymentId,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -3523,6 +3581,9 @@ class OrderLinesCompanion extends UpdateCompanion<OrderLineRow> {
     if (note.present) {
       map['note'] = Variable<String>(note.value);
     }
+    if (settledByPaymentId.present) {
+      map['settled_by_payment_id'] = Variable<String>(settledByPaymentId.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -3543,6 +3604,7 @@ class OrderLinesCompanion extends UpdateCompanion<OrderLineRow> {
           ..write('codeSnapshot: $codeSnapshot, ')
           ..write('nameSecondarySnapshot: $nameSecondarySnapshot, ')
           ..write('note: $note, ')
+          ..write('settledByPaymentId: $settledByPaymentId, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -9553,6 +9615,7 @@ typedef $$OrderLinesTableCreateCompanionBuilder =
       Value<String?> codeSnapshot,
       Value<String?> nameSecondarySnapshot,
       Value<String?> note,
+      Value<String?> settledByPaymentId,
       Value<int> rowid,
     });
 typedef $$OrderLinesTableUpdateCompanionBuilder =
@@ -9568,6 +9631,7 @@ typedef $$OrderLinesTableUpdateCompanionBuilder =
       Value<String?> codeSnapshot,
       Value<String?> nameSecondarySnapshot,
       Value<String?> note,
+      Value<String?> settledByPaymentId,
       Value<int> rowid,
     });
 
@@ -9683,6 +9747,11 @@ class $$OrderLinesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get settledByPaymentId => $composableBuilder(
+    column: $table.settledByPaymentId,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$OrdersTableFilterComposer get orderId {
     final $$OrdersTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -9791,6 +9860,11 @@ class $$OrderLinesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get settledByPaymentId => $composableBuilder(
+    column: $table.settledByPaymentId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$OrdersTableOrderingComposer get orderId {
     final $$OrdersTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -9864,6 +9938,11 @@ class $$OrderLinesTableAnnotationComposer
 
   GeneratedColumn<String> get note =>
       $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<String> get settledByPaymentId => $composableBuilder(
+    column: $table.settledByPaymentId,
+    builder: (column) => column,
+  );
 
   $$OrdersTableAnnotationComposer get orderId {
     final $$OrdersTableAnnotationComposer composer = $composerBuilder(
@@ -9954,6 +10033,7 @@ class $$OrderLinesTableTableManager
                 Value<String?> codeSnapshot = const Value.absent(),
                 Value<String?> nameSecondarySnapshot = const Value.absent(),
                 Value<String?> note = const Value.absent(),
+                Value<String?> settledByPaymentId = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => OrderLinesCompanion(
                 id: id,
@@ -9967,6 +10047,7 @@ class $$OrderLinesTableTableManager
                 codeSnapshot: codeSnapshot,
                 nameSecondarySnapshot: nameSecondarySnapshot,
                 note: note,
+                settledByPaymentId: settledByPaymentId,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -9982,6 +10063,7 @@ class $$OrderLinesTableTableManager
                 Value<String?> codeSnapshot = const Value.absent(),
                 Value<String?> nameSecondarySnapshot = const Value.absent(),
                 Value<String?> note = const Value.absent(),
+                Value<String?> settledByPaymentId = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => OrderLinesCompanion.insert(
                 id: id,
@@ -9995,6 +10077,7 @@ class $$OrderLinesTableTableManager
                 codeSnapshot: codeSnapshot,
                 nameSecondarySnapshot: nameSecondarySnapshot,
                 note: note,
+                settledByPaymentId: settledByPaymentId,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

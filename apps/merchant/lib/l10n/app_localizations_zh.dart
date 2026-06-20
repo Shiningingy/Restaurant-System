@@ -421,6 +421,44 @@ class AppLocalizationsZh extends AppLocalizations {
   String get pmtApproved => '已批准';
 
   @override
+  String get pmtCashTendered => '实收现金（可选）';
+
+  @override
+  String pmtChangeDue(String amount) {
+    return '应找零 $amount';
+  }
+
+  @override
+  String pmtPayingForItems(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '正在为所选的 $count 项结账',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get ordSplitByItem => '按菜品拆分';
+
+  @override
+  String get splitTitle => '按菜品拆分账单';
+
+  @override
+  String get splitHint => '勾选此人点的菜品，然后收款。重复直到全部付清。';
+
+  @override
+  String get splitAllPaid => '所有菜品均已付款。';
+
+  @override
+  String get splitPaid => '已付';
+
+  @override
+  String splitChargeSelected(String amount) {
+    return '为所选收款 — $amount';
+  }
+
+  @override
   String get inboxTitle => '在线订单';
 
   @override

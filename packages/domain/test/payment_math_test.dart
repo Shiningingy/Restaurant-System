@@ -50,4 +50,56 @@ void main() {
     final payments = [payment('p1', 3000)];
     expect(balanceDue(total: total, payments: payments), Money.zero);
   });
+
+  group('splitShare (split bill by item)', () {
+    // Order: subtotal $100.00, total $113.00 (13% tax, no discount/fee).
+    const orderSubtotal = Money(10000);
+    const orderTotal = Money(11300);
+
+    test('a group pays its proportional slice of the total, tax included', () {
+      // $40 of items → 40% of the $113.00 total = $45.20.
+      expect(
+        splitShare(
+          orderTotal: orderTotal,
+          orderSubtotal: orderSubtotal,
+          selectedSubtotal: const Money(4000),
+        ),
+        const Money(4520),
+      );
+    });
+
+    test('the whole order maps to the whole total', () {
+      expect(
+        splitShare(
+          orderTotal: orderTotal,
+          orderSubtotal: orderSubtotal,
+          selectedSubtotal: orderSubtotal,
+        ),
+        orderTotal,
+      );
+    });
+
+    test('rounds half-up to the cent', () {
+      // $33.33 of $100 → 33.33% of $113.00 = $37.66 (37.6629 → 3766).
+      expect(
+        splitShare(
+          orderTotal: orderTotal,
+          orderSubtotal: orderSubtotal,
+          selectedSubtotal: const Money(3333),
+        ),
+        const Money(3766),
+      );
+    });
+
+    test('zero subtotal is safe', () {
+      expect(
+        splitShare(
+          orderTotal: Money.zero,
+          orderSubtotal: Money.zero,
+          selectedSubtotal: Money.zero,
+        ),
+        Money.zero,
+      );
+    });
+  });
 }

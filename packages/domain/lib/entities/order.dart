@@ -55,6 +55,11 @@ abstract class OrderLine with _$OrderLine {
     required Money lineTotal,
     @Default(OrderLineStatus.active) OrderLineStatus status,
 
+    /// Set to the id of the payment that settled this line when the bill is
+    /// split by item; null while the line is still unpaid. Purely a record of
+    /// which split paid for it — the order still closes on the payment balance.
+    String? settledByPaymentId,
+
     /// Item code + second name line, snapshotted at sale time so a later menu
     /// edit never rewrites order history (mirrors [nameSnapshot]).
     String? codeSnapshot,

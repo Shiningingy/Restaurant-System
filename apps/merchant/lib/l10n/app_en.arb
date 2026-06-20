@@ -198,6 +198,25 @@
   "pmtLowerToSplitHint": "Lower the amount to split the bill.",
   "pmtDeclined": "Declined",
   "pmtApproved": "Approved",
+  "pmtCashTendered": "Cash tendered (optional)",
+  "pmtChangeDue": "Change due {amount}",
+  "@pmtChangeDue": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "pmtPayingForItems": "{count, plural, =1{Paying for 1 selected item} other{Paying for {count} selected items}}",
+  "@pmtPayingForItems": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "ordSplitByItem": "Split by item",
+  "splitTitle": "Split by item",
+  "splitHint": "Tick the items for this person, then charge. Repeat until everything is paid.",
+  "splitAllPaid": "Every item is paid.",
+  "splitPaid": "Paid",
+  "splitChargeSelected": "Charge selected — {amount}",
+  "@splitChargeSelected": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
 
   "inboxTitle": "Online orders",
   "inboxPublishMenu": "Publish menu",

@@ -32,7 +32,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.open() : super(driftDatabase(name: 'restaurant_pos'));
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -59,6 +59,10 @@ class AppDatabase extends _$AppDatabase {
         await m.addColumn(orders, orders.serviceFeeBp);
         await m.addColumn(orders, orders.discount);
         await m.addColumn(orders, orders.serviceFee);
+      }
+      if (from < 8) {
+        // v8: per-line settlement marker for split-by-item bills.
+        await m.addColumn(orderLines, orderLines.settledByPaymentId);
       }
     },
   );
