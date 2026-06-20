@@ -57,10 +57,7 @@ void main() {
   test('returns null for an image with no QR code', () {
     final blank = img.Image(width: 100, height: 100);
     img.fill(blank, color: img.ColorRgb8(255, 255, 255));
-    expect(
-      decodeStorefrontQrFromImageBytes(img.encodePng(blank)),
-      isNull,
-    );
+    expect(decodeStorefrontQrFromImageBytes(img.encodePng(blank)), isNull);
   });
 
   test('returns null for a QR that is not one of ours', () {

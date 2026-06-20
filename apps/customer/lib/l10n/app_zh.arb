@@ -123,6 +123,7 @@
   "orderStatusPickedUp": "已取餐",
   "orderStatusRejected": "已拒绝",
   "orderMarkPickedUp": "已取餐",
+  "orderMarkPickedUpFailed": "无法确认取餐，请重试。",
 
   "orderNotifyAccepted": "您的订单已被接受，正在备餐。",
   "orderNotifyReady": "您的订单已经可以取餐了！",

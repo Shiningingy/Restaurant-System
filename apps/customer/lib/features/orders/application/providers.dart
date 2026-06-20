@@ -17,8 +17,7 @@ class OrderHistoryNotifier extends Notifier<List<PlacedOrder>> {
   @override
   List<PlacedOrder> build() => ref.watch(orderHistoryRepositoryProvider).all();
 
-  OrderHistoryRepository get _repo =>
-      ref.read(orderHistoryRepositoryProvider);
+  OrderHistoryRepository get _repo => ref.read(orderHistoryRepositoryProvider);
 
   Future<void> add(PlacedOrder order) async => state = await _repo.add(order);
 
@@ -40,13 +39,15 @@ final orderHistoryProvider =
     );
 
 /// Placed orders for one storefront (the one currently open).
-final ordersForStorefrontProvider =
-    Provider.family<List<PlacedOrder>, String>((ref, storefrontId) {
-      return ref
-          .watch(orderHistoryProvider)
-          .where((o) => o.storefrontId == storefrontId)
-          .toList();
-    });
+final ordersForStorefrontProvider = Provider.family<List<PlacedOrder>, String>((
+  ref,
+  storefrontId,
+) {
+  return ref
+      .watch(orderHistoryProvider)
+      .where((o) => o.storefrontId == storefrontId)
+      .toList();
+});
 
 /// Live status of one placed order, polled from the active storefront. As a
 /// side effect it writes each change into the order history (so badges stay
@@ -78,13 +79,14 @@ Future<void> _notify(
   domain.OnlineOrderStatus status,
 ) async {
   final body = switch (status) {
-    domain.OnlineOrderStatus.accepted => (AppLocalizations l) =>
-      l.orderNotifyAccepted,
-    domain.OnlineOrderStatus.ready => (AppLocalizations l) => l.orderNotifyReady,
-    domain.OnlineOrderStatus.timeProposed => (AppLocalizations l) =>
-      l.orderNotifyTimeProposed,
-    domain.OnlineOrderStatus.rejected => (AppLocalizations l) =>
-      l.orderNotifyRejected,
+    domain.OnlineOrderStatus.accepted =>
+      (AppLocalizations l) => l.orderNotifyAccepted,
+    domain.OnlineOrderStatus.ready =>
+      (AppLocalizations l) => l.orderNotifyReady,
+    domain.OnlineOrderStatus.timeProposed =>
+      (AppLocalizations l) => l.orderNotifyTimeProposed,
+    domain.OnlineOrderStatus.rejected =>
+      (AppLocalizations l) => l.orderNotifyRejected,
     _ => null,
   };
   if (body == null) return; // submitted / pickedUp: nothing to announce

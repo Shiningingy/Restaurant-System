@@ -82,7 +82,8 @@ YeeSushiMenu yeeSushiMenu() {
       code: 'P01',
       name: 'Unagi poke',
       second: '鳗鱼波奇饭',
-      desc: 'Unagi, sushi rice, avocado, corn, green peas, seaweed salad, '
+      desc:
+          'Unagi, sushi rice, avocado, corn, green peas, seaweed salad, '
           'carrot, cucumber, sesame seeds, poke sauce and spicy mayo.',
       cents: 1399,
     ),
@@ -92,7 +93,8 @@ YeeSushiMenu yeeSushiMenu() {
       code: 'P02',
       name: 'Tempura shrimp poke',
       second: '天妇罗虾波奇饭',
-      desc: 'Tempura shrimp, sushi rice, avocado, corn, green peas, seaweed '
+      desc:
+          'Tempura shrimp, sushi rice, avocado, corn, green peas, seaweed '
           'salad, carrot, cucumber, sesame seeds, poke sauce and spicy mayo.',
       cents: 1399,
     ),
@@ -102,7 +104,8 @@ YeeSushiMenu yeeSushiMenu() {
       code: 'P03',
       name: 'Salmon poke',
       second: '三文鱼波奇饭',
-      desc: 'Fresh salmon, sushi rice, avocado, corn, green peas, seaweed '
+      desc:
+          'Fresh salmon, sushi rice, avocado, corn, green peas, seaweed '
           'salad, carrot, cucumber, sesame seeds, poke sauce and spicy mayo.',
       cents: 1399,
     ),
@@ -112,7 +115,8 @@ YeeSushiMenu yeeSushiMenu() {
       code: 'P04',
       name: 'Tuna poke',
       second: '金枪鱼波奇饭',
-      desc: 'Fresh tuna, sushi rice, avocado, corn, green peas, seaweed salad, '
+      desc:
+          'Fresh tuna, sushi rice, avocado, corn, green peas, seaweed salad, '
           'carrot, cucumber, sesame seeds, poke sauce and spicy mayo.',
       cents: 1399,
     ),
@@ -153,7 +157,8 @@ YeeSushiMenu yeeSushiMenu() {
       code: 'A04',
       name: 'Crunchy cali roll (8pc)',
       second: '香辣脆加州卷',
-      desc: 'Sushi rice, avocado, imitation crab, cucumber, sesame seeds, '
+      desc:
+          'Sushi rice, avocado, imitation crab, cucumber, sesame seeds, '
           'crispy fried onions, spicy mayo and teriyaki sauce.',
       cents: 999,
     ),
@@ -198,7 +203,8 @@ YeeSushiMenu yeeSushiMenu() {
       code: 'B01',
       name: 'Avocado roll (8pc)',
       second: '牛油果卷',
-      desc: 'Sushi rice, extra avocado, imitation crab, cucumber and sesame '
+      desc:
+          'Sushi rice, extra avocado, imitation crab, cucumber and sesame '
           'seeds. Vegetarian option available.',
       cents: 1299,
     ),
@@ -208,7 +214,8 @@ YeeSushiMenu yeeSushiMenu() {
       code: 'B02',
       name: 'Tobiko salmon roll (8pc)',
       second: '飞鱼籽三文鱼卷',
-      desc: 'Sushi rice, salmon, tobiko, avocado, imitation crab, cucumber, '
+      desc:
+          'Sushi rice, salmon, tobiko, avocado, imitation crab, cucumber, '
           'sesame seeds, mayo and teriyaki sauce. Torch option available.',
       cents: 1299,
     ),
@@ -218,7 +225,8 @@ YeeSushiMenu yeeSushiMenu() {
       code: 'B03',
       name: 'Maple salmon roll (8pc)',
       second: '枫糖三文鱼卷',
-      desc: 'Sushi rice, salmon, maple syrup, avocado, imitation crab, '
+      desc:
+          'Sushi rice, salmon, maple syrup, avocado, imitation crab, '
           'cucumber, sesame seeds, mayo and teriyaki sauce. Torch option '
           'available.',
       cents: 1299,
@@ -240,7 +248,8 @@ YeeSushiMenu yeeSushiMenu() {
       code: 'C02',
       name: 'Signature combo (13pc)',
       second: '招牌套餐',
-      desc: 'Sushi rice, tempura shrimp, avocado, crab mix, crispy fried '
+      desc:
+          'Sushi rice, tempura shrimp, avocado, crab mix, crispy fried '
           'onions, sesame seeds, spicy mayo, chili sauce and teriyaki sauce.',
       cents: 1699,
     ),
@@ -250,7 +259,8 @@ YeeSushiMenu yeeSushiMenu() {
       code: 'C03',
       name: 'Rainbow combo (13pc)',
       second: '彩虹套餐',
-      desc: 'Sushi rice, salmon, tuna, shrimp, avocado, imitation crab, '
+      desc:
+          'Sushi rice, salmon, tuna, shrimp, avocado, imitation crab, '
           'cucumber, sesame seeds, mayo and teriyaki sauce.',
       cents: 1699,
     ),
@@ -269,7 +279,8 @@ YeeSushiMenu yeeSushiMenu() {
       code: 'C05',
       name: 'Nigiri combo (6pc)',
       second: '握寿司套餐',
-      desc: 'Sushi rice, your choice of fish. Sauce options available. Torch '
+      desc:
+          'Sushi rice, your choice of fish. Sauce options available. Torch '
           'option available.',
       cents: 1199,
     ),
@@ -290,7 +301,8 @@ YeeSushiMenu yeeSushiMenu() {
       code: 'Z01',
       name: 'Torch lunch combo (8pc)',
       second: '烧烤午餐套餐',
-      desc: 'Sushi rice, your choice of salmon, tuna, shrimp or eel, avocado, '
+      desc:
+          'Sushi rice, your choice of salmon, tuna, shrimp or eel, avocado, '
           'imitation crab, cucumber, mayo, teriyaki sauce and sesame seeds.',
       cents: 1299,
     ),
@@ -300,7 +312,8 @@ YeeSushiMenu yeeSushiMenu() {
       code: 'Z02',
       name: 'Torch seafood combo',
       second: '烧烤海鲜套餐',
-      desc: 'Sushi rice, salmon, tuna, shrimp, crab, avocado, tempura shrimp, '
+      desc:
+          'Sushi rice, salmon, tuna, shrimp, crab, avocado, tempura shrimp, '
           'cucumber, crispy fried onion, mayo, teriyaki sauce and sesame seeds.',
       cents: 1999,
     ),
@@ -310,7 +323,8 @@ YeeSushiMenu yeeSushiMenu() {
       code: 'Z03',
       name: 'Torch Salmon combo (14pc)',
       second: '烧烤三文鱼套餐',
-      desc: 'Torched salmon, salmon avocado roll, spicy mayo, teriyaki sauce, '
+      desc:
+          'Torched salmon, salmon avocado roll, spicy mayo, teriyaki sauce, '
           'sesame seeds and tobiko.',
       cents: 2099,
     ),

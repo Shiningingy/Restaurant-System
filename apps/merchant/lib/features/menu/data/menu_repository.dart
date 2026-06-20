@@ -44,8 +44,7 @@ class MenuRepository {
   Future<void> deleteCategory(String id) {
     return db.transaction(() async {
       final itemIds =
-          await (db.select(db.menuItems)
-                ..where((t) => t.categoryId.equals(id)))
+          await (db.select(db.menuItems)..where((t) => t.categoryId.equals(id)))
               .get()
               .then((rows) => rows.map((r) => r.id).toList());
       for (final itemId in itemIds) {
@@ -138,8 +137,7 @@ class MenuRepository {
   /// image rows). Hard delete is safe: order lines snapshot the item, so
   /// order history is untouched. Image files on disk are device-local and
   /// not synced; their rows go here, the bytes are swept by the image store.
-  Future<void> deleteItem(String id) =>
-      db.transaction(() => _deleteItemTx(id));
+  Future<void> deleteItem(String id) => db.transaction(() => _deleteItemTx(id));
 
   /// The body of [deleteItem] without its own transaction, so [deleteCategory]
   /// can cascade many items inside one transaction.

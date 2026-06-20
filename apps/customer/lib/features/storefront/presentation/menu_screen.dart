@@ -24,7 +24,9 @@ class MenuScreen extends ConsumerWidget {
     ref.listen(menuProvider, (_, next) {
       final menu = next.value;
       if (menu != null) {
-        ref.read(walletProvider.notifier).backfillActiveName(menu.restaurantName);
+        ref
+            .read(walletProvider.notifier)
+            .backfillActiveName(menu.restaurantName);
       }
     });
 

@@ -710,6 +710,12 @@ abstract class AppLocalizations {
   /// **'Picked up'**
   String get orderMarkPickedUp;
 
+  /// No description provided for @orderMarkPickedUpFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t confirm pickup. Please try again.'**
+  String get orderMarkPickedUpFailed;
+
   /// No description provided for @orderNotifyAccepted.
   ///
   /// In en, this message translates to:

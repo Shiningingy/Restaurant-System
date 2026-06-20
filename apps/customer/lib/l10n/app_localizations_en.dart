@@ -364,6 +364,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get orderMarkPickedUp => 'Picked up';
 
   @override
+  String get orderMarkPickedUpFailed =>
+      'Couldn\'t confirm pickup. Please try again.';
+
+  @override
   String get orderNotifyAccepted =>
       'Your order was accepted and is being prepared.';
 
