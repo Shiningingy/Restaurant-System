@@ -25,6 +25,7 @@ dependencies:
   intl: ^0.20.0
   path: ^1.9.0
   path_provider: ^2.1.0
+  qr_flutter: ^4.1.0
   restaurant_domain:
     path: ../../packages/domain
   shared_preferences: ^2.5.0

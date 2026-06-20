@@ -23,4 +23,5 @@ export 'src/order_totals.dart';
 export 'src/payment_math.dart';
 export 'src/receipt_templates.dart';
 export 'src/result.dart';
+export 'src/storefront_link.dart';
 export 'src/ticket.dart';

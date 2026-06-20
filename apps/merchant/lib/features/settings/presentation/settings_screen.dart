@@ -11,6 +11,7 @@ import '../../../core/supabase_auth.dart';
 import '../../printing/application/providers.dart';
 import '../../sync/application/providers.dart';
 import '../../sync/data/sync_settings.dart';
+import 'storefront_qr_dialog.dart';
 
 final _dateTimeFormat = DateFormat('yyyy-MM-dd HH:mm');
 
@@ -635,6 +636,16 @@ class _CloudSyncSectionState extends ConsumerState<_CloudSyncSection> {
                 onPressed: _busy ? null : _restore,
                 icon: const Icon(Icons.cloud_download_outlined),
                 label: Text(context.l10n.setRestoreFromCloud),
+              ),
+              OutlinedButton.icon(
+                onPressed: () => showStorefrontConnectQr(
+                  context,
+                  url: config.url!,
+                  anonKey: config.anonKey!,
+                  name: ref.read(receiptConfigProvider).businessName,
+                ),
+                icon: const Icon(Icons.qr_code_2),
+                label: Text(context.l10n.setCustomerQr),
               ),
             ],
           ),

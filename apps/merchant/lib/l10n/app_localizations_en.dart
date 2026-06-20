@@ -718,6 +718,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setRestoreFromCloud => 'Restore from cloud';
 
   @override
+  String get setCustomerQr => 'Customer connect code';
+
+  @override
+  String get setCustomerQrTitle => 'Scan to order';
+
+  @override
+  String get setCustomerQrHint =>
+      'Customers scan this with the ordering app to add your restaurant and preorder for pickup.';
+
+  @override
   String get setRestaurantSignIn => 'Restaurant sign-in';
 
   @override

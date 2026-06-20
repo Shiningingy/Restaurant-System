@@ -707,6 +707,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get setRestoreFromCloud => '从云端恢复';
 
   @override
+  String get setCustomerQr => '顾客连接码';
+
+  @override
+  String get setCustomerQrTitle => '扫码点餐';
+
+  @override
+  String get setCustomerQrHint => '顾客用点餐应用扫描此码，即可添加您的餐厅并预订自取。';
+
+  @override
   String get setRestaurantSignIn => '餐厅登录';
 
   @override
