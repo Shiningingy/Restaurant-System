@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/l10n_ext.dart';
 import 'features/help/presentation/help_screen.dart';
+import 'features/kiosk/presentation/kiosk_root.dart';
 import 'features/storefront/application/providers.dart';
 import 'features/storefront/presentation/menu_screen.dart';
 import 'features/storefront/presentation/wallet_screen.dart';
@@ -13,18 +14,42 @@ class CustomerApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final kiosk = ref.watch(kioskModeProvider);
     return MaterialApp(
       onGenerateTitle: (context) => context.l10n.appTitle,
       locale: ref.watch(localePreferenceProvider),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
-        useMaterial3: true,
-      ),
-      home: const FirstRunHelpGate(child: _HomeGate()),
+      theme: kiosk ? _kioskTheme() : _appTheme(),
+      // Kiosk skips the first-run help dialog and the wallet entirely.
+      home: kiosk
+          ? const KioskRoot()
+          : const FirstRunHelpGate(child: _HomeGate()),
     );
   }
+}
+
+ThemeData _appTheme() => ThemeData(
+  colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
+  useMaterial3: true,
+);
+
+/// Larger type and roomier buttons for an at-arm's-length kiosk tablet.
+ThemeData _kioskTheme() {
+  final base = _appTheme();
+  return base.copyWith(
+    textTheme: base.textTheme.apply(fontSizeFactor: 1.15),
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        minimumSize: const Size.fromHeight(56),
+        textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+      ),
+    ),
+    listTileTheme: const ListTileThemeData(
+      minVerticalPadding: 12,
+      titleTextStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+    ),
+  );
 }
 
 /// Shows the wallet of saved restaurants until the customer opens one, then

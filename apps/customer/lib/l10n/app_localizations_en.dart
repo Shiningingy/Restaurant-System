@@ -95,6 +95,48 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonCancel => 'Cancel';
 
   @override
+  String get kioskEnter => 'Kiosk mode';
+
+  @override
+  String get kioskEnterTitle => 'Switch to kiosk mode?';
+
+  @override
+  String kioskEnterBody(String name) {
+    return 'This tablet becomes a self-order kiosk for $name. Customers can order but can\'t switch restaurant. To exit, long-press the top-left corner.';
+  }
+
+  @override
+  String get kioskTapToOrder => 'Tap to order';
+
+  @override
+  String get kioskStart => 'Start order';
+
+  @override
+  String get kioskExit => 'Exit kiosk';
+
+  @override
+  String get kioskExitTitle => 'Exit kiosk mode?';
+
+  @override
+  String get kioskExitBody => 'This device returns to normal mode.';
+
+  @override
+  String get kioskNotConnected => 'Kiosk isn\'t set up yet.';
+
+  @override
+  String get kioskThankYou => 'Thank you!';
+
+  @override
+  String get kioskThankYouBody =>
+      'Your order is in. Please pay at the counter.';
+
+  @override
+  String get kioskStartNewOrder => 'Start new order';
+
+  @override
+  String get kioskDefaultName => 'Kiosk';
+
+  @override
   String get profileTitle => 'My details';
 
   @override

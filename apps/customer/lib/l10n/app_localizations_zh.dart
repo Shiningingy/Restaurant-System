@@ -92,6 +92,47 @@ class AppLocalizationsZh extends AppLocalizations {
   String get commonCancel => '取消';
 
   @override
+  String get kioskEnter => '自助点餐模式';
+
+  @override
+  String get kioskEnterTitle => '切换到自助点餐模式？';
+
+  @override
+  String kioskEnterBody(String name) {
+    return '此平板将成为 $name 的自助点餐机。顾客可以点餐，但不能切换餐厅。如需退出，请长按左上角。';
+  }
+
+  @override
+  String get kioskTapToOrder => '点击开始点餐';
+
+  @override
+  String get kioskStart => '开始点餐';
+
+  @override
+  String get kioskExit => '退出自助模式';
+
+  @override
+  String get kioskExitTitle => '退出自助点餐模式？';
+
+  @override
+  String get kioskExitBody => '此设备将恢复为普通模式。';
+
+  @override
+  String get kioskNotConnected => '自助点餐尚未设置。';
+
+  @override
+  String get kioskThankYou => '谢谢！';
+
+  @override
+  String get kioskThankYouBody => '您的订单已提交，请到柜台付款。';
+
+  @override
+  String get kioskStartNewOrder => '开始新订单';
+
+  @override
+  String get kioskDefaultName => '自助点餐';
+
+  @override
   String get profileTitle => '我的信息';
 
   @override

@@ -34,6 +34,23 @@
   },
   "commonCancel": "Cancel",
 
+  "kioskEnter": "Kiosk mode",
+  "kioskEnterTitle": "Switch to kiosk mode?",
+  "kioskEnterBody": "This tablet becomes a self-order kiosk for {name}. Customers can order but can't switch restaurant. To exit, long-press the top-left corner.",
+  "@kioskEnterBody": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "kioskTapToOrder": "Tap to order",
+  "kioskStart": "Start order",
+  "kioskExit": "Exit kiosk",
+  "kioskExitTitle": "Exit kiosk mode?",
+  "kioskExitBody": "This device returns to normal mode.",
+  "kioskNotConnected": "Kiosk isn't set up yet.",
+  "kioskThankYou": "Thank you!",
+  "kioskThankYouBody": "Your order is in. Please pay at the counter.",
+  "kioskStartNewOrder": "Start new order",
+  "kioskDefaultName": "Kiosk",
+
   "profileTitle": "My details",
   "profileIntro": "Saved on this device to prefill your pickup orders. No account, no sign-in.",
   "profileNameLabel": "Name or nickname",
