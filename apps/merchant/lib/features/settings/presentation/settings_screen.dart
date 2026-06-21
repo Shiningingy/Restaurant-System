@@ -209,6 +209,17 @@ class SettingsScreen extends ConsumerWidget {
             style: Theme.of(context).textTheme.titleMedium,
           ),
           ListTile(
+            leading: const Icon(Icons.view_carousel_outlined),
+            title: Text(context.l10n.setDisplayMode),
+            subtitle: Text(
+              _displayModeLabel(
+                context,
+                ref.watch(customerDisplayModeProvider),
+              ),
+            ),
+            onTap: () => _editDisplayMode(context, ref),
+          ),
+          ListTile(
             leading: const Icon(Icons.tv_outlined),
             title: Text(context.l10n.setOpenCustomerDisplay),
             subtitle: Text(context.l10n.setCustomerDisplayHint),
@@ -216,6 +227,7 @@ class SettingsScreen extends ConsumerWidget {
                 .read(customerDisplayProvider)
                 .open(
                   businessName: receiptConfig.businessName,
+                  mode: ref.read(customerDisplayModeProvider),
                   promoLines: ref.read(displayPromoProvider),
                 ),
           ),
@@ -424,6 +436,49 @@ class SettingsScreen extends ConsumerWidget {
           .toList();
       await ref.read(displayPromoProvider.notifier).set(lines);
     }
+  }
+
+  String _displayModeLabel(BuildContext context, CustomerDisplayMode mode) =>
+      switch (mode) {
+        CustomerDisplayMode.passive => context.l10n.setDisplayModePassive,
+        CustomerDisplayMode.kiosk => context.l10n.setDisplayModeKiosk,
+        CustomerDisplayMode.hybrid => context.l10n.setDisplayModeHybrid,
+      };
+
+  String _displayModeDesc(BuildContext context, CustomerDisplayMode mode) =>
+      switch (mode) {
+        CustomerDisplayMode.passive => context.l10n.setDisplayModePassiveDesc,
+        CustomerDisplayMode.kiosk => context.l10n.setDisplayModeKioskDesc,
+        CustomerDisplayMode.hybrid => context.l10n.setDisplayModeHybridDesc,
+      };
+
+  /// Picks how the customer-facing screen behaves. If the display is already
+  /// open, the new mode is pushed to it live.
+  Future<void> _editDisplayMode(BuildContext context, WidgetRef ref) async {
+    final current = ref.read(customerDisplayModeProvider);
+    final picked = await showDialog<CustomerDisplayMode>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text(context.l10n.setDisplayMode),
+        children: [
+          for (final mode in CustomerDisplayMode.values)
+            RadioListTile<CustomerDisplayMode>(
+              value: mode,
+              // ignore: deprecated_member_use
+              groupValue: current,
+              // ignore: deprecated_member_use
+              onChanged: (m) => Navigator.pop(context, m),
+              title: Text(_displayModeLabel(context, mode)),
+              subtitle: Text(_displayModeDesc(context, mode)),
+            ),
+        ],
+      ),
+    );
+    if (picked == null) return;
+    await ref.read(customerDisplayModeProvider.notifier).set(picked);
+    // Reflect the change on an already-open display without reopening it.
+    final display = ref.read(customerDisplayProvider);
+    if (display.isOpen) await display.pushMode(picked);
   }
 
   String _printerSummary(BuildContext context, PrinterConfig cfg) {

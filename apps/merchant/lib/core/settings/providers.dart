@@ -84,6 +84,23 @@ final displayPromoProvider =
       DisplayPromoNotifier.new,
     );
 
+/// How the customer-facing second screen behaves (passive / kiosk / hybrid).
+class CustomerDisplayModeNotifier extends Notifier<CustomerDisplayMode> {
+  @override
+  CustomerDisplayMode build() =>
+      ref.watch(settingsRepositoryProvider).customerDisplayMode;
+
+  Future<void> set(CustomerDisplayMode mode) async {
+    await ref.read(settingsRepositoryProvider).setCustomerDisplayMode(mode);
+    ref.invalidateSelf();
+  }
+}
+
+final customerDisplayModeProvider =
+    NotifierProvider<CustomerDisplayModeNotifier, CustomerDisplayMode>(
+      CustomerDisplayModeNotifier.new,
+    );
+
 class ReceiptConfigNotifier extends Notifier<domain.ReceiptConfig> {
   @override
   domain.ReceiptConfig build() =>

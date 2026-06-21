@@ -1478,6 +1478,48 @@ abstract class AppLocalizations {
   /// **'One message per line; they rotate on the idle screen.'**
   String get setDisplayPromoHint;
 
+  /// No description provided for @setDisplayMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Display mode'**
+  String get setDisplayMode;
+
+  /// No description provided for @setDisplayModePassive.
+  ///
+  /// In en, this message translates to:
+  /// **'Order display'**
+  String get setDisplayModePassive;
+
+  /// No description provided for @setDisplayModePassiveDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Mirrors the order being rung up; rotating promo when idle.'**
+  String get setDisplayModePassiveDesc;
+
+  /// No description provided for @setDisplayModeKiosk.
+  ///
+  /// In en, this message translates to:
+  /// **'Self-order kiosk'**
+  String get setDisplayModeKiosk;
+
+  /// No description provided for @setDisplayModeKioskDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Customers browse the menu and order themselves on the screen.'**
+  String get setDisplayModeKioskDesc;
+
+  /// No description provided for @setDisplayModeHybrid.
+  ///
+  /// In en, this message translates to:
+  /// **'Hybrid (display + kiosk)'**
+  String get setDisplayModeHybrid;
+
+  /// No description provided for @setDisplayModeHybridDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Promo with “tap to order” when idle; mirrors the cashier\'s order while ringing up.'**
+  String get setDisplayModeHybridDesc;
+
   /// No description provided for @setPrintQueue.
   ///
   /// In en, this message translates to:

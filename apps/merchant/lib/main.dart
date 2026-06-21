@@ -28,10 +28,7 @@ Future<void> main(List<String> args) async {
   final argStr = windowController?.arguments ?? '';
   if (windowController != null && argStr.isNotEmpty) {
     runApp(
-      CustomerDisplayApp(
-        windowController: windowController,
-        args: jsonDecode(argStr) as Map<String, dynamic>,
-      ),
+      CustomerDisplayApp(args: jsonDecode(argStr) as Map<String, dynamic>),
     );
     return;
   }

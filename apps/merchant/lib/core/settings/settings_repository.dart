@@ -6,6 +6,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// [receipt]. A one-printer shop configures just one and the other falls back.
 enum PrinterRole { kitchen, receipt }
 
+/// How the customer-facing second screen behaves.
+/// - [passive]: mirrors the order being rung up; rotating promo when idle.
+/// - [kiosk]: a dedicated self-order kiosk (customers order themselves).
+/// - [hybrid]: promo + a "tap to order" affordance when idle, but mirrors the
+///   cashier's order while one is active (one screen serving both purposes).
+enum CustomerDisplayMode { passive, kiosk, hybrid }
+
 /// Configuration for one printer. Transport is either a network printer
 /// (`network`, host:port over TCP 9100) or a Windows-installed printer
 /// (`usb`, addressed by name through the print spooler — covers USB, serial
@@ -107,6 +114,7 @@ class SettingsRepository {
   static const _discountThresholdKey = 'discountThresholdBp';
   static const _categoryVerticalKey = 'categoryVertical';
   static const _displayPromoKey = 'displayPromoLines';
+  static const _displayModeKey = 'customerDisplayMode';
   static const _helpSeenKey = 'helpSeen';
 
   /// Staff may apply a manual discount up to this without a manager — 15%.
@@ -293,6 +301,18 @@ class SettingsRepository {
 
   Future<void> setDisplayPromoLines(List<String> lines) =>
       prefs.setStringList(_displayPromoKey, lines);
+
+  /// How the customer-facing second screen behaves: a passive order/promo
+  /// display, a dedicated self-order kiosk, or hybrid (promo + tap-to-order
+  /// when idle, mirror while the cashier is ringing). Defaults to passive.
+  CustomerDisplayMode get customerDisplayMode =>
+      CustomerDisplayMode.values.asNameMap()[prefs.getString(
+        _displayModeKey,
+      )] ??
+      CustomerDisplayMode.passive;
+
+  Future<void> setCustomerDisplayMode(CustomerDisplayMode mode) =>
+      prefs.setString(_displayModeKey, mode.name);
 
   /// Whether the first-run welcome (pointing to the user guide) has been shown.
   bool get helpSeen => prefs.getBool(_helpSeenKey) ?? false;

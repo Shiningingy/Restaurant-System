@@ -801,6 +801,27 @@ class AppLocalizationsZh extends AppLocalizations {
   String get setDisplayPromoHint => '每行一条信息；将在空闲屏幕轮播。';
 
   @override
+  String get setDisplayMode => '显示模式';
+
+  @override
+  String get setDisplayModePassive => '订单显示';
+
+  @override
+  String get setDisplayModePassiveDesc => '同步显示正在结账的订单；空闲时轮播促销信息。';
+
+  @override
+  String get setDisplayModeKiosk => '自助点餐机';
+
+  @override
+  String get setDisplayModeKioskDesc => '顾客在屏幕上浏览菜单并自助下单。';
+
+  @override
+  String get setDisplayModeHybrid => '混合（显示 + 自助点餐）';
+
+  @override
+  String get setDisplayModeHybridDesc => '空闲时显示促销与“点击点餐”；收银员结账时同步显示订单。';
+
+  @override
   String get setPrintQueue => '打印队列';
 
   @override

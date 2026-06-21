@@ -819,6 +819,30 @@ class AppLocalizationsEn extends AppLocalizations {
       'One message per line; they rotate on the idle screen.';
 
   @override
+  String get setDisplayMode => 'Display mode';
+
+  @override
+  String get setDisplayModePassive => 'Order display';
+
+  @override
+  String get setDisplayModePassiveDesc =>
+      'Mirrors the order being rung up; rotating promo when idle.';
+
+  @override
+  String get setDisplayModeKiosk => 'Self-order kiosk';
+
+  @override
+  String get setDisplayModeKioskDesc =>
+      'Customers browse the menu and order themselves on the screen.';
+
+  @override
+  String get setDisplayModeHybrid => 'Hybrid (display + kiosk)';
+
+  @override
+  String get setDisplayModeHybridDesc =>
+      'Promo with “tap to order” when idle; mirrors the cashier\'s order while ringing up.';
+
+  @override
   String get setPrintQueue => 'Print queue';
 
   @override
