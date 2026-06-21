@@ -105,6 +105,7 @@ TicketDoc buildCustomerReceipt({
   List<Payment> payments = const [],
   String? tableLabel,
   bool showSecondName = false,
+  bool openDrawer = false,
 }) {
   final active =
       lines.where((l) => l.status == OrderLineStatus.active).toList();
@@ -166,6 +167,7 @@ TicketDoc buildCustomerReceipt({
     ],
     const TicketFeed(3),
     const TicketCut(),
+    if (openDrawer) const TicketKickDrawer(),
   ];
   return TicketDoc(ops);
 }
