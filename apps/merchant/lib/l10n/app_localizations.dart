@@ -380,6 +380,12 @@ abstract class AppLocalizations {
   /// **'Edit discount'**
   String get ordEditDiscount;
 
+  /// No description provided for @ordCategoryLayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Category layout'**
+  String get ordCategoryLayout;
+
   /// No description provided for @ordRemoveDiscount.
   ///
   /// In en, this message translates to:

@@ -161,6 +161,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ordEditDiscount => 'Edit discount';
 
   @override
+  String get ordCategoryLayout => 'Category layout';
+
+  @override
   String get ordRemoveDiscount => 'Remove';
 
   @override

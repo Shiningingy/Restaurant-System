@@ -49,6 +49,24 @@ final receiptPrinterReadyProvider = Provider<bool>((ref) {
       printers[PrinterRole.kitchen]!.isConfigured;
 });
 
+/// Whether the order screen shows categories in a vertical column (all at once)
+/// instead of the horizontal row. Toggled from the order screen, persisted.
+class CategoryVerticalNotifier extends Notifier<bool> {
+  @override
+  bool build() => ref.watch(settingsRepositoryProvider).categoryVertical;
+
+  Future<void> toggle() async {
+    final repo = ref.read(settingsRepositoryProvider);
+    await repo.setCategoryVertical(!state);
+    ref.invalidateSelf();
+  }
+}
+
+final categoryVerticalProvider =
+    NotifierProvider<CategoryVerticalNotifier, bool>(
+      CategoryVerticalNotifier.new,
+    );
+
 class ReceiptConfigNotifier extends Notifier<domain.ReceiptConfig> {
   @override
   domain.ReceiptConfig build() =>

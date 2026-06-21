@@ -70,6 +70,7 @@
   "ordDiscountPercent": "Discount percent",
   "ordAddDiscount": "Add discount",
   "ordEditDiscount": "Edit discount",
+  "ordCategoryLayout": "Category layout",
   "ordRemoveDiscount": "Remove",
   "ordTotal": "Total",
   "ordPaidMethod": "Paid — {method}",

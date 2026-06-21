@@ -52,6 +52,7 @@
   "ordDiscountPercent": "折扣百分比",
   "ordAddDiscount": "添加折扣",
   "ordEditDiscount": "修改折扣",
+  "ordCategoryLayout": "分类布局",
   "ordRemoveDiscount": "移除",
   "ordTotal": "合计",
   "ordPaidMethod": "已付 — {method}",

@@ -105,6 +105,7 @@ class SettingsRepository {
   static const _serviceFeeBpKey = 'serviceFeeBp';
   static const _discountPresetsKey = 'discountPresetsBp';
   static const _discountThresholdKey = 'discountThresholdBp';
+  static const _categoryVerticalKey = 'categoryVertical';
   static const _helpSeenKey = 'helpSeen';
 
   /// Staff may apply a manual discount up to this without a manager — 15%.
@@ -276,6 +277,13 @@ class SettingsRepository {
 
   Future<void> setDiscountThresholdBp(int bp) =>
       prefs.setInt(_discountThresholdKey, bp);
+
+  /// Whether the order screen lists categories vertically (a left column that
+  /// can show them all at once) rather than the horizontal scrolling row.
+  bool get categoryVertical => prefs.getBool(_categoryVerticalKey) ?? false;
+
+  Future<void> setCategoryVertical(bool vertical) =>
+      prefs.setBool(_categoryVerticalKey, vertical);
 
   /// Whether the first-run welcome (pointing to the user guide) has been shown.
   bool get helpSeen => prefs.getBool(_helpSeenKey) ?? false;

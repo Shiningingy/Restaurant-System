@@ -23,8 +23,9 @@ GoRouter _createRouter() => GoRouter(
   initialLocation: '/orders',
   routes: [
     StatefulShellRoute.indexedStack(
-      builder: (context, state, shell) =>
-          FirstRunHelpGate(child: _HomeShell(shell: shell)),
+      builder: (context, state, shell) => FirstRunHelpGate(
+        child: _HomeShell(shell: shell, location: state.uri.path),
+      ),
       branches: [
         StatefulShellBranch(
           routes: [
@@ -132,11 +133,18 @@ class _NavItem {
 class _HomeShell extends ConsumerWidget {
   final StatefulNavigationShell shell;
 
-  const _HomeShell({required this.shell});
+  /// Current full path — used to hide the nav rail on an order's full-screen
+  /// editor (`/orders/<id>`), which has its own back button.
+  final String location;
+
+  const _HomeShell({required this.shell, required this.location});
+
+  static final _orderDetail = RegExp(r'^/orders/[^/]+');
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final role = ref.watch(currentRoleProvider);
+    final hideRail = _orderDetail.hasMatch(location);
     final items = <_NavItem>[
       _NavItem(
         Icons.receipt_long_outlined,
@@ -183,6 +191,10 @@ class _HomeShell extends ConsumerWidget {
       });
     }
     final selected = visible.indexOf(shell.currentIndex);
+
+    // The order editor takes the whole window (more room for the menu grid);
+    // its app-bar back button returns to the orders board.
+    if (hideRail) return shell;
 
     return Scaffold(
       body: Row(

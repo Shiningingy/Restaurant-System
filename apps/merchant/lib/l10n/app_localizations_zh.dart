@@ -160,6 +160,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get ordEditDiscount => '修改折扣';
 
   @override
+  String get ordCategoryLayout => '分类布局';
+
+  @override
   String get ordRemoveDiscount => '移除';
 
   @override
