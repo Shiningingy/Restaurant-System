@@ -546,5 +546,13 @@
   "setSecondNameReceipt": "On customer receipt",
   "setSecondNameLanguage": "Second name language",
   "setSecondNameLanguageHint": "Customers see this name first when their app is in this language.",
-  "setSecondNameLanguageNone": "Not set"
+  "setSecondNameLanguageNone": "Not set",
+
+  "setHelp": "User guide",
+  "setHelpSubtitle": "How to set up and run the POS.",
+  "helpTitle": "User guide",
+  "helpWelcomeTitle": "Welcome",
+  "helpWelcomeBody": "This is your point-of-sale. A short guide walks you through setup and daily use — take a look, or open it any time from Settings → User guide.",
+  "helpOpenGuide": "Open guide",
+  "helpNotNow": "Not now"
 }

@@ -155,5 +155,11 @@
   "orderNotifyAccepted": "Your order was accepted and is being prepared.",
   "orderNotifyReady": "Your order is ready for pickup!",
   "orderNotifyTimeProposed": "The restaurant suggested a new pickup time — tap to review.",
-  "orderNotifyRejected": "Your order was declined."
+  "orderNotifyRejected": "Your order was declined.",
+
+  "helpTitle": "Help",
+  "helpWelcomeTitle": "Welcome",
+  "helpWelcomeBody": "Preorder from restaurants and pick up — no account needed. A quick guide shows you how; you can open it any time from the Help button.",
+  "helpOpenGuide": "Show me",
+  "helpNotNow": "Not now"
 }

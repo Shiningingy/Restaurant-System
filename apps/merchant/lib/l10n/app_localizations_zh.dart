@@ -1247,4 +1247,26 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get setSecondNameLanguageNone => '未设置';
+
+  @override
+  String get setHelp => '使用手册';
+
+  @override
+  String get setHelpSubtitle => '如何设置和使用收银系统。';
+
+  @override
+  String get helpTitle => '使用手册';
+
+  @override
+  String get helpWelcomeTitle => '欢迎使用';
+
+  @override
+  String get helpWelcomeBody =>
+      '这是您的收银系统。一份简短的指南会带您完成设置和日常使用——看一看，或随时从 设置 → 使用手册 打开它。';
+
+  @override
+  String get helpOpenGuide => '打开手册';
+
+  @override
+  String get helpNotNow => '暂不';
 }

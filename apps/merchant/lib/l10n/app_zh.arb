@@ -402,5 +402,13 @@
   "setSecondNameReceipt": "在顾客收据",
   "setSecondNameLanguage": "第二名称语言",
   "setSecondNameLanguageHint": "当顾客的应用为该语言时，会优先显示此名称。",
-  "setSecondNameLanguageNone": "未设置"
+  "setSecondNameLanguageNone": "未设置",
+
+  "setHelp": "使用手册",
+  "setHelpSubtitle": "如何设置和使用收银系统。",
+  "helpTitle": "使用手册",
+  "helpWelcomeTitle": "欢迎使用",
+  "helpWelcomeBody": "这是您的收银系统。一份简短的指南会带您完成设置和日常使用——看一看，或随时从 设置 → 使用手册 打开它。",
+  "helpOpenGuide": "打开手册",
+  "helpNotNow": "暂不"
 }

@@ -380,4 +380,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get orderNotifyRejected => 'Your order was declined.';
+
+  @override
+  String get helpTitle => 'Help';
+
+  @override
+  String get helpWelcomeTitle => 'Welcome';
+
+  @override
+  String get helpWelcomeBody =>
+      'Preorder from restaurants and pick up — no account needed. A quick guide shows you how; you can open it any time from the Help button.';
+
+  @override
+  String get helpOpenGuide => 'Show me';
+
+  @override
+  String get helpNotNow => 'Not now';
 }

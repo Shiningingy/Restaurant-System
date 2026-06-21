@@ -61,6 +61,7 @@ class SettingsRepository {
   static const _serviceFeeBpKey = 'serviceFeeBp';
   static const _discountPresetsKey = 'discountPresetsBp';
   static const _discountThresholdKey = 'discountThresholdBp';
+  static const _helpSeenKey = 'helpSeen';
 
   /// Staff may apply a manual discount up to this without a manager — 15%.
   static const defaultDiscountThresholdBp = 1500;
@@ -181,4 +182,9 @@ class SettingsRepository {
 
   Future<void> setDiscountThresholdBp(int bp) =>
       prefs.setInt(_discountThresholdKey, bp);
+
+  /// Whether the first-run welcome (pointing to the user guide) has been shown.
+  bool get helpSeen => prefs.getBool(_helpSeenKey) ?? false;
+
+  Future<void> setHelpSeen(bool seen) => prefs.setBool(_helpSeenKey, seen);
 }

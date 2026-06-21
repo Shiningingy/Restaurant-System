@@ -10,6 +10,7 @@ import '../../../core/l10n_ext.dart';
 import '../../../core/settings/providers.dart';
 import '../../../core/settings/settings_repository.dart';
 import '../../../core/supabase_auth.dart';
+import '../../help/presentation/help_screen.dart';
 import '../../printing/application/providers.dart';
 import '../../printing/data/printer_discovery.dart';
 import '../../sync/application/providers.dart';
@@ -45,6 +46,12 @@ class SettingsScreen extends ConsumerWidget {
             title: Text(context.l10n.setLanguage),
             subtitle: Text(_languageLabel(context, localePref)),
             onTap: () => _editLanguage(context, ref, localePref),
+          ),
+          ListTile(
+            leading: const Icon(Icons.menu_book_outlined),
+            title: Text(context.l10n.setHelp),
+            subtitle: Text(context.l10n.setHelpSubtitle),
+            onTap: () => openHelp(context),
           ),
           const Divider(height: 32),
           Text(

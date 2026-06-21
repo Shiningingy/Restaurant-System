@@ -16,7 +16,7 @@ void main() {
   testWidgets('reports tab shows the day summary, history and detail', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({'helpSeen': true});
     final prefs = await SharedPreferences.getInstance();
     final db = createTestDb();
     addTearDown(db.close);

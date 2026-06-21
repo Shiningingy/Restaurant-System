@@ -2335,6 +2335,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not set'**
   String get setSecondNameLanguageNone;
+
+  /// No description provided for @setHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'User guide'**
+  String get setHelp;
+
+  /// No description provided for @setHelpSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How to set up and run the POS.'**
+  String get setHelpSubtitle;
+
+  /// No description provided for @helpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'User guide'**
+  String get helpTitle;
+
+  /// No description provided for @helpWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome'**
+  String get helpWelcomeTitle;
+
+  /// No description provided for @helpWelcomeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This is your point-of-sale. A short guide walks you through setup and daily use — take a look, or open it any time from Settings → User guide.'**
+  String get helpWelcomeBody;
+
+  /// No description provided for @helpOpenGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Open guide'**
+  String get helpOpenGuide;
+
+  /// No description provided for @helpNotNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get helpNotNow;
 }
 
 class _AppLocalizationsDelegate

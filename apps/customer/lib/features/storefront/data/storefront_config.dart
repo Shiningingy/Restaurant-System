@@ -180,6 +180,7 @@ class StorefrontConfigRepository {
   static const _notifyEmailKey = 'customerNotifyByEmail';
   static const _notifySmsKey = 'customerNotifyBySms';
   static const _appLocaleKey = 'appLocale';
+  static const _helpSeenKey = 'helpSeen';
 
   // Pre-wallet single-storefront keys, migrated forward on first write.
   static const _legacyUrlKey = 'storefrontUrl';
@@ -198,6 +199,11 @@ class StorefrontConfigRepository {
   Future<void> setAppLocaleCode(String? code) => code == null
       ? prefs.remove(_appLocaleKey)
       : prefs.setString(_appLocaleKey, code);
+
+  /// Whether the first-run welcome (pointing to the in-app guide) has shown.
+  bool get helpSeen => prefs.getBool(_helpSeenKey) ?? false;
+
+  Future<void> setHelpSeen(bool seen) => prefs.setBool(_helpSeenKey, seen);
 
   CustomerProfile get profile => CustomerProfile(
     name: prefs.getString(_nameKey),

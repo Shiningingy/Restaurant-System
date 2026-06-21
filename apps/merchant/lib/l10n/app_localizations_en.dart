@@ -1273,4 +1273,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setSecondNameLanguageNone => 'Not set';
+
+  @override
+  String get setHelp => 'User guide';
+
+  @override
+  String get setHelpSubtitle => 'How to set up and run the POS.';
+
+  @override
+  String get helpTitle => 'User guide';
+
+  @override
+  String get helpWelcomeTitle => 'Welcome';
+
+  @override
+  String get helpWelcomeBody =>
+      'This is your point-of-sale. A short guide walks you through setup and daily use — take a look, or open it any time from Settings → User guide.';
+
+  @override
+  String get helpOpenGuide => 'Open guide';
+
+  @override
+  String get helpNotNow => 'Not now';
 }

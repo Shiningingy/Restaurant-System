@@ -739,6 +739,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your order was declined.'**
   String get orderNotifyRejected;
+
+  /// No description provided for @helpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Help'**
+  String get helpTitle;
+
+  /// No description provided for @helpWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome'**
+  String get helpWelcomeTitle;
+
+  /// No description provided for @helpWelcomeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Preorder from restaurants and pick up — no account needed. A quick guide shows you how; you can open it any time from the Help button.'**
+  String get helpWelcomeBody;
+
+  /// No description provided for @helpOpenGuide.
+  ///
+  /// In en, this message translates to:
+  /// **'Show me'**
+  String get helpOpenGuide;
+
+  /// No description provided for @helpNotNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get helpNotNow;
 }
 
 class _AppLocalizationsDelegate
