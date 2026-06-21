@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/l10n_ext.dart';
+import 'features/help/presentation/help_screen.dart';
 import 'features/storefront/application/providers.dart';
 import 'features/storefront/presentation/menu_screen.dart';
 import 'features/storefront/presentation/wallet_screen.dart';
@@ -21,7 +22,7 @@ class CustomerApp extends ConsumerWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
         useMaterial3: true,
       ),
-      home: const _HomeGate(),
+      home: const FirstRunHelpGate(child: _HomeGate()),
     );
   }
 }

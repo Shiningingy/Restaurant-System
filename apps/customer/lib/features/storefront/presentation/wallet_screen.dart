@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/l10n_ext.dart';
 import '../../../core/language_menu.dart';
 import '../../cart/cart.dart';
+import '../../help/presentation/help_screen.dart';
 import '../application/providers.dart';
 import '../data/storefront_config.dart';
 import 'connect_screen.dart';
@@ -29,6 +30,11 @@ class WalletScreen extends ConsumerWidget {
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute<void>(builder: (_) => const ProfileScreen()),
             ),
+          ),
+          IconButton(
+            tooltip: context.l10n.helpTitle,
+            icon: const Icon(Icons.help_outline),
+            onPressed: () => openHelp(context),
           ),
           const LanguageMenu(),
         ],

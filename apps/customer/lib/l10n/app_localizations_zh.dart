@@ -362,4 +362,19 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get orderNotifyRejected => '您的订单已被拒绝。';
+
+  @override
+  String get helpTitle => '帮助';
+
+  @override
+  String get helpWelcomeTitle => '欢迎使用';
+
+  @override
+  String get helpWelcomeBody => '向餐厅预订并自取——无需账号。一份简短指南会告诉您如何使用；您可随时通过帮助按钮打开它。';
+
+  @override
+  String get helpOpenGuide => '看看怎么用';
+
+  @override
+  String get helpNotNow => '暂不';
 }

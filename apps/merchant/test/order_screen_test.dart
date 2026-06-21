@@ -16,7 +16,7 @@ void main() {
   testWidgets('order screen shows Send to kitchen and Pay actions', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({'helpSeen': true});
     final prefs = await SharedPreferences.getInstance();
     final db = createTestDb();
     addTearDown(db.close);
@@ -65,7 +65,7 @@ void main() {
   testWidgets('full app: tapping an order card reaches the action buttons', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({'helpSeen': true});
     final prefs = await SharedPreferences.getInstance();
     final db = createTestDb();
     addTearDown(db.close);
@@ -110,7 +110,7 @@ void main() {
   testWidgets('payment sheet: partial cash, then the rest closes the order', (
     tester,
   ) async {
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({'helpSeen': true});
     final prefs = await SharedPreferences.getInstance();
     final db = createTestDb();
     addTearDown(db.close);

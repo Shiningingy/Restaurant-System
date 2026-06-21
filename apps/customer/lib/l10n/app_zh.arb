@@ -128,5 +128,11 @@
   "orderNotifyAccepted": "您的订单已被接受，正在备餐。",
   "orderNotifyReady": "您的订单已经可以取餐了！",
   "orderNotifyTimeProposed": "餐厅建议了新的取餐时间——点击查看。",
-  "orderNotifyRejected": "您的订单已被拒绝。"
+  "orderNotifyRejected": "您的订单已被拒绝。",
+
+  "helpTitle": "帮助",
+  "helpWelcomeTitle": "欢迎使用",
+  "helpWelcomeBody": "向餐厅预订并自取——无需账号。一份简短指南会告诉您如何使用；您可随时通过帮助按钮打开它。",
+  "helpOpenGuide": "看看怎么用",
+  "helpNotNow": "暂不"
 }
