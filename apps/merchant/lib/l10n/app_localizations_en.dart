@@ -799,6 +799,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setReceiptFooter => 'Receipt footer';
 
   @override
+  String get setCustomerDisplay => 'Customer display (second screen)';
+
+  @override
+  String get setOpenCustomerDisplay => 'Open customer display';
+
+  @override
+  String get setCustomerDisplayHint =>
+      'Opens a window for the extended monitor; drag it to the customer-facing screen.';
+
+  @override
   String get setPrintQueue => 'Print queue';
 
   @override

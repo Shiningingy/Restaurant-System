@@ -8,6 +8,7 @@ import '../../../core/labels.dart';
 import '../../../core/widgets/item_name_lines.dart';
 import '../../admin/domain/staff.dart';
 import '../../admin/presentation/pin_dialog.dart';
+import '../../customer_display/application/customer_display.dart';
 import '../../menu/application/providers.dart';
 import '../../payments/application/payment_service.dart';
 import '../../payments/application/providers.dart';
@@ -30,8 +31,48 @@ class OrderScreen extends ConsumerStatefulWidget {
 class _OrderScreenState extends ConsumerState<OrderScreen> {
   String? _selectedCategoryId;
 
+  /// Held so [dispose] can reach it without `ref` (the container may already be
+  /// torn down by then).
+  CustomerDisplayController? _display;
+
+  @override
+  void dispose() {
+    // Leaving the order returns the customer display to its idle screen.
+    _display?.pushOrder(null);
+    super.dispose();
+  }
+
+  /// Sends the current order (items + total) to the customer display when it's
+  /// open; a no-op otherwise.
+  void _pushToDisplay() {
+    final display = _display;
+    if (display == null || !display.isOpen) return;
+    final order = ref.read(orderProvider(widget.orderId)).value;
+    if (order == null) {
+      display.pushOrder(null);
+      return;
+    }
+    final lines =
+        ref.read(orderLinesProvider(widget.orderId)).value ?? const [];
+    final visible = lines
+        .where((l) => l.status == domain.OrderLineStatus.active)
+        .toList();
+    display.pushOrder({
+      'lines': [
+        for (final l in visible)
+          {
+            'qty': l.qty,
+            'name': l.nameSnapshot,
+            'amount': l.lineTotal.format(),
+          },
+      ],
+      'total': order.total.format(),
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    _display ??= ref.read(customerDisplayProvider);
     final order = ref.watch(orderProvider(widget.orderId)).value;
     final lines =
         ref.watch(orderLinesProvider(widget.orderId)).value ?? const [];
@@ -39,6 +80,10 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
     final isOpen =
         order?.status == domain.OrderStatus.open ||
         order?.status == domain.OrderStatus.sent;
+
+    // Mirror the order to the customer display (if open) as it's rung up.
+    ref.listen(orderProvider(widget.orderId), (_, _) => _pushToDisplay());
+    ref.listen(orderLinesProvider(widget.orderId), (_, _) => _pushToDisplay());
 
     return Scaffold(
       appBar: AppBar(

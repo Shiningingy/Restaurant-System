@@ -782,6 +782,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get setReceiptFooter => '小票页脚';
 
   @override
+  String get setCustomerDisplay => '顾客显示屏（第二屏幕）';
+
+  @override
+  String get setOpenCustomerDisplay => '打开顾客显示屏';
+
+  @override
+  String get setCustomerDisplayHint => '打开一个用于扩展显示器的窗口；将其拖到面向顾客的屏幕。';
+
+  @override
   String get setPrintQueue => '打印队列';
 
   @override

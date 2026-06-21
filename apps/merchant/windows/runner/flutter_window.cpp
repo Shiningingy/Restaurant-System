@@ -2,6 +2,8 @@
 
 #include <optional>
 
+#include <desktop_multi_window/desktop_multi_window_plugin.h>
+
 #include "flutter/generated_plugin_registrant.h"
 
 #include "ocr_channel.h"
@@ -28,6 +30,13 @@ bool FlutterWindow::OnCreate() {
   }
   RegisterPlugins(flutter_controller_->engine());
   RegisterOcrChannel(flutter_controller_->engine());
+  // Register plugins (incl. desktop_multi_window) in each sub-window's engine so
+  // the customer-display window can talk over the multi-window method channel.
+  DesktopMultiWindowSetWindowCreatedCallback([](void *controller) {
+    auto *flutter_controller =
+        reinterpret_cast<flutter::FlutterViewController *>(controller);
+    RegisterPlugins(flutter_controller->engine());
+  });
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
 
   flutter_controller_->engine()->SetNextFrameCallback([&]() {

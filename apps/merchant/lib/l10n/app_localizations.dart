@@ -1442,6 +1442,24 @@ abstract class AppLocalizations {
   /// **'Receipt footer'**
   String get setReceiptFooter;
 
+  /// No description provided for @setCustomerDisplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer display (second screen)'**
+  String get setCustomerDisplay;
+
+  /// No description provided for @setOpenCustomerDisplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Open customer display'**
+  String get setOpenCustomerDisplay;
+
+  /// No description provided for @setCustomerDisplayHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Opens a window for the extended monitor; drag it to the customer-facing screen.'**
+  String get setCustomerDisplayHint;
+
   /// No description provided for @setPrintQueue.
   ///
   /// In en, this message translates to:

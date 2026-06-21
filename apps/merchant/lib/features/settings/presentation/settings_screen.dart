@@ -11,6 +11,7 @@ import '../../../core/settings/providers.dart';
 import '../../../core/settings/settings_repository.dart';
 import '../../../core/supabase_auth.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../customer_display/application/customer_display.dart';
 import '../../help/presentation/help_screen.dart';
 import '../../printing/application/providers.dart';
 import '../../printing/data/printer_discovery.dart';
@@ -201,6 +202,19 @@ class SettingsScreen extends ConsumerWidget {
                     .setFooter(footer);
               }
             },
+          ),
+          const Divider(height: 32),
+          Text(
+            context.l10n.setCustomerDisplay,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          ListTile(
+            leading: const Icon(Icons.tv_outlined),
+            title: Text(context.l10n.setOpenCustomerDisplay),
+            subtitle: Text(context.l10n.setCustomerDisplayHint),
+            onTap: () => ref
+                .read(customerDisplayProvider)
+                .open(businessName: receiptConfig.businessName),
           ),
           if (printJobs.isNotEmpty) ...[
             Padding(
