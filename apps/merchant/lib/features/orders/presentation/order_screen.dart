@@ -12,6 +12,7 @@ import '../../menu/application/providers.dart';
 import '../../payments/application/payment_service.dart';
 import '../../payments/application/providers.dart';
 import '../../payments/presentation/payment_sheet.dart';
+import '../../payments/presentation/split_bill_sheet.dart';
 import '../../printing/application/providers.dart';
 import '../../../core/settings/providers.dart';
 import '../application/providers.dart';
@@ -402,6 +403,17 @@ class _Ticket extends ConsumerWidget {
                   ),
                 ),
               ),
+              if (isOpen && visibleLines.length >= 2) ...[
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => _splitByItem(context, ref),
+                    icon: const Icon(Icons.call_split),
+                    label: Text(context.l10n.ordSplitByItem),
+                  ),
+                ),
+              ],
               const SizedBox(height: 8),
               SizedBox(
                 width: double.infinity,
@@ -497,14 +509,32 @@ class _Ticket extends ConsumerWidget {
     WidgetRef ref,
     domain.Money balance,
   ) async {
-    final messenger = ScaffoldMessenger.of(context);
-    final l10n = context.l10n;
     final result = await showPaymentSheet(
       context,
       order: order,
       balance: balance,
     );
+    if (context.mounted) await _applyResult(context, ref, result);
+  }
+
+  /// Split the bill by item: charge groups of lines until none remain. The
+  /// sheet pops with the result that finally closes the order (if any).
+  Future<void> _splitByItem(BuildContext context, WidgetRef ref) async {
+    final result = await showSplitBillSheet(context, orderId: order.id);
+    if (context.mounted) await _applyResult(context, ref, result);
+  }
+
+  /// Shared post-payment handling for both the single-payment and the
+  /// split-by-item flows: print the receipt and leave when the order closes,
+  /// otherwise surface the partial/declined/failed outcome.
+  Future<void> _applyResult(
+    BuildContext context,
+    WidgetRef ref,
+    PaymentFlowResult? result,
+  ) async {
     if (result == null) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     switch (result.status) {
       case PaymentFlowStatus.approved:
         if (result.orderClosed) {

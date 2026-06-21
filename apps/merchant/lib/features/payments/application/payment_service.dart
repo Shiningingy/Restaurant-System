@@ -44,12 +44,14 @@ class PaymentService {
     required String orderId,
     required domain.Money amount,
     domain.Money tip = domain.Money.zero,
+    List<String> settleLineIds = const [],
   }) async {
     final closed = await payments.recordApproved(
       orderId: orderId,
       method: domain.PaymentMethod.cash,
       amount: amount,
       tip: tip,
+      settleLineIds: settleLineIds,
     );
     return PaymentFlowResult(PaymentFlowStatus.approved, orderClosed: closed);
   }
@@ -58,6 +60,7 @@ class PaymentService {
     required String orderId,
     required domain.Money amount,
     required ManualChargePrompt prompt,
+    List<String> settleLineIds = const [],
   }) async {
     final (terminal, method) = buildTerminal(prompt);
     final result = await terminal.charge(amount: amount, orderId: orderId);
@@ -86,6 +89,7 @@ class PaymentService {
               amount: value.amount,
               tip: value.tip,
               terminalRef: value.terminalRef,
+              settleLineIds: settleLineIds,
             );
             return PaymentFlowResult(
               PaymentFlowStatus.approved,

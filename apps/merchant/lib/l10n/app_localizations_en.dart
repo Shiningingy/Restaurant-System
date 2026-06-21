@@ -429,6 +429,46 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pmtApproved => 'Approved';
 
   @override
+  String get pmtCashTendered => 'Cash tendered (optional)';
+
+  @override
+  String pmtChangeDue(String amount) {
+    return 'Change due $amount';
+  }
+
+  @override
+  String pmtPayingForItems(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Paying for $count selected items',
+      one: 'Paying for 1 selected item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get ordSplitByItem => 'Split by item';
+
+  @override
+  String get splitTitle => 'Split by item';
+
+  @override
+  String get splitHint =>
+      'Tick the items for this person, then charge. Repeat until everything is paid.';
+
+  @override
+  String get splitAllPaid => 'Every item is paid.';
+
+  @override
+  String get splitPaid => 'Paid';
+
+  @override
+  String splitChargeSelected(String amount) {
+    return 'Charge selected — $amount';
+  }
+
+  @override
   String get inboxTitle => 'Online orders';
 
   @override

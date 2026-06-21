@@ -138,6 +138,25 @@
   "pmtLowerToSplitHint": "调低金额以拆分账单。",
   "pmtDeclined": "已拒绝",
   "pmtApproved": "已批准",
+  "pmtCashTendered": "实收现金（可选）",
+  "pmtChangeDue": "应找零 {amount}",
+  "@pmtChangeDue": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "pmtPayingForItems": "{count, plural, other{正在为所选的 {count} 项结账}}",
+  "@pmtPayingForItems": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "ordSplitByItem": "按菜品拆分",
+  "splitTitle": "按菜品拆分账单",
+  "splitHint": "勾选此人点的菜品，然后收款。重复直到全部付清。",
+  "splitAllPaid": "所有菜品均已付款。",
+  "splitPaid": "已付",
+  "splitChargeSelected": "为所选收款 — {amount}",
+  "@splitChargeSelected": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
 
   "inboxTitle": "在线订单",
   "inboxPublishMenu": "发布菜单",

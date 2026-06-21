@@ -357,5 +357,6 @@ class OrderRepository {
     codeSnapshot: r.codeSnapshot,
     nameSecondarySnapshot: r.nameSecondarySnapshot,
     note: r.note,
+    settledByPaymentId: r.settledByPaymentId,
   );
 }

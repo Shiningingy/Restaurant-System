@@ -824,6 +824,60 @@ abstract class AppLocalizations {
   /// **'Approved'**
   String get pmtApproved;
 
+  /// No description provided for @pmtCashTendered.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash tendered (optional)'**
+  String get pmtCashTendered;
+
+  /// No description provided for @pmtChangeDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Change due {amount}'**
+  String pmtChangeDue(String amount);
+
+  /// No description provided for @pmtPayingForItems.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Paying for 1 selected item} other{Paying for {count} selected items}}'**
+  String pmtPayingForItems(int count);
+
+  /// No description provided for @ordSplitByItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Split by item'**
+  String get ordSplitByItem;
+
+  /// No description provided for @splitTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Split by item'**
+  String get splitTitle;
+
+  /// No description provided for @splitHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tick the items for this person, then charge. Repeat until everything is paid.'**
+  String get splitHint;
+
+  /// No description provided for @splitAllPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Every item is paid.'**
+  String get splitAllPaid;
+
+  /// No description provided for @splitPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get splitPaid;
+
+  /// No description provided for @splitChargeSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Charge selected — {amount}'**
+  String splitChargeSelected(String amount);
+
   /// No description provided for @inboxTitle.
   ///
   /// In en, this message translates to:
