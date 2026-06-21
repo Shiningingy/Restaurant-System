@@ -2,6 +2,7 @@
 .dart_tool/
 .packages
 build/
+release/
 pubspec.lock.bak
 
 # Flutter
