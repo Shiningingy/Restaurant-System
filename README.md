@@ -1,19 +1,24 @@
 # Restaurant System
 
-A point-of-sale system for **very small restaurants**: use the tablet you
+A point-of-sale system for **very small restaurants**: use the tablet or PC you
 already have — no dedicated hardware, no required subscription — and you get
-order taking, receipt printing, card-terminal integration, and reports.
+order taking, receipt printing, card payments, split bills, online preorders,
+and reports.
 
-**Status: Phase 0 (scaffold).** See [docs/ROADMAP.md](docs/ROADMAP.md).
+**Status: MVP complete** (offline POS + optional cloud sync + online ordering).
+See [docs/ROADMAP.md](docs/ROADMAP.md) for what's done and next.
+
+**Using the app?** See the plain-language **[User Guide](docs/USER_GUIDE.md)**
+([中文](docs/USER_GUIDE.zh.md)) — setup, daily POS, payments, online orders.
 
 ## What's in the box
 
 | Path | What |
 |---|---|
 | `packages/domain` | Pure Dart shared package: `Money` (integer cents), `Result`, UUID ids, and the four hardware/cloud abstraction interfaces |
-| `apps/merchant` | The POS app (iOS first; Android/Windows capable). Flutter + Riverpod + Drift |
-| `apps/customer` | Customer app for online preorder & pickup — Phase 6, placeholder only |
-| `docs/` | [PRINCIPLES](docs/PRINCIPLES.md) · [ARCHITECTURE](docs/ARCHITECTURE.md) · [ROADMAP](docs/ROADMAP.md) |
+| `apps/merchant` | The POS app (Windows desktop + Android; iOS-capable). Flutter + Riverpod + Drift |
+| `apps/customer` | Customer app for online preorder & pickup — built (wallet, QR connect, preorder, status) |
+| `docs/` | [USER GUIDE](docs/USER_GUIDE.md) · [PRINCIPLES](docs/PRINCIPLES.md) · [ARCHITECTURE](docs/ARCHITECTURE.md) · [ROADMAP](docs/ROADMAP.md) · [CLOUD SECURITY](docs/CLOUD_SECURITY.md) |
 
 ## Principles (the short version)
 
@@ -34,13 +39,15 @@ Full text: [docs/PRINCIPLES.md](docs/PRINCIPLES.md)
 
 ### Platform notes
 
-- **iOS** is the primary target, but iOS builds require a Mac or hosted macOS
-  CI (GitHub macOS runners / Codemagic). Daily development works fine on the
-  Windows desktop target or an Android emulator.
-- Windows desktop builds need Visual Studio with the C++ desktop workload, plus
-  **Windows Developer Mode** enabled (`start ms-settings:developers`) — Flutter
-  plugins are wired up via symlinks.
-- Android builds need the Android SDK (install via Android Studio).
+- **Windows desktop** (Windows **10/11** only — not 7/8) and **Android** are the
+  primary deployment targets. Windows builds need Visual Studio with the C++
+  desktop workload, plus **Windows Developer Mode** enabled
+  (`start ms-settings:developers`) — Flutter plugins are wired up via symlinks.
+- **Android** builds need the Android SDK (install via Android Studio).
+- **iOS** is supported but requires a Mac or hosted macOS CI (GitHub macOS
+  runners / Codemagic) to build.
+- **Linux** desktop is buildable (core POS works); on-device menu-photo OCR is
+  Windows/Android-only. Must be built on a Linux host.
 
 ## License
 
