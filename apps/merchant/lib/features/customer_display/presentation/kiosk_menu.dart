@@ -4,12 +4,24 @@
 /// running cart total) and a pre-formatted string (for display).
 class KioskMenu {
   final String businessName;
+  final int taxRateBp;
+  final int serviceFeeBp;
+  final bool payHere;
   final List<KioskCategory> categories;
 
-  const KioskMenu({required this.businessName, required this.categories});
+  const KioskMenu({
+    required this.businessName,
+    required this.taxRateBp,
+    required this.serviceFeeBp,
+    required this.payHere,
+    required this.categories,
+  });
 
   static KioskMenu fromJson(Map<String, dynamic> j) => KioskMenu(
     businessName: j['businessName'] as String? ?? '',
+    taxRateBp: (j['taxRateBp'] as num?)?.toInt() ?? 0,
+    serviceFeeBp: (j['serviceFeeBp'] as num?)?.toInt() ?? 0,
+    payHere: j['payHere'] as bool? ?? false,
     categories: ((j['categories'] as List?) ?? const [])
         .cast<Map<String, dynamic>>()
         .map(KioskCategory.fromJson)

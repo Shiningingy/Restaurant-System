@@ -114,7 +114,10 @@ class SettingsRepository {
   static const _discountThresholdKey = 'discountThresholdBp';
   static const _categoryVerticalKey = 'categoryVertical';
   static const _displayPromoKey = 'displayPromoLines';
+  static const _displayPromoImagesKey = 'displayPromoImages';
   static const _displayModeKey = 'customerDisplayMode';
+  static const _kioskSeqKey = 'kioskOrderSeq';
+  static const _kioskPayHereKey = 'kioskPayHere';
   static const _helpSeenKey = 'helpSeen';
 
   /// Staff may apply a manual discount up to this without a manager — 15%.
@@ -302,6 +305,14 @@ class SettingsRepository {
   Future<void> setDisplayPromoLines(List<String> lines) =>
       prefs.setStringList(_displayPromoKey, lines);
 
+  /// Absolute paths of promo photos that play as a slideshow on the customer
+  /// display while idle (alongside any promo text). Empty = no slideshow.
+  List<String> get displayPromoImages =>
+      prefs.getStringList(_displayPromoImagesKey) ?? const [];
+
+  Future<void> setDisplayPromoImages(List<String> paths) =>
+      prefs.setStringList(_displayPromoImagesKey, paths);
+
   /// How the customer-facing second screen behaves: a passive order/promo
   /// display, a dedicated self-order kiosk, or hybrid (promo + tap-to-order
   /// when idle, mirror while the cashier is ringing). Defaults to passive.
@@ -313,6 +324,22 @@ class SettingsRepository {
 
   Future<void> setCustomerDisplayMode(CustomerDisplayMode mode) =>
       prefs.setString(_displayModeKey, mode.name);
+
+  /// Hands out the next kiosk pickup number and advances the counter. Cycles
+  /// 0–999 (so codes stay short: K0 … K999 then back to K0). "K" = kiosk.
+  Future<int> nextKioskNumber() async {
+    final n = prefs.getInt(_kioskSeqKey) ?? 0;
+    await prefs.setInt(_kioskSeqKey, (n + 1) % 1000);
+    return n;
+  }
+
+  /// Whether the kiosk offers "pay here" (card at the kiosk) in addition to
+  /// pay-at-counter. Off by default — and pay-here is not wired to a processor
+  /// yet, so the kiosk shows it as coming soon. When off, all kiosk orders are
+  /// pay-at-counter.
+  bool get kioskPayHere => prefs.getBool(_kioskPayHereKey) ?? false;
+
+  Future<void> setKioskPayHere(bool on) => prefs.setBool(_kioskPayHereKey, on);
 
   /// Whether the first-run welcome (pointing to the user guide) has been shown.
   bool get helpSeen => prefs.getBool(_helpSeenKey) ?? false;

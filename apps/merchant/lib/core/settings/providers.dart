@@ -84,6 +84,39 @@ final displayPromoProvider =
       DisplayPromoNotifier.new,
     );
 
+/// Promo photo paths shown as a slideshow on the customer display while idle.
+class DisplayPromoImagesNotifier extends Notifier<List<String>> {
+  @override
+  List<String> build() =>
+      ref.watch(settingsRepositoryProvider).displayPromoImages;
+
+  Future<void> set(List<String> paths) async {
+    await ref.read(settingsRepositoryProvider).setDisplayPromoImages(paths);
+    ref.invalidateSelf();
+  }
+}
+
+final displayPromoImagesProvider =
+    NotifierProvider<DisplayPromoImagesNotifier, List<String>>(
+      DisplayPromoImagesNotifier.new,
+    );
+
+/// Whether the kiosk offers a "pay here" option (card at the kiosk) alongside
+/// pay-at-counter. Card-at-kiosk isn't wired to a processor yet.
+class KioskPayHereNotifier extends Notifier<bool> {
+  @override
+  bool build() => ref.watch(settingsRepositoryProvider).kioskPayHere;
+
+  Future<void> set(bool on) async {
+    await ref.read(settingsRepositoryProvider).setKioskPayHere(on);
+    ref.invalidateSelf();
+  }
+}
+
+final kioskPayHereProvider = NotifierProvider<KioskPayHereNotifier, bool>(
+  KioskPayHereNotifier.new,
+);
+
 /// How the customer-facing second screen behaves (passive / kiosk / hybrid).
 class CustomerDisplayModeNotifier extends Notifier<CustomerDisplayMode> {
   @override

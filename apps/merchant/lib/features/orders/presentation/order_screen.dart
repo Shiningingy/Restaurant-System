@@ -66,6 +66,16 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
             'amount': l.lineTotal.format(),
           },
       ],
+      // Full breakdown so the customer sees how the total is reached, not just
+      // the final number. Null fields are omitted on the display.
+      'subtotal': order.subtotal.format(),
+      'discount': order.discount.isZero
+          ? null
+          : (domain.Money.zero - order.discount).format(),
+      'serviceFee': order.serviceFee.isZero ? null : order.serviceFee.format(),
+      'serviceFeeBp': order.serviceFeeBp,
+      'tax': order.tax.format(),
+      'taxRateBp': order.taxRateBp,
       'total': order.total.format(),
     });
   }

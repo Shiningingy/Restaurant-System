@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import 'kiosk_menu.dart';
 
@@ -330,7 +331,6 @@ class _KioskSurfaceState extends State<KioskSurface> {
   }
 
   Widget _review() {
-    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Your order'),
@@ -355,66 +355,128 @@ class _KioskSurfaceState extends State<KioskSurface> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Subtotal', style: theme.textTheme.titleLarge),
-                      Text(
-                        formatCents(_cartCents),
-                        style: theme.textTheme.titleLarge,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Taxes are added when you pay at the counter.',
-                    style: theme.textTheme.bodySmall,
-                  ),
+                  _breakdown(),
                   const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () =>
-                              setState(() => _stage = _Stage.browse),
-                          style: OutlinedButton.styleFrom(
-                            minimumSize: const Size.fromHeight(60),
-                          ),
-                          icon: const Icon(Icons.add),
-                          label: const Text('Add more'),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        flex: 2,
-                        child: FilledButton.icon(
-                          onPressed: _cart.isEmpty || _submitting
-                              ? null
-                              : _placeOrder,
-                          style: FilledButton.styleFrom(
-                            minimumSize: const Size.fromHeight(60),
-                            textStyle: theme.textTheme.titleMedium,
-                          ),
-                          icon: _submitting
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Icon(Icons.check),
-                          label: Text(_submitting ? 'Placing…' : 'Place order'),
-                        ),
-                      ),
-                    ],
-                  ),
+                  _paymentActions(),
                 ],
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  /// Cart totals computed with the shared domain math (so they match the
+  /// receipt to the cent): subtotal, optional service fee, tax, total.
+  domain.OrderTotals _totals() {
+    final lines = [
+      for (final l in _cart)
+        domain.OrderLine(
+          id: '',
+          orderId: '',
+          menuItemId: l.item.id,
+          nameSnapshot: l.item.name,
+          priceSnapshot: domain.Money(l.unitCents),
+          qty: l.qty,
+          lineTotal: domain.Money(l.lineCents),
+        ),
+    ];
+    return domain.OrderTotals.compute(
+      lines: lines,
+      taxRateBp: widget.menu?.taxRateBp ?? 0,
+      serviceFeeBp: widget.menu?.serviceFeeBp ?? 0,
+    );
+  }
+
+  static String _pct(int bp) => (bp / 100).toStringAsFixed(2);
+
+  Widget _breakdown() {
+    final theme = Theme.of(context);
+    final t = _totals();
+    final serviceFeeBp = widget.menu?.serviceFeeBp ?? 0;
+    final taxBp = widget.menu?.taxRateBp ?? 0;
+    Widget row(String label, domain.Money amount, {bool bold = false}) {
+      final style = bold
+          ? theme.textTheme.headlineSmall
+          : theme.textTheme.titleMedium;
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(label, style: style),
+            Text(formatCents(amount.cents), style: style),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        row('Subtotal', t.subtotal),
+        if (!t.serviceFee.isZero)
+          row('Service (${_pct(serviceFeeBp)}%)', t.serviceFee),
+        row('Tax (${_pct(taxBp)}%)', t.tax),
+        const Divider(height: 16),
+        row('Total', t.total, bold: true),
+      ],
+    );
+  }
+
+  Widget _paymentActions() {
+    final addMore = OutlinedButton.icon(
+      onPressed: () => setState(() => _stage = _Stage.browse),
+      style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(56)),
+      icon: const Icon(Icons.add),
+      label: const Text('Add more'),
+    );
+    final canPlace = _cart.isNotEmpty && !_submitting;
+    final payAtCounter = FilledButton.icon(
+      onPressed: canPlace ? _placeOrder : null,
+      style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(56)),
+      icon: _submitting
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.storefront),
+      label: Text(_submitting ? 'Placing…' : 'Pay at counter'),
+    );
+
+    // Pay-here disabled by the owner: a single counter action.
+    if (!(widget.menu?.payHere ?? false)) {
+      return Row(
+        children: [
+          Expanded(child: addMore),
+          const SizedBox(width: 12),
+          Expanded(flex: 2, child: payAtCounter),
+        ],
+      );
+    }
+
+    // Pay-here allowed: offer it next to pay-at-counter. Card-at-kiosk isn't
+    // wired to a processor yet, so it's shown disabled ("coming soon").
+    final payHere = OutlinedButton.icon(
+      onPressed: null,
+      style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(56)),
+      icon: const Icon(Icons.credit_card),
+      label: const Text('Pay here (soon)'),
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(child: payHere),
+            const SizedBox(width: 12),
+            Expanded(child: payAtCounter),
+          ],
+        ),
+        const SizedBox(height: 8),
+        addMore,
+      ],
     );
   }
 

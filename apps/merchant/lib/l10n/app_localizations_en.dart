@@ -84,6 +84,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'No open orders — start a dine-in or takeout order.';
 
   @override
+  String get ordersSelfOrderSection => 'Self-order (unpaid)';
+
+  @override
+  String get ordersStaffSection => 'Orders';
+
+  @override
   String ordersLoadFailed(String error) {
     return 'Failed to load orders: $error';
   }
@@ -841,6 +847,31 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get setDisplayModeHybridDesc =>
       'Promo with “tap to order” when idle; mirrors the cashier\'s order while ringing up.';
+
+  @override
+  String get setDisplayPromoPhotos => 'Promo photos';
+
+  @override
+  String get setDisplayPromoPhotosNone =>
+      'None — add photos to play a slideshow when idle.';
+
+  @override
+  String setDisplayPromoPhotosCount(int count) {
+    return '$count photo(s) — playing as a slideshow.';
+  }
+
+  @override
+  String get setDisplayPromoPhotosAdd => 'Add photos…';
+
+  @override
+  String get setDisplayPromoPhotosClear => 'Remove all photos';
+
+  @override
+  String get setKioskPayHere => 'Allow pay at kiosk';
+
+  @override
+  String get setKioskPayHereHint =>
+      'Off: all kiosk orders are paid at the counter. On: shows a “pay here” option (card payment coming soon).';
 
   @override
   String get setPrintQueue => 'Print queue';

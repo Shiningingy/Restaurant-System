@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
@@ -35,6 +36,9 @@ class CustomerDisplayApp extends StatelessWidget {
         promoLines:
             (args['promo'] as List?)?.map((e) => e.toString()).toList() ??
             const [],
+        promoImages:
+            (args['promoImages'] as List?)?.map((e) => e.toString()).toList() ??
+            const [],
         mode:
             CustomerDisplayMode.values.asNameMap()[args['mode']] ??
             CustomerDisplayMode.passive,
@@ -51,12 +55,14 @@ class CustomerDisplayApp extends StatelessWidget {
 class CustomerDisplayScreen extends StatefulWidget {
   final String businessName;
   final List<String> promoLines;
+  final List<String> promoImages;
   final CustomerDisplayMode mode;
 
   const CustomerDisplayScreen({
     super.key,
     required this.businessName,
     required this.promoLines,
+    required this.promoImages,
     required this.mode,
   });
 
@@ -78,6 +84,7 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
 
   Timer? _promoTimer;
   int _promoIndex = 0;
+  int _photoIndex = 0;
 
   bool get _interactive =>
       _mode == CustomerDisplayMode.kiosk ||
@@ -88,12 +95,18 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
     super.initState();
     _channel.setMethodCallHandler(_handleFromPos);
     _requestMenu();
-    if (widget.promoLines.length > 1) {
+    // Rotate the promo (text and/or photos) while idle.
+    if (widget.promoLines.length > 1 || widget.promoImages.length > 1) {
       _promoTimer = Timer.periodic(const Duration(seconds: 5), (_) {
         if (mounted && !_interactive) {
-          setState(
-            () => _promoIndex = (_promoIndex + 1) % widget.promoLines.length,
-          );
+          setState(() {
+            if (widget.promoLines.isNotEmpty) {
+              _promoIndex = (_promoIndex + 1) % widget.promoLines.length;
+            }
+            if (widget.promoImages.isNotEmpty) {
+              _photoIndex = (_photoIndex + 1) % widget.promoImages.length;
+            }
+          });
         }
       });
     }
@@ -187,7 +200,7 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
         body: _OrderMirror(
           businessName: _businessName,
           lines: lines.cast<Map<String, dynamic>>(),
-          total: order?['total'] as String? ?? '',
+          order: order!,
         ),
       );
     }
@@ -197,6 +210,9 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
         promo: widget.promoLines.isEmpty
             ? null
             : widget.promoLines[_promoIndex % widget.promoLines.length],
+        photo: widget.promoImages.isEmpty
+            ? null
+            : widget.promoImages[_photoIndex % widget.promoImages.length],
         // Hybrid invites the customer to order; passive is view-only.
         onTapToOrder: _mode == CustomerDisplayMode.hybrid && _menu != null
             ? () => setState(() => _hybridKiosk = true)
@@ -206,23 +222,106 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
   }
 }
 
-/// The idle / promo screen: business name with a rotating promo line beneath,
-/// and (hybrid) a prominent "tap to order" call to action.
+/// The idle / promo screen. When promo photos are configured they play as a
+/// full-bleed cross-fading slideshow with the business name + rotating promo
+/// line overlaid; otherwise it's a plain branded card. A "tap to order" call to
+/// action is added in hybrid mode.
 class _IdlePromo extends StatelessWidget {
   final String businessName;
   final String? promo;
+  final String? photo;
   final VoidCallback? onTapToOrder;
 
   const _IdlePromo({
     required this.businessName,
     required this.promo,
+    required this.photo,
     this.onTapToOrder,
   });
 
   @override
   Widget build(BuildContext context) {
+    final content = (photo != null && photo!.isNotEmpty)
+        ? _slideshow(context)
+        : _branded(context);
+    // The whole idle screen is tappable in hybrid, so anywhere starts an order.
+    return onTapToOrder == null
+        ? content
+        : GestureDetector(onTap: onTapToOrder, child: content);
+  }
+
+  /// Photo slideshow: the current image fills the screen (cross-fading on
+  /// change) with a dark gradient and the business name + promo overlaid.
+  Widget _slideshow(BuildContext context) {
     final theme = Theme.of(context);
-    final content = Container(
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 600),
+          child: Image.file(
+            File(photo!),
+            key: ValueKey(photo),
+            fit: BoxFit.cover,
+            errorBuilder: (_, _, _) => Container(color: Colors.black),
+          ),
+        ),
+        // Legibility scrim behind the overlaid text.
+        const DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.center,
+              end: Alignment.bottomCenter,
+              colors: [Colors.transparent, Colors.black87],
+            ),
+          ),
+        ),
+        Align(
+          alignment: Alignment.bottomLeft,
+          child: Padding(
+            padding: const EdgeInsets.all(40),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (businessName.isNotEmpty)
+                  Text(
+                    businessName,
+                    style: theme.textTheme.displaySmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                if (promo != null && promo!.isNotEmpty)
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 400),
+                    child: Text(
+                      promo!,
+                      key: ValueKey(promo),
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        if (onTapToOrder != null)
+          Align(
+            alignment: Alignment.bottomRight,
+            child: Padding(
+              padding: const EdgeInsets.all(40),
+              child: _tapToOrderButton(context),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _branded(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
       color: theme.colorScheme.primaryContainer,
       alignment: Alignment.center,
       padding: const EdgeInsets.all(48),
@@ -256,43 +355,47 @@ class _IdlePromo extends StatelessWidget {
           ],
           if (onTapToOrder != null) ...[
             const SizedBox(height: 48),
-            FilledButton.icon(
-              onPressed: onTapToOrder,
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 40,
-                  vertical: 24,
-                ),
-                textStyle: theme.textTheme.headlineSmall,
-              ),
-              icon: const Icon(Icons.touch_app, size: 32),
-              label: const Text('Tap to order'),
-            ),
+            _tapToOrderButton(context),
           ],
         ],
       ),
     );
-    // The whole idle screen is tappable in hybrid, so anywhere starts an order.
-    return onTapToOrder == null
-        ? content
-        : GestureDetector(onTap: onTapToOrder, child: content);
   }
+
+  Widget _tapToOrderButton(BuildContext context) => FilledButton.icon(
+    onPressed: onTapToOrder,
+    style: FilledButton.styleFrom(
+      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
+      textStyle: Theme.of(context).textTheme.headlineSmall,
+    ),
+    icon: const Icon(Icons.touch_app, size: 32),
+    label: const Text('Tap to order'),
+  );
 }
 
 class _OrderMirror extends StatelessWidget {
   final String businessName;
   final List<Map<String, dynamic>> lines;
-  final String total;
+  final Map<String, dynamic> order;
 
   const _OrderMirror({
     required this.businessName,
     required this.lines,
-    required this.total,
+    required this.order,
   });
+
+  String _pct(num bp) => (bp / 100).toStringAsFixed(2);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final subtotal = order['subtotal'] as String?;
+    final discount = order['discount'] as String?;
+    final serviceFee = order['serviceFee'] as String?;
+    final serviceFeeBp = (order['serviceFeeBp'] as num?) ?? 0;
+    final tax = order['tax'] as String?;
+    final taxRateBp = (order['taxRateBp'] as num?) ?? 0;
+    final total = order['total'] as String? ?? '';
     return SafeArea(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -338,17 +441,44 @@ class _OrderMirror extends StatelessWidget {
               },
             ),
           ),
+          // The same breakdown the cashier sees, so the customer can follow how
+          // the total is reached (subtotal, discount, service fee, tax).
           Container(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
             color: theme.colorScheme.surfaceContainerHighest,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
               children: [
-                Text('Total', style: theme.textTheme.headlineMedium),
-                Text(total, style: theme.textTheme.headlineMedium),
+                if (subtotal != null) _row(theme, 'Subtotal', subtotal),
+                if (discount != null) _row(theme, 'Discount', discount),
+                if (serviceFee != null)
+                  _row(theme, 'Service (${_pct(serviceFeeBp)}%)', serviceFee),
+                if (tax != null) _row(theme, 'Tax (${_pct(taxRateBp)}%)', tax),
+                const Divider(height: 20),
+                _row(theme, 'Total', total, emphasized: true),
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _row(
+    ThemeData theme,
+    String label,
+    String amount, {
+    bool emphasized = false,
+  }) {
+    final style = emphasized
+        ? theme.textTheme.headlineMedium
+        : theme.textTheme.titleMedium;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: style),
+          Text(amount, style: style),
         ],
       ),
     );

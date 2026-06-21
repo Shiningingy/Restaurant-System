@@ -7,6 +7,18 @@ import '../../orders/data/order_repository.dart';
 /// channel so it can be unit-tested against a real (in-memory) database. The
 /// controller wires these to the channel; everything here is plain repo calls.
 
+/// Order-note prefix that marks a self-order placed at the kiosk and carries
+/// its pickup code, e.g. `Kiosk K42`. The order board keys off this to show
+/// kiosk orders separately with their number. There is no staff UI that sets
+/// an order note, so this prefix never collides with a manual order.
+const kKioskNotePrefix = 'Kiosk ';
+
+/// The kiosk pickup code on [orderNote], or null if it isn't a kiosk order.
+String? kioskPickupCode(String? orderNote) =>
+    (orderNote != null && orderNote.startsWith(kKioskNotePrefix))
+    ? orderNote.substring(kKioskNotePrefix.length)
+    : null;
+
 /// Serializes the live menu (active categories → active items → modifier
 /// groups) into the small JSON tree the kiosk window renders. Prices carry both
 /// cents (for the kiosk's running total) and a formatted string (for display).
@@ -14,6 +26,9 @@ import '../../orders/data/order_repository.dart';
 Future<Map<String, dynamic>> buildKioskMenuSnapshot(
   MenuRepository menu, {
   required String businessName,
+  required int taxRateBp,
+  required int serviceFeeBp,
+  required bool payHere,
 }) async {
   final categories = await menu.watchCategories().first;
   final cats = <Map<String, dynamic>>[];
@@ -54,7 +69,15 @@ Future<Map<String, dynamic>> buildKioskMenuSnapshot(
       cats.add({'id': c.id, 'name': c.name, 'items': itemList});
     }
   }
-  return {'businessName': businessName, 'categories': cats};
+  return {
+    'businessName': businessName,
+    // Current pricing config so the kiosk can show a tax-inclusive total and
+    // honour the pay-here option — re-read every time the menu is fetched.
+    'taxRateBp': taxRateBp,
+    'serviceFeeBp': serviceFeeBp,
+    'payHere': payHere,
+    'categories': cats,
+  };
 }
 
 /// Turns a cart the customer built in the kiosk window into a real local order
@@ -70,15 +93,17 @@ Future<Map<String, dynamic>> registerKioskOrder({
   required OrderRepository orders,
   required int taxRateBp,
   required int serviceFeeBp,
+  required int pickupNumber,
   required List<Map<String, dynamic>> lines,
 }) async {
   if (lines.isEmpty) return {'ok': false};
 
+  final code = 'K$pickupNumber';
   final orderId = await orders.createOrder(
     type: domain.OrderType.takeout,
     taxRateBp: taxRateBp,
     serviceFeeBp: serviceFeeBp,
-    note: 'Kiosk',
+    note: '$kKioskNotePrefix$code',
   );
 
   for (final line in lines) {
@@ -101,10 +126,5 @@ Future<Map<String, dynamic>> registerKioskOrder({
     );
   }
 
-  return {
-    'ok': true,
-    'orderId': orderId,
-    // A short, human-friendly pickup code derived from the order id.
-    'code': orderId.replaceAll('-', '').substring(0, 4).toUpperCase(),
-  };
+  return {'ok': true, 'orderId': orderId, 'code': code};
 }

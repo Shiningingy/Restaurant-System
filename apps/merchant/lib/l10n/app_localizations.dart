@@ -242,6 +242,18 @@ abstract class AppLocalizations {
   /// **'No open orders — start a dine-in or takeout order.'**
   String get ordersEmpty;
 
+  /// No description provided for @ordersSelfOrderSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Self-order (unpaid)'**
+  String get ordersSelfOrderSection;
+
+  /// No description provided for @ordersStaffSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get ordersStaffSection;
+
   /// No description provided for @ordersLoadFailed.
   ///
   /// In en, this message translates to:
@@ -1519,6 +1531,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Promo with “tap to order” when idle; mirrors the cashier\'s order while ringing up.'**
   String get setDisplayModeHybridDesc;
+
+  /// No description provided for @setDisplayPromoPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Promo photos'**
+  String get setDisplayPromoPhotos;
+
+  /// No description provided for @setDisplayPromoPhotosNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None — add photos to play a slideshow when idle.'**
+  String get setDisplayPromoPhotosNone;
+
+  /// No description provided for @setDisplayPromoPhotosCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} photo(s) — playing as a slideshow.'**
+  String setDisplayPromoPhotosCount(int count);
+
+  /// No description provided for @setDisplayPromoPhotosAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add photos…'**
+  String get setDisplayPromoPhotosAdd;
+
+  /// No description provided for @setDisplayPromoPhotosClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove all photos'**
+  String get setDisplayPromoPhotosClear;
+
+  /// No description provided for @setKioskPayHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow pay at kiosk'**
+  String get setKioskPayHere;
+
+  /// No description provided for @setKioskPayHereHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Off: all kiosk orders are paid at the counter. On: shows a “pay here” option (card payment coming soon).'**
+  String get setKioskPayHereHint;
 
   /// No description provided for @setPrintQueue.
   ///

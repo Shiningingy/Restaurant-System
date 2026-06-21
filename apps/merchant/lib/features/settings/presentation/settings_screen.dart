@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -12,6 +13,7 @@ import '../../../core/settings/settings_repository.dart';
 import '../../../core/supabase_auth.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../customer_display/application/customer_display.dart';
+import '../../customer_display/data/promo_image_store.dart';
 import '../../help/presentation/help_screen.dart';
 import '../../printing/application/providers.dart';
 import '../../printing/data/printer_discovery.dart';
@@ -229,6 +231,7 @@ class SettingsScreen extends ConsumerWidget {
                   businessName: receiptConfig.businessName,
                   mode: ref.read(customerDisplayModeProvider),
                   promoLines: ref.read(displayPromoProvider),
+                  promoImages: ref.read(displayPromoImagesProvider),
                 ),
           ),
           ListTile(
@@ -240,6 +243,25 @@ class SettingsScreen extends ConsumerWidget {
                   : ref.watch(displayPromoProvider).join(' · '),
             ),
             onTap: () => _editPromo(context, ref),
+          ),
+          ListTile(
+            leading: const Icon(Icons.photo_library_outlined),
+            title: Text(context.l10n.setDisplayPromoPhotos),
+            subtitle: Text(
+              ref.watch(displayPromoImagesProvider).isEmpty
+                  ? context.l10n.setDisplayPromoPhotosNone
+                  : context.l10n.setDisplayPromoPhotosCount(
+                      ref.watch(displayPromoImagesProvider).length,
+                    ),
+            ),
+            onTap: () => _editPromoPhotos(context, ref),
+          ),
+          SwitchListTile(
+            secondary: const Icon(Icons.point_of_sale_outlined),
+            title: Text(context.l10n.setKioskPayHere),
+            subtitle: Text(context.l10n.setKioskPayHereHint),
+            value: ref.watch(kioskPayHereProvider),
+            onChanged: (v) => ref.read(kioskPayHereProvider.notifier).set(v),
           ),
           if (printJobs.isNotEmpty) ...[
             Padding(
@@ -479,6 +501,56 @@ class SettingsScreen extends ConsumerWidget {
     // Reflect the change on an already-open display without reopening it.
     final display = ref.read(customerDisplayProvider);
     if (display.isOpen) await display.pushMode(picked);
+  }
+
+  /// Manages the customer-display promo slideshow: shows the current photos,
+  /// with actions to add more (file picker) or clear them. Picked files are
+  /// copied into app storage so the paths stay valid.
+  Future<void> _editPromoPhotos(BuildContext context, WidgetRef ref) async {
+    final action = await showDialog<String>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text(context.l10n.setDisplayPromoPhotos),
+        children: [
+          SimpleDialogOption(
+            onPressed: () => Navigator.pop(context, 'add'),
+            child: ListTile(
+              leading: const Icon(Icons.add_photo_alternate_outlined),
+              title: Text(context.l10n.setDisplayPromoPhotosAdd),
+            ),
+          ),
+          if (ref.read(displayPromoImagesProvider).isNotEmpty)
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(context, 'clear'),
+              child: ListTile(
+                leading: const Icon(Icons.delete_outline),
+                title: Text(context.l10n.setDisplayPromoPhotosClear),
+              ),
+            ),
+        ],
+      ),
+    );
+    if (action == 'clear') {
+      final store = PromoImageStore();
+      for (final path in ref.read(displayPromoImagesProvider)) {
+        await store.delete(path);
+      }
+      await ref.read(displayPromoImagesProvider.notifier).set(const []);
+      return;
+    }
+    if (action != 'add') return;
+    const group = XTypeGroup(
+      label: 'images',
+      extensions: ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'],
+    );
+    final files = await openFiles(acceptedTypeGroups: [group]);
+    if (files.isEmpty) return;
+    final store = PromoImageStore();
+    final added = [for (final f in files) await store.import(f.path)];
+    await ref.read(displayPromoImagesProvider.notifier).set([
+      ...ref.read(displayPromoImagesProvider),
+      ...added,
+    ]);
   }
 
   String _printerSummary(BuildContext context, PrinterConfig cfg) {

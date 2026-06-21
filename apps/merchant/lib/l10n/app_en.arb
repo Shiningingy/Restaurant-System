@@ -34,6 +34,8 @@
 
   "ordersTitle": "Open Orders",
   "ordersEmpty": "No open orders — start a dine-in or takeout order.",
+  "ordersSelfOrderSection": "Self-order (unpaid)",
+  "ordersStaffSection": "Orders",
   "ordersLoadFailed": "Failed to load orders: {error}",
   "@ordersLoadFailed": {
     "placeholders": { "error": { "type": "String" } }
@@ -378,6 +380,16 @@
   "setDisplayModeKioskDesc": "Customers browse the menu and order themselves on the screen.",
   "setDisplayModeHybrid": "Hybrid (display + kiosk)",
   "setDisplayModeHybridDesc": "Promo with “tap to order” when idle; mirrors the cashier's order while ringing up.",
+  "setDisplayPromoPhotos": "Promo photos",
+  "setDisplayPromoPhotosNone": "None — add photos to play a slideshow when idle.",
+  "setDisplayPromoPhotosCount": "{count} photo(s) — playing as a slideshow.",
+  "@setDisplayPromoPhotosCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "setDisplayPromoPhotosAdd": "Add photos…",
+  "setDisplayPromoPhotosClear": "Remove all photos",
+  "setKioskPayHere": "Allow pay at kiosk",
+  "setKioskPayHereHint": "Off: all kiosk orders are paid at the counter. On: shows a “pay here” option (card payment coming soon).",
   "setPrintQueue": "Print queue",
   "setTables": "Tables",
   "setTableButton": "Table",

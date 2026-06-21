@@ -83,6 +83,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get ordersEmpty => '暂无未结订单 — 开始一笔堂食或外带订单。';
 
   @override
+  String get ordersSelfOrderSection => '自助点餐（未付款）';
+
+  @override
+  String get ordersStaffSection => '订单';
+
+  @override
   String ordersLoadFailed(String error) {
     return '加载订单失败：$error';
   }
@@ -820,6 +826,29 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get setDisplayModeHybridDesc => '空闲时显示促销与“点击点餐”；收银员结账时同步显示订单。';
+
+  @override
+  String get setDisplayPromoPhotos => '促销图片';
+
+  @override
+  String get setDisplayPromoPhotosNone => '无 — 添加图片可在空闲时轮播。';
+
+  @override
+  String setDisplayPromoPhotosCount(int count) {
+    return '$count 张图片 — 正在轮播。';
+  }
+
+  @override
+  String get setDisplayPromoPhotosAdd => '添加图片…';
+
+  @override
+  String get setDisplayPromoPhotosClear => '清除所有图片';
+
+  @override
+  String get setKioskPayHere => '允许自助点餐机付款';
+
+  @override
+  String get setKioskPayHereHint => '关闭：所有自助点餐订单在柜台付款。开启：显示“在此付款”选项（刷卡付款即将推出）。';
 
   @override
   String get setPrintQueue => '打印队列';

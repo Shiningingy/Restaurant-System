@@ -33,6 +33,7 @@ class CustomerDisplayController {
     required String businessName,
     required CustomerDisplayMode mode,
     List<String> promoLines = const [],
+    List<String> promoImages = const [],
   }) async {
     if (_window != null) return;
     // Register the POS-side handler before the window exists so the kiosk's
@@ -46,6 +47,7 @@ class CustomerDisplayController {
         arguments: jsonEncode({
           'businessName': businessName,
           'promo': promoLines,
+          'promoImages': promoImages,
           'mode': mode.name,
         }),
         hiddenAtLaunch: false,
@@ -96,13 +98,16 @@ class CustomerDisplayController {
     }
   }
 
-  Future<Map<String, dynamic>> _buildMenuSnapshot() => buildKioskMenuSnapshot(
-    _ref.read(menuRepositoryProvider),
-    businessName: _ref
-        .read(settingsRepositoryProvider)
-        .receiptConfig
-        .businessName,
-  );
+  Future<Map<String, dynamic>> _buildMenuSnapshot() {
+    final settings = _ref.read(settingsRepositoryProvider);
+    return buildKioskMenuSnapshot(
+      _ref.read(menuRepositoryProvider),
+      businessName: settings.receiptConfig.businessName,
+      taxRateBp: settings.taxRateBp,
+      serviceFeeBp: settings.serviceFeeBp,
+      payHere: settings.kioskPayHere,
+    );
+  }
 
   /// Turns a cart pushed from the kiosk window into a real local order. The
   /// heavy lifting lives in [registerKioskOrder] (pure, unit-tested); this just
@@ -115,6 +120,7 @@ class CustomerDisplayController {
       orders: _ref.read(orderRepositoryProvider),
       taxRateBp: settings.taxRateBp,
       serviceFeeBp: settings.serviceFeeBp,
+      pickupNumber: await settings.nextKioskNumber(),
       lines: (cart['lines'] as List).cast<Map<String, dynamic>>(),
     );
   }

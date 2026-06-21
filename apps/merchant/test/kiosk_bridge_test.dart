@@ -66,11 +66,17 @@ void main() {
         final snap = await buildKioskMenuSnapshot(
           menu,
           businessName: 'Joe Cafe',
+          taxRateBp: 1300,
+          serviceFeeBp: 250,
+          payHere: true,
         );
         expect(snap['businessName'], 'Joe Cafe');
 
         // Round-trips through the kiosk-side parser the sub-window uses.
         final parsed = KioskMenu.fromJson(snap);
+        expect(parsed.taxRateBp, 1300);
+        expect(parsed.serviceFeeBp, 250);
+        expect(parsed.payHere, isTrue);
         expect(parsed.categories.map((c) => c.name), [
           'Drinks',
         ]); // Empty omitted
@@ -133,6 +139,7 @@ void main() {
           orders: orders,
           taxRateBp: 1300,
           serviceFeeBp: 0,
+          pickupNumber: 42,
           lines: [
             {
               'itemId': 'i1',
@@ -144,12 +151,14 @@ void main() {
 
         expect(res['ok'], isTrue);
         final orderId = res['orderId'] as String;
-        expect(res['code'], isA<String>());
-        expect((res['code'] as String).length, 4);
+        expect(res['code'], 'K42');
+        // The note carries the code so the board can show it (kioskPickupCode).
+        expect(kioskPickupCode('Kiosk K42'), 'K42');
+        expect(kioskPickupCode('a manual note'), isNull);
 
         final order = await orders.getOrder(orderId);
         expect(order!.type, domain.OrderType.takeout);
-        expect(order.note, 'Kiosk');
+        expect(order.note, 'Kiosk K42');
         // 2 × ($8.00 burger + $1.00 cheese) = $18.00 subtotal.
         expect(order.subtotal, const domain.Money(1800));
 
@@ -166,6 +175,7 @@ void main() {
         orders: orders,
         taxRateBp: 0,
         serviceFeeBp: 0,
+        pickupNumber: 1,
         lines: [
           {'itemId': 'gone', 'qty': 1, 'modifierIds': <String>[]},
           {'itemId': 'i1', 'qty': 1, 'modifierIds': <String>[]},
@@ -181,6 +191,7 @@ void main() {
         orders: orders,
         taxRateBp: 0,
         serviceFeeBp: 0,
+        pickupNumber: 2,
         lines: const [],
       );
       expect(res['ok'], isFalse);
