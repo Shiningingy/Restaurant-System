@@ -8,6 +8,15 @@ library;
 
 enum TicketAlign { left, center, right }
 
+/// Character set the ESC/POS encoder uses for a print job.
+///
+///  - [western]: ASCII; non-ASCII characters print as `?` (the historical
+///    behaviour — fine for Latin menus).
+///  - [chinese]: enables the printer's Chinese mode (`FS &`) and encodes text
+///    as GBK, so Chinese (and other CJK) names print correctly. Chosen
+///    per-printer in settings.
+enum TicketCharset { western, chinese }
+
 class TicketStyle {
   final bool bold;
   final bool doubleWidth;
@@ -68,6 +77,11 @@ class TicketFeed extends TicketOp {
 
 class TicketCut extends TicketOp {
   const TicketCut();
+}
+
+/// Pulses the cash drawer connected to the (receipt) printer's kick port.
+class TicketKickDrawer extends TicketOp {
+  const TicketKickDrawer();
 }
 
 class TicketDoc {

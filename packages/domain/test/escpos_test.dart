@@ -43,6 +43,35 @@ void main() {
       );
       expect(bytes, containsAllInOrder('caf?'.codeUnits));
     });
+
+    test('chinese charset enters Chinese mode and encodes GBK, not "?"', () {
+      final bytes = EscPos.encode(
+        const TicketDoc([TicketText('中A')]),
+        widthChars: 32,
+        charset: TicketCharset.chinese,
+      );
+      expect(bytes, containsAllInOrder([0x1C, 0x26])); // FS & — Chinese mode
+      expect(bytes, containsAllInOrder([0xD6, 0xD0])); // 中 in GBK
+      expect(bytes, containsAllInOrder([0x41])); // 'A' passes through as ASCII
+      expect(bytes, isNot(contains(0x3F))); // no '?' fallback
+    });
+
+    test('western charset (default) leaves Chinese as "?" and no FS &', () {
+      final bytes = EscPos.encode(
+        const TicketDoc([TicketText('中')]),
+        widthChars: 32,
+      );
+      expect(bytes, contains(0x3F));
+      expect(bytes, isNot(containsAllInOrder([0x1C, 0x26])));
+    });
+
+    test('emits a cash-drawer kick pulse', () {
+      final bytes = EscPos.encode(
+        const TicketDoc([TicketKickDrawer()]),
+        widthChars: 32,
+      );
+      expect(bytes, containsAllInOrder([0x1B, 0x70, 0x00, 0x19, 0xFA]));
+    });
   });
 
   group('EscPos.renderPlainText', () {
@@ -54,6 +83,15 @@ void main() {
       expect(text.length, 32);
       expect(text, startsWith('Burger'));
       expect(text, endsWith(r'$10.00'));
+    });
+
+    test('right-aligns an amount accounting for CJK double-width glyphs', () {
+      final text = EscPos.renderPlainText(
+        const TicketDoc([TicketRow('包子', r'$2.00')]),
+        widthChars: 32,
+      );
+      // 2 CJK glyphs = 4 columns, amount = 5 columns -> 23 spaces between.
+      expect(text, '包子${' ' * 23}\$2.00');
     });
 
     test('wraps a long left column and right-aligns the amount below', () {

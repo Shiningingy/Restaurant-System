@@ -22,21 +22,32 @@ final tablesProvider = StreamProvider<List<domain.DiningTable>>(
   (ref) => ref.watch(tablesRepositoryProvider).watchTables(),
 );
 
-class PrinterSettingsNotifier extends Notifier<PrinterSettings> {
+/// Both printer configs (kitchen + receipt), refreshed when either is saved.
+class PrintersNotifier extends Notifier<Map<PrinterRole, PrinterConfig>> {
   @override
-  PrinterSettings build() => ref.watch(settingsRepositoryProvider).printer;
+  Map<PrinterRole, PrinterConfig> build() {
+    final r = ref.watch(settingsRepositoryProvider);
+    return {for (final role in PrinterRole.values) role: r.printerConfig(role)};
+  }
 
-  Future<void> save(PrinterSettings settings) async {
-    final repo = ref.read(settingsRepositoryProvider);
-    await repo.setPrinter(settings);
-    state = repo.printer;
+  Future<void> save(PrinterRole role, PrinterConfig config) async {
+    await ref.read(settingsRepositoryProvider).setPrinterConfig(role, config);
+    ref.invalidateSelf();
   }
 }
 
-final printerSettingsProvider =
-    NotifierProvider<PrinterSettingsNotifier, PrinterSettings>(
-      PrinterSettingsNotifier.new,
+final printersProvider =
+    NotifierProvider<PrintersNotifier, Map<PrinterRole, PrinterConfig>>(
+      PrintersNotifier.new,
     );
+
+/// Whether a receipt can be printed — the receipt printer is configured, or
+/// (fallback) the kitchen one is. Gates the reprint/auto-print actions.
+final receiptPrinterReadyProvider = Provider<bool>((ref) {
+  final printers = ref.watch(printersProvider);
+  return printers[PrinterRole.receipt]!.isConfigured ||
+      printers[PrinterRole.kitchen]!.isConfigured;
+});
 
 class ReceiptConfigNotifier extends Notifier<domain.ReceiptConfig> {
   @override

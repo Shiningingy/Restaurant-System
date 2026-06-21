@@ -70,16 +70,17 @@ void main() {
 
   tearDown(() => db.close());
 
-  PrintService makeService(domain.PrinterDriver? Function() buildDriver) =>
-      PrintService(
-        jobs: jobs,
-        orders: orders,
-        payments: payments,
-        tables: TablesRepository(db),
-        settings: settings,
-        buildDriver: buildDriver,
-        backoff: (_) async {}, // no delays in tests
-      );
+  PrintService makeService(
+    domain.PrinterDriver? Function(domain.PrintJobKind) buildDriver,
+  ) => PrintService(
+    jobs: jobs,
+    orders: orders,
+    payments: payments,
+    tables: TablesRepository(db),
+    settings: settings,
+    buildDriver: buildDriver,
+    backoff: (_) async {}, // no delays in tests
+  );
 
   Future<String> openOrderWithBurger() async {
     final orderId = await orders.createOrder(
@@ -94,7 +95,7 @@ void main() {
 
   test('kitchen ticket renders the order and the job completes', () async {
     final driver = FakeDriver();
-    final service = makeService(() => driver);
+    final service = makeService((_) => driver);
     final orderId = await openOrderWithBurger();
 
     await service.printKitchenTicket(orderId);
@@ -114,7 +115,7 @@ void main() {
 
   test('customer receipt includes totals and the recorded payment', () async {
     final driver = FakeDriver();
-    final service = makeService(() => driver);
+    final service = makeService((_) => driver);
     final orderId = await openOrderWithBurger();
     await payments.recordApproved(
       orderId: orderId,
@@ -141,7 +142,7 @@ void main() {
       const domain.Err(domain.PrintError('offline')),
       const domain.Ok(null),
     ]);
-    final service = makeService(() => driver);
+    final service = makeService((_) => driver);
     final orderId = await openOrderWithBurger();
 
     await service.printKitchenTicket(orderId);
@@ -161,7 +162,7 @@ void main() {
         const domain.Err(domain.PrintError('offline')),
       ]);
       domain.PrinterDriver current = dead;
-      final service = makeService(() => current);
+      final service = makeService((_) => current);
       final orderId = await openOrderWithBurger();
 
       await service.printKitchenTicket(orderId);
@@ -184,7 +185,7 @@ void main() {
     final driver = FakeDriver([
       const domain.Err(domain.PrintError('bad payload', isRetryable: false)),
     ]);
-    final service = makeService(() => driver);
+    final service = makeService((_) => driver);
     final orderId = await openOrderWithBurger();
 
     await service.printKitchenTicket(orderId);
@@ -196,7 +197,7 @@ void main() {
   });
 
   test('no configured printer fails the job with a clear message', () async {
-    final service = makeService(() => null);
+    final service = makeService((_) => null);
     final orderId = await openOrderWithBurger();
 
     await service.printKitchenTicket(orderId);
@@ -209,7 +210,7 @@ void main() {
 
   test('start() re-queues jobs interrupted mid-print', () async {
     final driver = FakeDriver();
-    final service = makeService(() => driver);
+    final service = makeService((_) => driver);
     final id = await jobs.enqueue(
       kind: domain.PrintJobKind.testPage,
       payload: [0x1B, 0x40],
@@ -224,14 +225,82 @@ void main() {
   });
 
   test('printTestPage bypasses the queue and reports the result', () async {
-    final service = makeService(() => null);
+    final service = makeService((_) => null);
     final result = await service.printTestPage();
     expect(result.isErr, isTrue);
 
     final driver = FakeDriver();
-    final working = makeService(() => driver);
+    final working = makeService((_) => driver);
     expect((await working.printTestPage()).isOk, isTrue);
     expect(driver.printed, hasLength(1));
     expect(await allJobs(), isEmpty);
+  });
+
+  test('routes kitchen and receipt jobs to their own printers', () async {
+    final kitchen = FakeDriver();
+    final receipt = FakeDriver();
+    final service = makeService(
+      (kind) => kind == domain.PrintJobKind.kitchenTicket ? kitchen : receipt,
+    );
+    final orderId = await openOrderWithBurger();
+    await payments.recordApproved(
+      orderId: orderId,
+      method: domain.PaymentMethod.cash,
+      amount: const domain.Money(1130),
+    );
+
+    await service.printKitchenTicket(orderId);
+    await service.printCustomerReceipt(orderId);
+    await service.idle;
+
+    expect(kitchen.printed, hasLength(1));
+    expect(receipt.printed, hasLength(1));
+    String asText(List<int> bytes) =>
+        ascii.decode(bytes.where((b) => b >= 0x20 && b < 0x7F).toList());
+    expect(asText(kitchen.printed.single), contains('1 x Burger'));
+    expect(asText(receipt.printed.single), contains('TOTAL'));
+  });
+
+  test('receipt printer charset + cash drawer apply per destination', () async {
+    // The receipt printer prints Chinese and opens the drawer; the kitchen
+    // printer is left Western.
+    await settings.setPrinterConfig(
+      PrinterRole.receipt,
+      const PrinterConfig(
+        host: '10.0.0.5',
+        charset: domain.TicketCharset.chinese,
+        openDrawer: true,
+      ),
+    );
+    await settings.setNameDisplay(const NameDisplay(receipt: true));
+    final receipt = FakeDriver();
+    final service = makeService((_) => receipt);
+    final orderId = await orders.createOrder(
+      type: domain.OrderType.takeout,
+      taxRateBp: 1300,
+    );
+    await orders.addLine(
+      orderId: orderId,
+      item: const domain.MenuItem(
+        id: 'm2',
+        categoryId: 'c1',
+        name: 'Dumpling',
+        nameSecondary: '饺子',
+        price: domain.Money(800),
+      ),
+    );
+
+    await service.printCustomerReceipt(orderId);
+    await service.idle;
+
+    final bytes = receipt.printed.single;
+    // FS & is emitted only in Chinese mode -> the receipt printer's charset was
+    // applied; the kick -> its openDrawer was applied. (GBK byte correctness is
+    // covered in escpos_test.)
+    expect(bytes, containsAllInOrder([0x1C, 0x26])); // FS & — Chinese mode
+    expect(
+      bytes,
+      containsAllInOrder([0x1B, 0x70, 0x00, 0x19, 0xFA]),
+    ); // drawer kick
   });
 }

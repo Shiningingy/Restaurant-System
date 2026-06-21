@@ -742,8 +742,49 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get setPrinterNotConfigured =>
-      'Not configured. ESC/POS over LAN (port 9100).';
+  String get setPrinterNotConfigured => 'Not configured.';
+
+  @override
+  String setPrinterConfiguredUsb(String name, String width) {
+    return '$name — ${width}mm paper';
+  }
+
+  @override
+  String get setPrinterKitchen => 'Kitchen printer';
+
+  @override
+  String get setPrinterReceipt => 'Receipt printer';
+
+  @override
+  String get setTransportNetwork => 'Network';
+
+  @override
+  String get setTransportWindows => 'USB / Windows';
+
+  @override
+  String get setWindowsPrinter => 'Windows printer';
+
+  @override
+  String get setWindowsPrinterNone =>
+      'No printers found. Install the printer in Windows first, then refresh.';
+
+  @override
+  String get setRefresh => 'Refresh';
+
+  @override
+  String get setPaperWidth => 'Paper width';
+
+  @override
+  String get setCharset => 'Text encoding';
+
+  @override
+  String get setCharsetWestern => 'Western';
+
+  @override
+  String get setCharsetChinese => 'Chinese';
+
+  @override
+  String get setOpenDrawer => 'Open cash drawer on receipt';
 
   @override
   String get setBusinessNameOnReceipts => 'Business name on receipts';

@@ -344,7 +344,23 @@
   "@setPrinterConfigured": {
     "placeholders": { "host": { "type": "String" }, "port": { "type": "int" }, "width": { "type": "String" } }
   },
-  "setPrinterNotConfigured": "Not configured. ESC/POS over LAN (port 9100).",
+  "setPrinterNotConfigured": "Not configured.",
+  "setPrinterConfiguredUsb": "{name} — {width}mm paper",
+  "@setPrinterConfiguredUsb": {
+    "placeholders": { "name": { "type": "String" }, "width": { "type": "String" } }
+  },
+  "setPrinterKitchen": "Kitchen printer",
+  "setPrinterReceipt": "Receipt printer",
+  "setTransportNetwork": "Network",
+  "setTransportWindows": "USB / Windows",
+  "setWindowsPrinter": "Windows printer",
+  "setWindowsPrinterNone": "No printers found. Install the printer in Windows first, then refresh.",
+  "setRefresh": "Refresh",
+  "setPaperWidth": "Paper width",
+  "setCharset": "Text encoding",
+  "setCharsetWestern": "Western",
+  "setCharsetChinese": "Chinese",
+  "setOpenDrawer": "Open cash drawer on receipt",
   "setBusinessNameOnReceipts": "Business name on receipts",
   "setBusinessName": "Business name",
   "setReceiptFooter": "Receipt footer",

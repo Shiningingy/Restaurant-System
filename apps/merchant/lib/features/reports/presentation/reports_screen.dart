@@ -265,7 +265,7 @@ class _OrderDetailDialog extends ConsumerWidget {
     final settled = domain.settledPayments(payments).toList();
     final canReprint =
         order.status == domain.OrderStatus.paid &&
-        ref.watch(printerSettingsProvider).isConfigured;
+        ref.watch(receiptPrinterReadyProvider);
 
     final orderRef = domain.orderRef(order.id);
     return AlertDialog(
