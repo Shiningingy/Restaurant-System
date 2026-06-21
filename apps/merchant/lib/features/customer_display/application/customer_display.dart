@@ -12,11 +12,17 @@ class CustomerDisplayController {
 
   bool get isOpen => _window != null;
 
-  Future<void> open({required String businessName}) async {
+  Future<void> open({
+    required String businessName,
+    List<String> promoLines = const [],
+  }) async {
     if (_window != null) return;
     final window = await WindowController.create(
       WindowConfiguration(
-        arguments: jsonEncode({'businessName': businessName}),
+        arguments: jsonEncode({
+          'businessName': businessName,
+          'promo': promoLines,
+        }),
         hiddenAtLaunch: false,
       ),
     );

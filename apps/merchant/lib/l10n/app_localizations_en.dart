@@ -806,7 +806,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setCustomerDisplayHint =>
-      'Opens a window for the extended monitor; drag it to the customer-facing screen.';
+      'Opens a window for the extended monitor; drag it to the customer-facing screen. Shows the order while ringing up, promos when idle.';
+
+  @override
+  String get setDisplayPromo => 'Promo messages';
+
+  @override
+  String get setDisplayPromoNone => 'None — shows the business name when idle.';
+
+  @override
+  String get setDisplayPromoHint =>
+      'One message per line; they rotate on the idle screen.';
 
   @override
   String get setPrintQueue => 'Print queue';

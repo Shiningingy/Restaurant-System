@@ -106,6 +106,7 @@ class SettingsRepository {
   static const _discountPresetsKey = 'discountPresetsBp';
   static const _discountThresholdKey = 'discountThresholdBp';
   static const _categoryVerticalKey = 'categoryVertical';
+  static const _displayPromoKey = 'displayPromoLines';
   static const _helpSeenKey = 'helpSeen';
 
   /// Staff may apply a manual discount up to this without a manager — 15%.
@@ -284,6 +285,14 @@ class SettingsRepository {
 
   Future<void> setCategoryVertical(bool vertical) =>
       prefs.setBool(_categoryVerticalKey, vertical);
+
+  /// Promo lines that rotate on the customer display while no order is being
+  /// rung up. Empty = just show the business name.
+  List<String> get displayPromoLines =>
+      prefs.getStringList(_displayPromoKey) ?? const [];
+
+  Future<void> setDisplayPromoLines(List<String> lines) =>
+      prefs.setStringList(_displayPromoKey, lines);
 
   /// Whether the first-run welcome (pointing to the user guide) has been shown.
   bool get helpSeen => prefs.getBool(_helpSeenKey) ?? false;

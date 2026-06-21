@@ -67,6 +67,23 @@ final categoryVerticalProvider =
       CategoryVerticalNotifier.new,
     );
 
+/// Promo lines shown on the customer display while idle.
+class DisplayPromoNotifier extends Notifier<List<String>> {
+  @override
+  List<String> build() =>
+      ref.watch(settingsRepositoryProvider).displayPromoLines;
+
+  Future<void> set(List<String> lines) async {
+    await ref.read(settingsRepositoryProvider).setDisplayPromoLines(lines);
+    ref.invalidateSelf();
+  }
+}
+
+final displayPromoProvider =
+    NotifierProvider<DisplayPromoNotifier, List<String>>(
+      DisplayPromoNotifier.new,
+    );
+
 class ReceiptConfigNotifier extends Notifier<domain.ReceiptConfig> {
   @override
   domain.ReceiptConfig build() =>

@@ -1457,8 +1457,26 @@ abstract class AppLocalizations {
   /// No description provided for @setCustomerDisplayHint.
   ///
   /// In en, this message translates to:
-  /// **'Opens a window for the extended monitor; drag it to the customer-facing screen.'**
+  /// **'Opens a window for the extended monitor; drag it to the customer-facing screen. Shows the order while ringing up, promos when idle.'**
   String get setCustomerDisplayHint;
+
+  /// No description provided for @setDisplayPromo.
+  ///
+  /// In en, this message translates to:
+  /// **'Promo messages'**
+  String get setDisplayPromo;
+
+  /// No description provided for @setDisplayPromoNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None — shows the business name when idle.'**
+  String get setDisplayPromoNone;
+
+  /// No description provided for @setDisplayPromoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'One message per line; they rotate on the idle screen.'**
+  String get setDisplayPromoHint;
 
   /// No description provided for @setPrintQueue.
   ///

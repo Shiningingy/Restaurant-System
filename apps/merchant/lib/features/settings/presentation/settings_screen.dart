@@ -214,7 +214,20 @@ class SettingsScreen extends ConsumerWidget {
             subtitle: Text(context.l10n.setCustomerDisplayHint),
             onTap: () => ref
                 .read(customerDisplayProvider)
-                .open(businessName: receiptConfig.businessName),
+                .open(
+                  businessName: receiptConfig.businessName,
+                  promoLines: ref.read(displayPromoProvider),
+                ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.campaign_outlined),
+            title: Text(context.l10n.setDisplayPromo),
+            subtitle: Text(
+              ref.watch(displayPromoProvider).isEmpty
+                  ? context.l10n.setDisplayPromoNone
+                  : ref.watch(displayPromoProvider).join(' · '),
+            ),
+            onTap: () => _editPromo(context, ref),
           ),
           if (printJobs.isNotEmpty) ...[
             Padding(
@@ -372,6 +385,44 @@ class SettingsScreen extends ConsumerWidget {
     final percent = double.tryParse(controller.text);
     if (saved == true && percent != null && percent >= 0 && percent < 100) {
       await ref.read(taxRateBpProvider.notifier).setBp((percent * 100).round());
+    }
+  }
+
+  Future<void> _editPromo(BuildContext context, WidgetRef ref) async {
+    final controller = TextEditingController(
+      text: ref.read(displayPromoProvider).join('\n'),
+    );
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.l10n.setDisplayPromo),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLines: 6,
+          decoration: InputDecoration(
+            helperText: context.l10n.setDisplayPromoHint,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(context.l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(context.l10n.commonSave),
+          ),
+        ],
+      ),
+    );
+    if (saved == true) {
+      final lines = controller.text
+          .split('\n')
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
+      await ref.read(displayPromoProvider.notifier).set(lines);
     }
   }
 

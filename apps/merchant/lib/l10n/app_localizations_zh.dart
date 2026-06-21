@@ -788,7 +788,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get setOpenCustomerDisplay => '打开顾客显示屏';
 
   @override
-  String get setCustomerDisplayHint => '打开一个用于扩展显示器的窗口；将其拖到面向顾客的屏幕。';
+  String get setCustomerDisplayHint =>
+      '打开一个用于扩展显示器的窗口；将其拖到面向顾客的屏幕。点单时显示订单，空闲时显示促销。';
+
+  @override
+  String get setDisplayPromo => '促销信息';
+
+  @override
+  String get setDisplayPromoNone => '无 — 空闲时显示商家名称。';
+
+  @override
+  String get setDisplayPromoHint => '每行一条信息；将在空闲屏幕轮播。';
 
   @override
   String get setPrintQueue => '打印队列';

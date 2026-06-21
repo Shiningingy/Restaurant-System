@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:desktop_multi_window/desktop_multi_window.dart';
@@ -27,6 +28,9 @@ class CustomerDisplayApp extends StatelessWidget {
       home: CustomerDisplayScreen(
         windowController: windowController,
         businessName: args['businessName'] as String? ?? '',
+        promoLines:
+            (args['promo'] as List?)?.map((e) => e.toString()).toList() ??
+            const [],
       ),
     );
   }
@@ -38,11 +42,13 @@ class CustomerDisplayApp extends StatelessWidget {
 class CustomerDisplayScreen extends StatefulWidget {
   final WindowController windowController;
   final String businessName;
+  final List<String> promoLines;
 
   const CustomerDisplayScreen({
     super.key,
     required this.windowController,
     required this.businessName,
+    this.promoLines = const [],
   });
 
   @override
@@ -51,6 +57,8 @@ class CustomerDisplayScreen extends StatefulWidget {
 
 class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
   Map<String, dynamic>? _order;
+  Timer? _promoTimer;
+  int _promoIndex = 0;
 
   @override
   void initState() {
@@ -68,6 +76,22 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
       }
       return null;
     });
+    // Rotate promo lines while idle.
+    if (widget.promoLines.length > 1) {
+      _promoTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+        if (mounted) {
+          setState(
+            () => _promoIndex = (_promoIndex + 1) % widget.promoLines.length,
+          );
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _promoTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -75,7 +99,7 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
     final order = _order;
     final lines = (order?['lines'] as List?) ?? const [];
     final hasOrder = lines.isNotEmpty;
-    final theme = Theme.of(context);
+    // Idle: passive promo. Order active: live mirror. (Auto-switch.)
     return Scaffold(
       body: hasOrder
           ? _OrderMirror(
@@ -83,28 +107,60 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
               lines: lines.cast<Map<String, dynamic>>(),
               total: order?['total'] as String? ?? '',
             )
-          : Container(
-              color: theme.colorScheme.primaryContainer,
-              alignment: Alignment.center,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.restaurant,
-                    size: 120,
-                    color: theme.colorScheme.onPrimaryContainer,
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    widget.businessName.isEmpty
-                        ? 'Welcome'
-                        : widget.businessName,
-                    style: theme.textTheme.displayMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+          : _IdlePromo(
+              businessName: widget.businessName,
+              promo: widget.promoLines.isEmpty
+                  ? null
+                  : widget.promoLines[_promoIndex % widget.promoLines.length],
+            ),
+    );
+  }
+}
+
+/// The idle / promo screen: business name with a rotating promo line beneath.
+class _IdlePromo extends StatelessWidget {
+  final String businessName;
+  final String? promo;
+
+  const _IdlePromo({required this.businessName, required this.promo});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      color: theme.colorScheme.primaryContainer,
+      alignment: Alignment.center,
+      padding: const EdgeInsets.all(48),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.restaurant,
+            size: 120,
+            color: theme.colorScheme.onPrimaryContainer,
+          ),
+          const SizedBox(height: 24),
+          Text(
+            businessName.isEmpty ? 'Welcome' : businessName,
+            style: theme.textTheme.displayMedium,
+            textAlign: TextAlign.center,
+          ),
+          if (promo != null && promo!.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 400),
+              child: Text(
+                promo!,
+                key: ValueKey(promo),
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  color: theme.colorScheme.onPrimaryContainer,
+                ),
+                textAlign: TextAlign.center,
               ),
             ),
+          ],
+        ],
+      ),
     );
   }
 }
