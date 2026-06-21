@@ -18,9 +18,9 @@ class PrintService {
   final TablesRepository tables;
   final SettingsRepository settings;
 
-  /// Built per attempt so settings changes apply without a restart;
-  /// returns null while no printer is configured.
-  final domain.PrinterDriver? Function() buildDriver;
+  /// Built per attempt (for the job's destination printer) so settings changes
+  /// apply without a restart; returns null while that printer isn't configured.
+  final domain.PrinterDriver? Function(domain.PrintJobKind kind) buildDriver;
 
   /// Delay before retry [attempt]; injectable so tests run instantly.
   final Future<void> Function(int attempt) backoff;
@@ -56,9 +56,12 @@ class PrintService {
     await _enqueue(domain.PrintJobKind.customerReceipt, doc, orderId);
   }
 
-  /// Bypasses the queue for immediate feedback in Settings.
-  Future<domain.Result<void, domain.PrintError>> printTestPage() async {
-    final driver = buildDriver();
+  /// Bypasses the queue for immediate feedback in Settings. [kind] selects the
+  /// destination printer to test (kitchenTicket → kitchen, else receipt).
+  Future<domain.Result<void, domain.PrintError>> printTestPage({
+    domain.PrintJobKind kind = domain.PrintJobKind.testPage,
+  }) async {
+    final driver = buildDriver(kind);
     if (driver == null) {
       return const domain.Err(
         domain.PrintError('No printer configured', isRetryable: false),
@@ -82,7 +85,7 @@ class PrintService {
       domain.PrintJobData(
         id: domain.newId(),
         kind: domain.PrintJobKind.testPage,
-        payload: _encode(doc),
+        payload: _encode(doc, kind),
       ),
     );
   }
@@ -133,18 +136,33 @@ class PrintService {
       payments: await payments.paymentsForOrder(orderId),
       tableLabel: tableLabel,
       showSecondName: nameDisplay.receipt,
+      openDrawer: settings
+          .printerFor(domain.PrintJobKind.customerReceipt)
+          .openDrawer,
     );
   }
 
-  List<int> _encode(domain.TicketDoc doc) =>
-      domain.EscPos.encode(doc, widthChars: settings.printer.paperWidthChars);
+  /// Renders [doc] for the destination printer of [kind] — its paper width and
+  /// character set.
+  List<int> _encode(domain.TicketDoc doc, domain.PrintJobKind kind) {
+    final cfg = settings.printerFor(kind);
+    return domain.EscPos.encode(
+      doc,
+      widthChars: cfg.paperWidthChars,
+      charset: cfg.charset,
+    );
+  }
 
   Future<void> _enqueue(
     domain.PrintJobKind kind,
     domain.TicketDoc doc,
     String orderId,
   ) async {
-    await jobs.enqueue(kind: kind, payload: _encode(doc), orderId: orderId);
+    await jobs.enqueue(
+      kind: kind,
+      payload: _encode(doc, kind),
+      orderId: orderId,
+    );
     kick();
   }
 
@@ -152,7 +170,7 @@ class PrintService {
     while (true) {
       final job = await jobs.nextQueued();
       if (job == null) return;
-      final driver = buildDriver();
+      final driver = buildDriver(job.kind);
       if (driver == null) {
         await jobs.markFailed(job.id, 'No printer configured');
         continue;

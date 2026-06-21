@@ -726,7 +726,48 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get setPrinterNotConfigured => '未配置。通过局域网使用 ESC/POS（端口 9100）。';
+  String get setPrinterNotConfigured => '未配置。';
+
+  @override
+  String setPrinterConfiguredUsb(String name, String width) {
+    return '$name — ${width}mm 纸';
+  }
+
+  @override
+  String get setPrinterKitchen => '厨房打印机';
+
+  @override
+  String get setPrinterReceipt => '收据打印机';
+
+  @override
+  String get setTransportNetwork => '网络';
+
+  @override
+  String get setTransportWindows => 'USB / Windows';
+
+  @override
+  String get setWindowsPrinter => 'Windows 打印机';
+
+  @override
+  String get setWindowsPrinterNone => '未找到打印机。请先在 Windows 中安装打印机，然后刷新。';
+
+  @override
+  String get setRefresh => '刷新';
+
+  @override
+  String get setPaperWidth => '纸张宽度';
+
+  @override
+  String get setCharset => '文字编码';
+
+  @override
+  String get setCharsetWestern => '西文';
+
+  @override
+  String get setCharsetChinese => '中文';
+
+  @override
+  String get setOpenDrawer => '打印收据时打开钱箱';
 
   @override
   String get setBusinessNameOnReceipts => '小票上的商家名称';

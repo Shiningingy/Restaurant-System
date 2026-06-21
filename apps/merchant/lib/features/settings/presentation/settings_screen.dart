@@ -10,9 +10,11 @@ import '../../../core/l10n_ext.dart';
 import '../../../core/settings/providers.dart';
 import '../../../core/settings/settings_repository.dart';
 import '../../../core/supabase_auth.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../help/presentation/help_screen.dart';
 import '../../printing/application/providers.dart';
 import '../../printing/data/printer_discovery.dart';
+import '../../printing/drivers/windows_printers.dart';
 import '../../sync/application/providers.dart';
 import '../../sync/data/sync_settings.dart';
 import 'storefront_qr_dialog.dart';
@@ -26,7 +28,7 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final taxRateBp = ref.watch(taxRateBpProvider);
     final tables = ref.watch(tablesProvider).value ?? const [];
-    final printer = ref.watch(printerSettingsProvider);
+    final printers = ref.watch(printersProvider);
     final receiptConfig = ref.watch(receiptConfigProvider);
     final printJobs = ref.watch(printJobsProvider).value ?? const [];
     final localePref = ref.watch(localePreferenceProvider);
@@ -133,37 +135,39 @@ class SettingsScreen extends ConsumerWidget {
             subtitle: Text(context.l10n.setCardTerminalManualSubtitle),
           ),
           const Divider(height: 32),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                context.l10n.setPrinting,
-                style: Theme.of(context).textTheme.titleMedium,
+          Text(
+            context.l10n.setPrinting,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          for (final role in PrinterRole.values)
+            ListTile(
+              leading: Icon(
+                role == PrinterRole.kitchen
+                    ? Icons.soup_kitchen_outlined
+                    : Icons.receipt_long_outlined,
               ),
-              if (printer.isConfigured)
-                TextButton.icon(
-                  onPressed: () => _testPrint(context, ref),
-                  icon: const Icon(Icons.print_outlined),
-                  label: Text(context.l10n.setTestPrint),
-                ),
-            ],
-          ),
-          ListTile(
-            leading: const Icon(Icons.print_outlined),
-            title: Text(context.l10n.setNetworkPrinter),
-            subtitle: Text(
-              printer.isConfigured
-                  ? context.l10n.setPrinterConfigured(
-                      printer.host!,
-                      printer.port,
-                      printer.paperWidthChars == domain.EscPos.width58mm
-                          ? '58'
-                          : '80',
+              title: Text(
+                role == PrinterRole.kitchen
+                    ? context.l10n.setPrinterKitchen
+                    : context.l10n.setPrinterReceipt,
+              ),
+              subtitle: Text(_printerSummary(context, printers[role]!)),
+              trailing: printers[role]!.isConfigured
+                  ? IconButton(
+                      icon: const Icon(Icons.print_outlined),
+                      tooltip: context.l10n.setTestPrint,
+                      onPressed: () => _testPrint(
+                        context,
+                        ref,
+                        role == PrinterRole.kitchen
+                            ? domain.PrintJobKind.kitchenTicket
+                            : domain.PrintJobKind.testPage,
+                      ),
                     )
-                  : context.l10n.setPrinterNotConfigured,
+                  : null,
+              onTap: () =>
+                  _editPrinterConfig(context, ref, role, printers[role]!),
             ),
-            onTap: () => _editPrinter(context, ref, printer),
-          ),
           ListTile(
             leading: const Icon(Icons.storefront_outlined),
             title: Text(context.l10n.setBusinessNameOnReceipts),
@@ -357,10 +361,24 @@ class SettingsScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _testPrint(BuildContext context, WidgetRef ref) async {
+  String _printerSummary(BuildContext context, PrinterConfig cfg) {
+    if (!cfg.isConfigured) return context.l10n.setPrinterNotConfigured;
+    final width = cfg.paperWidthChars == domain.EscPos.width58mm ? '58' : '80';
+    return cfg.transport == domain.PrinterTransport.network
+        ? context.l10n.setPrinterConfigured(cfg.host!, cfg.port, width)
+        : context.l10n.setPrinterConfiguredUsb(cfg.windowsPrinterName!, width);
+  }
+
+  Future<void> _testPrint(
+    BuildContext context,
+    WidgetRef ref,
+    domain.PrintJobKind kind,
+  ) async {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
-    final result = await ref.read(printServiceProvider).printTestPage();
+    final result = await ref
+        .read(printServiceProvider)
+        .printTestPage(kind: kind);
     messenger.showSnackBar(
       SnackBar(
         content: Text(
@@ -373,17 +391,18 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _editPrinter(
+  Future<void> _editPrinterConfig(
     BuildContext context,
     WidgetRef ref,
-    PrinterSettings current,
+    PrinterRole role,
+    PrinterConfig current,
   ) async {
-    final result = await showDialog<PrinterSettings>(
+    final result = await showDialog<PrinterConfig>(
       context: context,
-      builder: (context) => _PrinterDialog(current: current),
+      builder: (context) => _PrinterConfigDialog(role: role, current: current),
     );
     if (result != null) {
-      await ref.read(printerSettingsProvider.notifier).save(result);
+      await ref.read(printersProvider.notifier).save(role, result);
       // A reachable printer may now be configured: retry what's queued.
       ref.read(printServiceProvider).kick();
     }
@@ -542,22 +561,29 @@ class _PrintJobTile extends ConsumerWidget {
   }
 }
 
-/// Network-printer setup with a "search" that scans the local network (wired
-/// and Wi-Fi) for ESC/POS printers, plus manual host/port + paper width.
-/// Returns the chosen [PrinterSettings] on save, or null if cancelled.
-class _PrinterDialog extends StatefulWidget {
-  final PrinterSettings current;
+/// Configures one printer (kitchen or receipt): connection (network host:port
+/// or a Windows-installed printer), paper width, text encoding, and — for the
+/// receipt printer — whether to kick the cash drawer. Returns the chosen
+/// [PrinterConfig] on save, or null if cancelled.
+class _PrinterConfigDialog extends StatefulWidget {
+  final PrinterRole role;
+  final PrinterConfig current;
 
-  const _PrinterDialog({required this.current});
+  const _PrinterConfigDialog({required this.role, required this.current});
 
   @override
-  State<_PrinterDialog> createState() => _PrinterDialogState();
+  State<_PrinterConfigDialog> createState() => _PrinterConfigDialogState();
 }
 
-class _PrinterDialogState extends State<_PrinterDialog> {
+class _PrinterConfigDialogState extends State<_PrinterConfigDialog> {
+  late domain.PrinterTransport _transport;
   late final TextEditingController _host;
   late final TextEditingController _port;
   late int _widthChars;
+  late domain.TicketCharset _charset;
+  late bool _openDrawer;
+  String? _windowsPrinter;
+  List<String> _windowsPrinters = const [];
 
   final List<DiscoveredPrinter> _found = [];
   StreamSubscription<DiscoveredPrinter>? _scan;
@@ -566,9 +592,30 @@ class _PrinterDialogState extends State<_PrinterDialog> {
   @override
   void initState() {
     super.initState();
-    _host = TextEditingController(text: widget.current.host ?? '');
-    _port = TextEditingController(text: widget.current.port.toString());
-    _widthChars = widget.current.paperWidthChars;
+    final c = widget.current;
+    _transport = c.transport == domain.PrinterTransport.usb
+        ? domain.PrinterTransport.usb
+        : domain.PrinterTransport.network;
+    _host = TextEditingController(text: c.host ?? '');
+    _port = TextEditingController(text: c.port.toString());
+    _widthChars = c.paperWidthChars;
+    _charset = c.charset;
+    _openDrawer = c.openDrawer;
+    _windowsPrinter = c.windowsPrinterName;
+    _loadWindowsPrinters();
+  }
+
+  /// Lists Windows printers; keeps the saved name selectable even if listing
+  /// is empty (e.g. the printer is offline, or we're not on Windows).
+  void _loadWindowsPrinters() {
+    final list = WindowsPrinters.list();
+    final saved = _windowsPrinter;
+    setState(() {
+      _windowsPrinters =
+          (saved != null && saved.isNotEmpty && !list.contains(saved))
+          ? [saved, ...list]
+          : list;
+    });
   }
 
   @override
@@ -612,12 +659,16 @@ class _PrinterDialogState extends State<_PrinterDialog> {
   void _save() {
     Navigator.pop(
       context,
-      PrinterSettings(
+      PrinterConfig(
+        transport: _transport,
         host: _host.text.trim(),
         port:
             int.tryParse(_port.text.trim()) ??
             SettingsRepository.defaultPrinterPort,
+        windowsPrinterName: _windowsPrinter,
         paperWidthChars: _widthChars,
+        charset: _charset,
+        openDrawer: _openDrawer,
       ),
     );
   }
@@ -625,84 +676,97 @@ class _PrinterDialogState extends State<_PrinterDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final isNetwork = _transport == domain.PrinterTransport.network;
     return AlertDialog(
-      title: Text(l10n.setNetworkPrinter),
+      title: Text(
+        widget.role == PrinterRole.kitchen
+            ? l10n.setPrinterKitchen
+            : l10n.setPrinterReceipt,
+      ),
       content: SizedBox(
-        width: 400,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            OutlinedButton.icon(
-              onPressed: _toggleScan,
-              icon: _scanning
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.wifi_find_outlined),
-              label: Text(
-                _scanning ? l10n.setPrinterSearching : l10n.setPrinterSearch,
+        width: 420,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SegmentedButton<domain.PrinterTransport>(
+                segments: [
+                  ButtonSegment(
+                    value: domain.PrinterTransport.network,
+                    label: Text(l10n.setTransportNetwork),
+                    icon: const Icon(Icons.lan_outlined),
+                  ),
+                  ButtonSegment(
+                    value: domain.PrinterTransport.usb,
+                    label: Text(l10n.setTransportWindows),
+                    icon: const Icon(Icons.usb),
+                  ),
+                ],
+                selected: {_transport},
+                onSelectionChanged: (s) => setState(() => _transport = s.first),
               ),
-            ),
-            if (_found.isNotEmpty || _scanning) ...[
-              const SizedBox(height: 8),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 160),
-                child: _found.isEmpty
-                    ? Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          l10n.setPrinterSearching,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      )
-                    : ListView(
-                        shrinkWrap: true,
-                        children: [
-                          for (final p in _found)
-                            ListTile(
-                              dense: true,
-                              leading: const Icon(Icons.print_outlined),
-                              title: Text('${p.host}:${p.port}'),
-                              onTap: () => _pick(p),
-                            ),
-                        ],
-                      ),
+              const SizedBox(height: 16),
+              if (isNetwork)
+                ..._networkFields(l10n)
+              else
+                ..._windowsFields(l10n),
+              const SizedBox(height: 16),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  l10n.setPaperWidth,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
               ),
+              const SizedBox(height: 4),
+              SegmentedButton<int>(
+                segments: [
+                  ButtonSegment(
+                    value: domain.EscPos.width58mm,
+                    label: Text(l10n.setPaper58),
+                  ),
+                  ButtonSegment(
+                    value: domain.EscPos.width80mm,
+                    label: Text(l10n.setPaper80),
+                  ),
+                ],
+                selected: {_widthChars},
+                onSelectionChanged: (s) =>
+                    setState(() => _widthChars = s.first),
+              ),
+              const SizedBox(height: 16),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  l10n.setCharset,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+              const SizedBox(height: 4),
+              SegmentedButton<domain.TicketCharset>(
+                segments: [
+                  ButtonSegment(
+                    value: domain.TicketCharset.western,
+                    label: Text(l10n.setCharsetWestern),
+                  ),
+                  ButtonSegment(
+                    value: domain.TicketCharset.chinese,
+                    label: Text(l10n.setCharsetChinese),
+                  ),
+                ],
+                selected: {_charset},
+                onSelectionChanged: (s) => setState(() => _charset = s.first),
+              ),
+              if (widget.role == PrinterRole.receipt)
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(l10n.setOpenDrawer),
+                  value: _openDrawer,
+                  onChanged: (v) => setState(() => _openDrawer = v),
+                ),
             ],
-            if (!_scanning && _found.isEmpty) const SizedBox(height: 8),
-            const Divider(),
-            TextField(
-              controller: _host,
-              decoration: InputDecoration(
-                labelText: l10n.setPrinterIp,
-                helperText: l10n.setPrinterIpHelper,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _port,
-              decoration: InputDecoration(labelText: l10n.setPort),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 16),
-            SegmentedButton<int>(
-              segments: [
-                ButtonSegment(
-                  value: domain.EscPos.width58mm,
-                  label: Text(l10n.setPaper58),
-                ),
-                ButtonSegment(
-                  value: domain.EscPos.width80mm,
-                  label: Text(l10n.setPaper80),
-                ),
-              ],
-              selected: {_widthChars},
-              onSelectionChanged: (s) => setState(() => _widthChars = s.first),
-            ),
-          ],
+          ),
         ),
       ),
       actions: [
@@ -714,6 +778,99 @@ class _PrinterDialogState extends State<_PrinterDialog> {
       ],
     );
   }
+
+  List<Widget> _networkFields(AppLocalizations l10n) => [
+    OutlinedButton.icon(
+      onPressed: _toggleScan,
+      icon: _scanning
+          ? const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.wifi_find_outlined),
+      label: Text(_scanning ? l10n.setPrinterSearching : l10n.setPrinterSearch),
+    ),
+    if (_found.isNotEmpty || _scanning) ...[
+      const SizedBox(height: 8),
+      ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 160),
+        child: _found.isEmpty
+            ? Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  l10n.setPrinterSearching,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              )
+            : ListView(
+                shrinkWrap: true,
+                children: [
+                  for (final p in _found)
+                    ListTile(
+                      dense: true,
+                      leading: const Icon(Icons.print_outlined),
+                      title: Text('${p.host}:${p.port}'),
+                      onTap: () => _pick(p),
+                    ),
+                ],
+              ),
+      ),
+    ],
+    const SizedBox(height: 8),
+    TextField(
+      controller: _host,
+      decoration: InputDecoration(
+        labelText: l10n.setPrinterIp,
+        helperText: l10n.setPrinterIpHelper,
+      ),
+    ),
+    const SizedBox(height: 8),
+    TextField(
+      controller: _port,
+      decoration: InputDecoration(labelText: l10n.setPort),
+      keyboardType: TextInputType.number,
+    ),
+  ];
+
+  List<Widget> _windowsFields(AppLocalizations l10n) => [
+    Row(
+      children: [
+        Expanded(
+          child: DropdownButtonFormField<String>(
+            initialValue:
+                (_windowsPrinter != null &&
+                    _windowsPrinters.contains(_windowsPrinter))
+                ? _windowsPrinter
+                : null,
+            isExpanded: true,
+            decoration: InputDecoration(labelText: l10n.setWindowsPrinter),
+            items: [
+              for (final name in _windowsPrinters)
+                DropdownMenuItem(
+                  value: name,
+                  child: Text(name, overflow: TextOverflow.ellipsis),
+                ),
+            ],
+            onChanged: (v) => setState(() => _windowsPrinter = v),
+          ),
+        ),
+        IconButton(
+          tooltip: l10n.setRefresh,
+          onPressed: _loadWindowsPrinters,
+          icon: const Icon(Icons.refresh),
+        ),
+      ],
+    ),
+    if (_windowsPrinters.isEmpty)
+      Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Text(
+          l10n.setWindowsPrinterNone,
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ),
+  ];
 }
 
 /// Checkout pricing: a service fee on every order, the discount presets staff

@@ -1337,8 +1337,86 @@ abstract class AppLocalizations {
   /// No description provided for @setPrinterNotConfigured.
   ///
   /// In en, this message translates to:
-  /// **'Not configured. ESC/POS over LAN (port 9100).'**
+  /// **'Not configured.'**
   String get setPrinterNotConfigured;
+
+  /// No description provided for @setPrinterConfiguredUsb.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} — {width}mm paper'**
+  String setPrinterConfiguredUsb(String name, String width);
+
+  /// No description provided for @setPrinterKitchen.
+  ///
+  /// In en, this message translates to:
+  /// **'Kitchen printer'**
+  String get setPrinterKitchen;
+
+  /// No description provided for @setPrinterReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt printer'**
+  String get setPrinterReceipt;
+
+  /// No description provided for @setTransportNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Network'**
+  String get setTransportNetwork;
+
+  /// No description provided for @setTransportWindows.
+  ///
+  /// In en, this message translates to:
+  /// **'USB / Windows'**
+  String get setTransportWindows;
+
+  /// No description provided for @setWindowsPrinter.
+  ///
+  /// In en, this message translates to:
+  /// **'Windows printer'**
+  String get setWindowsPrinter;
+
+  /// No description provided for @setWindowsPrinterNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No printers found. Install the printer in Windows first, then refresh.'**
+  String get setWindowsPrinterNone;
+
+  /// No description provided for @setRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get setRefresh;
+
+  /// No description provided for @setPaperWidth.
+  ///
+  /// In en, this message translates to:
+  /// **'Paper width'**
+  String get setPaperWidth;
+
+  /// No description provided for @setCharset.
+  ///
+  /// In en, this message translates to:
+  /// **'Text encoding'**
+  String get setCharset;
+
+  /// No description provided for @setCharsetWestern.
+  ///
+  /// In en, this message translates to:
+  /// **'Western'**
+  String get setCharsetWestern;
+
+  /// No description provided for @setCharsetChinese.
+  ///
+  /// In en, this message translates to:
+  /// **'Chinese'**
+  String get setCharsetChinese;
+
+  /// No description provided for @setOpenDrawer.
+  ///
+  /// In en, this message translates to:
+  /// **'Open cash drawer on receipt'**
+  String get setOpenDrawer;
 
   /// No description provided for @setBusinessNameOnReceipts.
   ///

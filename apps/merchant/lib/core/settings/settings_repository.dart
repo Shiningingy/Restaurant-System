@@ -1,21 +1,65 @@
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Network printer configuration; null [host] means no printer set up.
-class PrinterSettings {
+/// The two printer roles a shop can configure independently. A kitchen ticket
+/// goes to [kitchen]; a customer receipt (and the cash-drawer kick) to
+/// [receipt]. A one-printer shop configures just one and the other falls back.
+enum PrinterRole { kitchen, receipt }
+
+/// Configuration for one printer. Transport is either a network printer
+/// (`network`, host:port over TCP 9100) or a Windows-installed printer
+/// (`usb`, addressed by name through the print spooler — covers USB, serial
+/// and shared printers on Windows).
+class PrinterConfig {
+  final domain.PrinterTransport transport;
+
+  /// Network transport.
   final String? host;
   final int port;
+
+  /// Windows-printer transport — the installed printer's name.
+  final String? windowsPrinterName;
 
   /// Characters per line: 48 for 80mm paper, 32 for 58mm.
   final int paperWidthChars;
 
-  const PrinterSettings({
-    required this.host,
-    required this.port,
-    required this.paperWidthChars,
+  /// Text encoding for this printer (Western ASCII vs Chinese/GBK).
+  final domain.TicketCharset charset;
+
+  /// Receipt role only: pulse the cash drawer after printing a receipt.
+  final bool openDrawer;
+
+  const PrinterConfig({
+    this.transport = domain.PrinterTransport.network,
+    this.host,
+    this.port = SettingsRepository.defaultPrinterPort,
+    this.windowsPrinterName,
+    this.paperWidthChars = domain.EscPos.width80mm,
+    this.charset = domain.TicketCharset.western,
+    this.openDrawer = false,
   });
 
-  bool get isConfigured => host != null && host!.isNotEmpty;
+  bool get isConfigured => transport == domain.PrinterTransport.network
+      ? host != null && host!.isNotEmpty
+      : windowsPrinterName != null && windowsPrinterName!.isNotEmpty;
+
+  PrinterConfig copyWith({
+    domain.PrinterTransport? transport,
+    String? host,
+    int? port,
+    String? windowsPrinterName,
+    int? paperWidthChars,
+    domain.TicketCharset? charset,
+    bool? openDrawer,
+  }) => PrinterConfig(
+    transport: transport ?? this.transport,
+    host: host ?? this.host,
+    port: port ?? this.port,
+    windowsPrinterName: windowsPrinterName ?? this.windowsPrinterName,
+    paperWidthChars: paperWidthChars ?? this.paperWidthChars,
+    charset: charset ?? this.charset,
+    openDrawer: openDrawer ?? this.openDrawer,
+  );
 }
 
 /// Where the optional bilingual second name is shown. Defaults match the
@@ -83,22 +127,72 @@ class SettingsRepository {
 
   Future<void> setTaxRateBp(int bp) => prefs.setInt(_taxRateBpKey, bp);
 
-  PrinterSettings get printer => PrinterSettings(
-    host: prefs.getString(_printerHostKey),
-    port: prefs.getInt(_printerPortKey) ?? defaultPrinterPort,
-    paperWidthChars: prefs.getInt(_paperWidthKey) ?? domain.EscPos.width80mm,
-  );
+  // --- Per-role printers (kitchen + receipt) ---
 
-  Future<void> setPrinter(PrinterSettings settings) async {
-    final host = settings.host;
-    if (host == null || host.isEmpty) {
-      await prefs.remove(_printerHostKey);
-    } else {
-      await prefs.setString(_printerHostKey, host);
+  String _rolePrefix(PrinterRole role) => 'printer.${role.name}';
+
+  /// The printer configured for [role]. When a role has no saved config yet,
+  /// falls back to the legacy single network printer so existing setups keep
+  /// printing until reconfigured.
+  PrinterConfig printerConfig(PrinterRole role) {
+    final p = _rolePrefix(role);
+    final transportName = prefs.getString('$p.transport');
+    if (transportName == null) {
+      return PrinterConfig(
+        host: prefs.getString(_printerHostKey),
+        port: prefs.getInt(_printerPortKey) ?? defaultPrinterPort,
+        paperWidthChars:
+            prefs.getInt(_paperWidthKey) ?? domain.EscPos.width80mm,
+      );
     }
-    await prefs.setInt(_printerPortKey, settings.port);
-    await prefs.setInt(_paperWidthKey, settings.paperWidthChars);
+    return PrinterConfig(
+      transport:
+          domain.PrinterTransport.values.asNameMap()[transportName] ??
+          domain.PrinterTransport.network,
+      host: prefs.getString('$p.host'),
+      port: prefs.getInt('$p.port') ?? defaultPrinterPort,
+      windowsPrinterName: prefs.getString('$p.win'),
+      paperWidthChars: prefs.getInt('$p.width') ?? domain.EscPos.width80mm,
+      charset:
+          domain.TicketCharset.values.asNameMap()[prefs.getString(
+            '$p.charset',
+          )] ??
+          domain.TicketCharset.western,
+      openDrawer: prefs.getBool('$p.drawer') ?? false,
+    );
   }
+
+  Future<void> setPrinterConfig(PrinterRole role, PrinterConfig c) async {
+    final p = _rolePrefix(role);
+    await prefs.setString('$p.transport', c.transport.name);
+    await _setOrRemove('$p.host', c.host);
+    await prefs.setInt('$p.port', c.port);
+    await _setOrRemove('$p.win', c.windowsPrinterName);
+    await prefs.setInt('$p.width', c.paperWidthChars);
+    await prefs.setString('$p.charset', c.charset.name);
+    await prefs.setBool('$p.drawer', c.openDrawer);
+  }
+
+  /// The printer a job of [kind] should print to. Kitchen tickets go to the
+  /// kitchen printer, receipts (and the test page) to the receipt printer;
+  /// either falls back to the other role when its own isn't configured.
+  PrinterConfig printerFor(domain.PrintJobKind kind) {
+    final primary = kind == domain.PrintJobKind.kitchenTicket
+        ? PrinterRole.kitchen
+        : PrinterRole.receipt;
+    final cfg = printerConfig(primary);
+    if (cfg.isConfigured) return cfg;
+    final other = primary == PrinterRole.kitchen
+        ? PrinterRole.receipt
+        : PrinterRole.kitchen;
+    final fallback = printerConfig(other);
+    return fallback.isConfigured ? fallback : cfg;
+  }
+
+  Future<void> _setOrRemove(String key, String? value) =>
+      (value == null || value.isEmpty)
+      ? prefs.remove(key)
+      : prefs.setString(key, value);
 
   /// Restaurant identity printed on customer receipts.
   domain.ReceiptConfig get receiptConfig => domain.ReceiptConfig(

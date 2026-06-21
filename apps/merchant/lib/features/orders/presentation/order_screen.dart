@@ -459,7 +459,7 @@ class _Ticket extends ConsumerWidget {
   Future<void> _sendToKitchen(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
-    if (!ref.read(printerSettingsProvider).isConfigured) {
+    if (!ref.read(receiptPrinterReadyProvider)) {
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.ordNoPrinterConfigured)),
       );
@@ -538,7 +538,7 @@ class _Ticket extends ConsumerWidget {
     switch (result.status) {
       case PaymentFlowStatus.approved:
         if (result.orderClosed) {
-          if (ref.read(printerSettingsProvider).isConfigured) {
+          if (ref.read(receiptPrinterReadyProvider)) {
             await ref.read(printServiceProvider).printCustomerReceipt(order.id);
           }
           if (context.mounted) context.go('/orders');
