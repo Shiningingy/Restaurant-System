@@ -10,7 +10,10 @@ import '../drivers/supabase_sync_backend.dart';
 import 'sync_service.dart';
 
 final syncSettingsProvider = Provider<SyncSettings>(
-  (ref) => SyncSettings(ref.watch(sharedPreferencesProvider)),
+  (ref) => SyncSettings(
+    ref.watch(sharedPreferencesProvider),
+    ref.watch(secureStoreProvider),
+  ),
 );
 
 /// The restaurant's Supabase login. Cloud features (sync, online orders)

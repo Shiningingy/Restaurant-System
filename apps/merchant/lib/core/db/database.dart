@@ -1,6 +1,11 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart';
-import 'package:drift_flutter/drift_flutter.dart';
+import 'package:drift/native.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
+import 'package:sqlite3/sqlite3.dart' as sqlite;
 
 import 'tables.dart';
 
@@ -29,7 +34,71 @@ class AppDatabase extends _$AppDatabase {
   /// Tests pass `NativeDatabase.memory()`; production uses [AppDatabase.open].
   AppDatabase(super.e);
 
-  AppDatabase.open() : super(driftDatabase(name: 'restaurant_pos'));
+  /// Opens the on-disk database encrypted at rest with [dbKey] (SQLCipher via
+  /// the SQLite3MultipleCiphers build — see the `sqlite3mc` hook in the root
+  /// pubspec). [dbKey] comes from OS-encrypted secure storage and never leaves
+  /// the device, so the file is unreadable if copied to another machine/user.
+  AppDatabase.open(String dbKey) : super(_connect(dbKey));
+
+  static LazyDatabase _connect(String dbKey) => LazyDatabase(() async {
+    final dir = await getApplicationDocumentsDirectory();
+    final file = File(p.join(dir.path, 'restaurant_pos.sqlite'));
+    await _migratePlaintextIfNeeded(file, dbKey);
+    return NativeDatabase.createInBackground(
+      file,
+      setup: (raw) {
+        assert(
+          _hasCipher(raw),
+          'SQLite was built without encryption — check the sqlite3mc hook.',
+        );
+        raw.execute("PRAGMA key = '${_escapeKey(dbKey)}';");
+      },
+    );
+  });
+
+  static String _escapeKey(String key) => key.replaceAll("'", "''");
+
+  static bool _hasCipher(sqlite.Database db) =>
+      db.select('PRAGMA cipher_version;').isNotEmpty;
+
+  /// One-time upgrade path: if an older **unencrypted** database file is found,
+  /// encrypt it in place via `PRAGMA rekey`. A backup is kept until the rekey
+  /// succeeds so a crash mid-migration can never lose data. A fresh install has
+  /// no file and skips straight to creating an encrypted one.
+  static Future<void> _migratePlaintextIfNeeded(File file, String dbKey) async {
+    if (!file.existsSync()) return;
+
+    // A plaintext DB reads its header with no key; an already-encrypted one
+    // throws until `PRAGMA key` is set — that's how we tell them apart.
+    final probe = sqlite.sqlite3.open(file.path);
+    bool plaintext;
+    try {
+      probe.select('PRAGMA schema_version;');
+      plaintext = true;
+    } catch (_) {
+      plaintext = false;
+    } finally {
+      probe.close();
+    }
+    if (!plaintext) return;
+
+    final backup = File('${file.path}.premigration.bak');
+    file.copySync(backup.path);
+    try {
+      final db = sqlite.sqlite3.open(file.path);
+      try {
+        db.execute("PRAGMA rekey = '${_escapeKey(dbKey)}';");
+      } finally {
+        db.close();
+      }
+      backup.deleteSync(); // success — drop the plaintext copy
+    } catch (_) {
+      // Restore the original and surface the error; never leave data behind.
+      backup.copySync(file.path);
+      backup.deleteSync();
+      rethrow;
+    }
+  }
 
   @override
   int get schemaVersion => 8;

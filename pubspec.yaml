@@ -9,3 +9,11 @@ workspace:
   - packages/domain
   - apps/merchant
   - apps/customer
+
+# Build the bundled SQLite with the Multiple Ciphers extension so the merchant
+# database can be encrypted at rest (SQLCipher-compatible, bundled crypto — no
+# OpenSSL, builds cleanly on Windows). Drift opens it with `PRAGMA key`.
+hooks:
+  user_defines:
+    sqlite3:
+      source: sqlite3mc
