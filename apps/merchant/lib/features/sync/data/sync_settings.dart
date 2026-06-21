@@ -1,6 +1,8 @@
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../core/secure/secure_store.dart';
+
 /// Cleans a pasted Supabase URL: trims it and prepends `https://` when no
 /// scheme is given (otherwise `Uri.parse` yields no host and every request
 /// throws "No host specified in URI"). Shared by merchant + customer entry.
@@ -42,11 +44,20 @@ class SyncSettings {
   final SharedPreferences? _prefs;
   final Map<String, String> _mem;
 
-  SyncSettings(SharedPreferences prefs) : _prefs = prefs, _mem = {};
+  /// OS-encrypted storage for the refresh token (the one real secret here).
+  /// Null in unit tests, which fall back to the in-memory/prefs store so no
+  /// platform channels are needed.
+  final SecureStore? _secure;
+
+  /// In-memory mirror of the refresh token, so the sync getters stay
+  /// synchronous. Loaded by [warmRefreshToken] at startup.
+  String? _refreshToken;
+
+  SyncSettings(this._prefs, [this._secure]) : _mem = {};
 
   /// In-memory backing — for tests that need several independent devices
   /// (the global shared_preferences mock is a single shared store).
-  SyncSettings.inMemory() : _prefs = null, _mem = {};
+  SyncSettings.inMemory() : _prefs = null, _mem = {}, _secure = null;
 
   String? _get(String key) => _prefs?.getString(key) ?? _mem[key];
 
@@ -113,27 +124,65 @@ class SyncSettings {
       _set(_lastAtKey, value.toIso8601String());
 
   // --- Restaurant Supabase login (cloud features require it) ---
+  //
+  // The email is not secret and stays in shared_preferences; the refresh token
+  // is the one credential that grants remote cloud access, so it lives in
+  // OS-encrypted secure storage ([_secure]). Tests with no SecureStore keep the
+  // old in-memory/prefs behaviour.
 
   String? get restaurantEmail => _get(_restaurantEmailKey);
-  String? get restaurantRefreshToken => _get(_restaurantRefreshKey);
+
+  String? get restaurantRefreshToken =>
+      _secure != null ? _refreshToken : _get(_restaurantRefreshKey);
+
   bool get isSignedIn => restaurantRefreshToken != null;
+
+  /// Loads the refresh token from secure storage into memory so the sync
+  /// getters can stay synchronous, migrating a token left in shared_preferences
+  /// by an older (pre-encryption) build. Call once at startup before sync runs.
+  Future<void> warmRefreshToken() async {
+    if (_secure == null) return;
+    _refreshToken = await _secure.readRefreshToken();
+    if (_refreshToken == null) {
+      final legacy = _prefs?.getString(_restaurantRefreshKey);
+      if (legacy != null && legacy.isNotEmpty) {
+        await _secure.writeRefreshToken(legacy);
+        await _prefs?.remove(_restaurantRefreshKey);
+        _refreshToken = legacy;
+      }
+    }
+  }
 
   Future<void> saveRestaurantSession({
     required String email,
     required String refreshToken,
   }) async {
     await _set(_restaurantEmailKey, email);
-    await _set(_restaurantRefreshKey, refreshToken);
+    await _writeRefreshToken(refreshToken);
   }
 
   /// Persists a rotated refresh token (after a refresh) without touching the
   /// stored email. Keeps the saved token from going stale, which otherwise
   /// makes the next launch's refresh fail with a 400.
   Future<void> updateRestaurantRefreshToken(String refreshToken) =>
-      _set(_restaurantRefreshKey, refreshToken);
+      _writeRefreshToken(refreshToken);
+
+  Future<void> _writeRefreshToken(String token) async {
+    if (_secure != null) {
+      _refreshToken = token;
+      await _secure.writeRefreshToken(token);
+    } else {
+      await _set(_restaurantRefreshKey, token);
+    }
+  }
 
   Future<void> clearRestaurantSession() async {
     await _remove(_restaurantEmailKey);
-    await _remove(_restaurantRefreshKey);
+    if (_secure != null) {
+      _refreshToken = null;
+      await _secure.clearRefreshToken();
+    } else {
+      await _remove(_restaurantRefreshKey);
+    }
   }
 }

@@ -2,6 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'db/database.dart';
+import 'secure/secure_store.dart';
+
+/// OS-encrypted storage for the DB key and the cloud refresh token.
+final secureStoreProvider = Provider<SecureStore>((ref) => SecureStore());
 
 /// The database encryption key, overridden in main() after it is read from
 /// (or created in) OS-encrypted secure storage. Never overridden in tests —

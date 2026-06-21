@@ -22,6 +22,9 @@ Future<void> main() async {
       dbKeyProvider.overrideWithValue(dbKey),
     ],
   );
+  // Load the cloud refresh token from secure storage (migrating any token left
+  // in shared_preferences by an older build) before sync reads it.
+  await container.read(syncSettingsProvider).warmRefreshToken();
   // Resume any print jobs interrupted by the last shutdown.
   await container.read(printServiceProvider).start();
   // Best-effort cloud sync on launch (no-op when not configured); never
