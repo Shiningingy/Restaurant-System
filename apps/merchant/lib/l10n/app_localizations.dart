@@ -254,6 +254,24 @@ abstract class AppLocalizations {
   /// **'Orders'**
   String get ordersStaffSection;
 
+  /// No description provided for @ordStatusOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get ordStatusOpen;
+
+  /// No description provided for @ordStatusPreparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing'**
+  String get ordStatusPreparing;
+
+  /// No description provided for @ordStatusSelfOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Self-order'**
+  String get ordStatusSelfOrder;
+
   /// No description provided for @ordersLoadFailed.
   ///
   /// In en, this message translates to:

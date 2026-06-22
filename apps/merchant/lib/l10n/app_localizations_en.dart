@@ -90,6 +90,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ordersStaffSection => 'Orders';
 
   @override
+  String get ordStatusOpen => 'Open';
+
+  @override
+  String get ordStatusPreparing => 'Preparing';
+
+  @override
+  String get ordStatusSelfOrder => 'Self-order';
+
+  @override
   String ordersLoadFailed(String error) {
     return 'Failed to load orders: $error';
   }

@@ -36,6 +36,9 @@
   "ordersEmpty": "No open orders — start a dine-in or takeout order.",
   "ordersSelfOrderSection": "Self-order (unpaid)",
   "ordersStaffSection": "Orders",
+  "ordStatusOpen": "Open",
+  "ordStatusPreparing": "Preparing",
+  "ordStatusSelfOrder": "Self-order",
   "ordersLoadFailed": "Failed to load orders: {error}",
   "@ordersLoadFailed": {
     "placeholders": { "error": { "type": "String" } }

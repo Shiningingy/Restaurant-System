@@ -89,6 +89,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get ordersStaffSection => '订单';
 
   @override
+  String get ordStatusOpen => '进行中';
+
+  @override
+  String get ordStatusPreparing => '备餐中';
+
+  @override
+  String get ordStatusSelfOrder => '自助点餐';
+
+  @override
   String ordersLoadFailed(String error) {
     return '加载订单失败：$error';
   }
