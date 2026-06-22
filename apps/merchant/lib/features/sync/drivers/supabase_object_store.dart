@@ -76,4 +76,18 @@ class SupabaseObjectStore implements domain.ObjectStore {
     if (resp.statusCode == 400 || resp.statusCode == 404) return null;
     throw domain.SyncException('object fetch failed (${resp.statusCode})');
   }
+
+  @override
+  Future<void> deleteObject(String key) async {
+    final resp = await _client
+        .delete(_object(key), headers: await _authHeaders())
+        .timeout(timeout);
+    // Already gone (400/404) is success — delete is idempotent.
+    if (resp.statusCode < 300 ||
+        resp.statusCode == 400 ||
+        resp.statusCode == 404) {
+      return;
+    }
+    throw domain.SyncException('object delete failed (${resp.statusCode})');
+  }
 }

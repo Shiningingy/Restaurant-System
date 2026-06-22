@@ -15,4 +15,7 @@ class NoopObjectStore implements domain.ObjectStore {
 
   @override
   Future<List<int>?> getObject(String key) async => null;
+
+  @override
+  Future<void> deleteObject(String key) async {}
 }

@@ -30,7 +30,18 @@ class PromoSyncService {
 
   /// Uploads this device's promo photos and rewrites the manifest, making this
   /// set the shop-wide one. Call after the owner edits the promo images.
+  ///
+  /// Photos are content-addressed, so re-publishing the same image just
+  /// overwrites its object (no duplicates). A photo the owner *removed* is
+  /// deleted from the bucket so orphaned bytes don't accumulate.
   Future<void> publish() async {
+    // Snapshot the previously-published set before we overwrite the manifest,
+    // so we can clean up what's no longer referenced.
+    final previous = domain.PromoManifest.tryParse(
+          await store.getObject(domain.PromoManifest.storageKey) ?? const [],
+        ) ??
+        domain.PromoManifest.empty;
+
     final refs = <domain.PromoImageRef>[];
     for (final path in readPaths()) {
       final ref = images.refOf(path);
@@ -47,6 +58,19 @@ class PromoSyncService {
       domain.PromoManifest(refs).encode(),
       contentType: 'application/json',
     );
+
+    // Delete photos that were published before but aren't in the new set.
+    // Compare by hash so a still-present photo is never removed.
+    final keptShas = {for (final r in refs) r.sha};
+    for (final old in previous.images) {
+      if (!keptShas.contains(old.sha)) {
+        try {
+          await store.deleteObject(old.storageKey);
+        } on Object {
+          // Best-effort cleanup — a failed delete just leaves a harmless orphan.
+        }
+      }
+    }
   }
 
   /// Reconciles this device to the published manifest: downloads any photos it

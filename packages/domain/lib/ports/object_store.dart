@@ -17,4 +17,8 @@ abstract interface class ObjectStore {
 
   /// Fetches the object at [key], or null when it doesn't exist.
   Future<List<int>?> getObject(String key);
+
+  /// Removes the object at [key]. A no-op if it's already gone (so callers can
+  /// delete optimistically without checking first).
+  Future<void> deleteObject(String key);
 }

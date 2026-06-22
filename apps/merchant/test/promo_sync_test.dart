@@ -21,6 +21,11 @@ class FakeObjectStore implements domain.ObjectStore {
 
   @override
   Future<List<int>?> getObject(String key) async => objects[key];
+
+  @override
+  Future<void> deleteObject(String key) async {
+    objects.remove(key);
+  }
 }
 
 void main() {
@@ -115,6 +120,38 @@ void main() {
     final applied = await b.sync.pull();
     expect(applied, isEmpty); // explicit empty set, not null
     expect(b.paths, isEmpty);
+  });
+
+  test('removing a photo deletes its orphaned object from the bucket', () async {
+    final cloud = FakeObjectStore();
+    final a = device('a', cloud);
+    final keep = await a.store.import(await sourceFile('keep.jpg', [1, 1, 1]));
+    final drop = await a.store.import(await sourceFile('drop.jpg', [2, 2, 2]));
+    final dropKey = a.store.refOf(drop)!.storageKey;
+    a.paths
+      ..add(keep)
+      ..add(drop);
+    await a.sync.publish();
+    expect(cloud.objects.containsKey(dropKey), isTrue);
+
+    // Owner removes the second photo and republishes.
+    a.paths.remove(drop);
+    await a.sync.publish();
+
+    // The dropped photo's bytes are gone; the kept one and manifest remain.
+    expect(cloud.objects.containsKey(dropKey), isFalse);
+    expect(cloud.objects.containsKey(a.store.refOf(keep)!.storageKey), isTrue);
+    expect(cloud.objects.containsKey(domain.PromoManifest.storageKey), isTrue);
+  });
+
+  test('re-publishing the same set leaves no duplicates', () async {
+    final cloud = FakeObjectStore();
+    final a = device('a', cloud);
+    a.paths.add(await a.store.import(await sourceFile('p.jpg', [7, 7])));
+    await a.sync.publish();
+    await a.sync.publish(); // idempotent
+    // 1 image + 1 manifest, no extra objects.
+    expect(cloud.objects, hasLength(2));
   });
 
   test('importing identical bytes dedupes to one cache file', () async {
