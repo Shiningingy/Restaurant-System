@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
+import 'package:restaurant_ui/restaurant_ui.dart';
 
 import 'kiosk_menu.dart';
 
@@ -286,7 +287,10 @@ class _KioskSurfaceState extends State<KioskSurface> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(item.price, style: theme.textTheme.titleMedium),
+                    Text(
+                      item.price,
+                      style: moneyTextStyle(theme.textTheme.titleMedium),
+                    ),
                     Icon(Icons.add_circle, color: theme.colorScheme.primary),
                   ],
                 ),
@@ -406,7 +410,7 @@ class _KioskSurfaceState extends State<KioskSurface> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(label, style: style),
-            Text(formatCents(amount.cents), style: style),
+            Text(formatCents(amount.cents), style: moneyTextStyle(style)),
           ],
         ),
       );
