@@ -14,7 +14,11 @@ import 'kiosk_menu.dart';
 /// through [onSubmit]. Everything is local to the one machine — fully offline.
 class KioskSurface extends StatefulWidget {
   final String businessName;
-  final String? brandLogo;
+
+  /// Logo for the terracotta header (dark slot) and the confirmation screen
+  /// (wordmark slot). Resolved by the POS.
+  final String? brandHeader;
+  final String? brandConfirm;
   final KioskMenu? menu;
 
   /// Sends the built cart to the POS; resolves with `{ok, code}` (or `{ok:
@@ -31,7 +35,8 @@ class KioskSurface extends StatefulWidget {
   const KioskSurface({
     super.key,
     required this.businessName,
-    required this.brandLogo,
+    required this.brandHeader,
+    required this.brandConfirm,
     required this.menu,
     required this.onSubmit,
     required this.onRefreshMenu,
@@ -169,7 +174,7 @@ class _KioskSurfaceState extends State<KioskSurface> {
               child: Row(
                 children: [
                   BrandMark(
-                    logoPath: widget.brandLogo,
+                    logoPath: widget.brandHeader,
                     size: 40,
                     fallbackColor: theme.colorScheme.onPrimary,
                   ),
@@ -548,7 +553,7 @@ class _KioskSurfaceState extends State<KioskSurface> {
             mainAxisSize: MainAxisSize.min,
             children: [
               BrandMark(
-                logoPath: widget.brandLogo,
+                logoPath: widget.brandConfirm,
                 size: 96,
                 fallbackColor: theme.colorScheme.primary,
               ),

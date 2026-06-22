@@ -823,15 +823,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setCustomerDisplay => 'Customer display (second screen)';
 
   @override
-  String get setBrandLogo => 'Brand logo';
+  String get setBranding => 'Branding & logo';
 
   @override
-  String get setBrandLogoNone =>
-      'Optional — a default icon is used until you set one';
+  String get setBrandingHint =>
+      'Set your shop\'s logo. Only the light logo is needed — the others fall back to it.';
 
   @override
-  String get setBrandLogoSet =>
-      'Shown on the nav rail and the customer display';
+  String get setBrandLogoLight => 'Logo — light background';
+
+  @override
+  String get setBrandLogoLightHint => 'Nav rail and the welcome screen';
+
+  @override
+  String get setBrandLogoDark => 'Logo — dark background';
+
+  @override
+  String get setBrandLogoDarkHint =>
+      'Coloured headers and photos (falls back to the light logo)';
+
+  @override
+  String get setBrandLogoWordmark => 'Wordmark';
+
+  @override
+  String get setBrandLogoWordmarkHint =>
+      'Standalone mark for the order-confirmation screen';
+
+  @override
+  String get setBrandLogoSet => 'Set — shown across the app';
 
   @override
   String get setOpenCustomerDisplay => 'Open customer display';

@@ -9,15 +9,18 @@ import 'package:path_provider/path_provider.dart';
 /// way and any device can tell by hash whether it already has the logo. The shop
 /// has at most one logo, so importing/downloading a new one clears the old file.
 class BrandLogoStore {
-  static const _folder = 'brand';
+  /// The slot name (`light` / `dark` / `wordmark`) — its own subfolder so the
+  /// slots never collide.
+  final String slot;
 
   final Directory? _baseOverride;
 
-  BrandLogoStore({Directory? baseDir}) : _baseOverride = baseDir;
+  BrandLogoStore({required this.slot, Directory? baseDir})
+    : _baseOverride = baseDir;
 
   Future<Directory> _dir() async {
     final base = _baseOverride ?? await getApplicationDocumentsDirectory();
-    final dir = Directory(p.join(base.path, _folder));
+    final dir = Directory(p.join(base.path, 'brand', slot));
     if (!await dir.exists()) await dir.create(recursive: true);
     return dir;
   }

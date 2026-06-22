@@ -1,14 +1,17 @@
 import 'dart:convert';
 
-/// The shop's brand logo, published to Storage as `brand/manifest.json`.
+/// One brand-logo slot, published to Storage as its own small manifest.
 ///
 /// Like the promo manifest it's shop-global and last-write-wins, but it carries
 /// at most one image (content-addressed by SHA-256). A manifest with no
-/// [sha]/[ext] means the owner cleared the logo — other devices should drop
+/// [sha]/[ext] means the owner cleared this slot — other devices should drop
 /// their copy too (distinct from "never published", which is a missing object).
+///
+/// It is slot-agnostic: the Storage object/manifest keys are scoped to a slot
+/// by the sync service (`brand/<slot>/…`), so the same shape serves the light,
+/// dark and wordmark slots.
 class BrandLogoManifest {
   static const version = 1;
-  static const storageKey = 'brand/manifest.json';
 
   /// Lowercase hex SHA-256 of the logo bytes, or null when there's no logo.
   final String? sha;
@@ -21,9 +24,6 @@ class BrandLogoManifest {
   static const none = BrandLogoManifest();
 
   bool get hasLogo => sha != null && sha!.isNotEmpty && ext != null;
-
-  /// The object key in the assets bucket: `brand/<sha><ext>`.
-  String get objectKey => 'brand/$sha$ext';
 
   /// The content-addressed cache file name: `<sha><ext>`.
   String get fileName => '$sha$ext';

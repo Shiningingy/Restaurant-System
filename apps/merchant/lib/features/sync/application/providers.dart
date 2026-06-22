@@ -5,6 +5,7 @@ import '../../../core/providers.dart';
 import '../../../core/settings/brand_logo_store.dart';
 import '../../../core/settings/brand_logo_sync.dart';
 import '../../../core/settings/providers.dart';
+import '../../../core/settings/settings_repository.dart';
 import '../../../core/supabase_auth.dart';
 import '../../../core/sync/providers.dart';
 import '../../customer_display/application/customer_display.dart';
@@ -83,16 +84,19 @@ final promoSyncProvider = Provider<PromoSyncService>((ref) {
   );
 });
 
-/// Syncs the shop's brand logo via Storage — same mechanism, one image.
-final brandLogoSyncProvider = Provider<BrandLogoSyncService>((ref) {
-  return BrandLogoSyncService(
-    store: ref.watch(objectStoreProvider),
-    logo: BrandLogoStore(),
-    readPath: () => ref.read(settingsRepositoryProvider).brandLogoPath,
-    writePath: (path) =>
-        ref.read(brandLogoProvider.notifier).applyFromCloud(path),
-  );
-});
+/// Syncs one brand-logo slot via Storage — same mechanism, one image per slot.
+final brandLogoSyncProvider =
+    Provider.family<BrandLogoSyncService, BrandLogoSlot>((ref, slot) {
+      return BrandLogoSyncService(
+        store: ref.watch(objectStoreProvider),
+        logo: BrandLogoStore(slot: slot.name),
+        slot: slot.name,
+        readPath: () =>
+            ref.read(settingsRepositoryProvider).brandLogoPath(slot),
+        writePath: (path) =>
+            ref.read(brandLogosProvider.notifier).applyFromCloud(slot, path),
+      );
+    });
 
 final syncServiceProvider = Provider<SyncService>((ref) {
   final settings = ref.watch(syncSettingsProvider);
@@ -118,7 +122,9 @@ final syncServiceProvider = Provider<SyncService>((ref) {
       if (applied != null) {
         await ref.read(customerDisplayProvider).pushCurrentPromo();
       }
-      await ref.read(brandLogoSyncProvider).pull();
+      for (final slot in BrandLogoSlot.values) {
+        await ref.read(brandLogoSyncProvider(slot)).pull();
+      }
     },
   );
 });

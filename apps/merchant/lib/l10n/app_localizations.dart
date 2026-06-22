@@ -1490,22 +1490,58 @@ abstract class AppLocalizations {
   /// **'Customer display (second screen)'**
   String get setCustomerDisplay;
 
-  /// No description provided for @setBrandLogo.
+  /// No description provided for @setBranding.
   ///
   /// In en, this message translates to:
-  /// **'Brand logo'**
-  String get setBrandLogo;
+  /// **'Branding & logo'**
+  String get setBranding;
 
-  /// No description provided for @setBrandLogoNone.
+  /// No description provided for @setBrandingHint.
   ///
   /// In en, this message translates to:
-  /// **'Optional — a default icon is used until you set one'**
-  String get setBrandLogoNone;
+  /// **'Set your shop\'s logo. Only the light logo is needed — the others fall back to it.'**
+  String get setBrandingHint;
+
+  /// No description provided for @setBrandLogoLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Logo — light background'**
+  String get setBrandLogoLight;
+
+  /// No description provided for @setBrandLogoLightHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Nav rail and the welcome screen'**
+  String get setBrandLogoLightHint;
+
+  /// No description provided for @setBrandLogoDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Logo — dark background'**
+  String get setBrandLogoDark;
+
+  /// No description provided for @setBrandLogoDarkHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Coloured headers and photos (falls back to the light logo)'**
+  String get setBrandLogoDarkHint;
+
+  /// No description provided for @setBrandLogoWordmark.
+  ///
+  /// In en, this message translates to:
+  /// **'Wordmark'**
+  String get setBrandLogoWordmark;
+
+  /// No description provided for @setBrandLogoWordmarkHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Standalone mark for the order-confirmation screen'**
+  String get setBrandLogoWordmarkHint;
 
   /// No description provided for @setBrandLogoSet.
   ///
   /// In en, this message translates to:
-  /// **'Shown on the nav rail and the customer display'**
+  /// **'Set — shown across the app'**
   String get setBrandLogoSet;
 
   /// No description provided for @setOpenCustomerDisplay.

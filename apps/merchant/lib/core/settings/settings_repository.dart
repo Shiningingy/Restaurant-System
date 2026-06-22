@@ -13,6 +13,13 @@ enum PrinterRole { kitchen, receipt }
 ///   cashier's order while one is active (one screen serving both purposes).
 enum CustomerDisplayMode { passive, kiosk, hybrid }
 
+/// The brand-logo appearance slots. One image each, all optional:
+/// - [light]: the everyday mark on light surfaces (nav rail, branded idle).
+///   Also the fallback for the others.
+/// - [dark]: a reversed/mono mark for coloured headers and dark photos.
+/// - [wordmark]: a standalone lockup for the order-confirmation screen.
+enum BrandLogoSlot { light, dark, wordmark }
+
 /// Configuration for one printer. Transport is either a network printer
 /// (`network`, host:port over TCP 9100) or a Windows-installed printer
 /// (`usb`, addressed by name through the print spooler — covers USB, serial
@@ -117,7 +124,12 @@ class SettingsRepository {
   static const _categoryVerticalKey = 'categoryVertical';
   static const _displayPromoKey = 'displayPromoLines';
   static const _displayPromoImagesKey = 'displayPromoImages';
-  static const _brandLogoKey = 'brandLogoPath';
+  static const _brandLogoKeys = <BrandLogoSlot, String>{
+    // The light slot keeps the original key so an already-set logo carries over.
+    BrandLogoSlot.light: 'brandLogoPath',
+    BrandLogoSlot.dark: 'brandLogoPathDark',
+    BrandLogoSlot.wordmark: 'brandLogoWordmark',
+  };
   static const _displayModeKey = 'customerDisplayMode';
   static const _kioskSeqKey = 'kioskOrderSeq';
   static const _kioskPayHereKey = 'kioskPayHere';
@@ -316,16 +328,18 @@ class SettingsRepository {
   Future<void> setDisplayPromoImages(List<String> paths) =>
       prefs.setStringList(_displayPromoImagesKey, paths);
 
-  /// Absolute path of the shop's brand logo, shown on the nav rail and the
-  /// customer display. Null = use the generic glyph. Set in Settings, so a
-  /// multi-shop build needs no bundled per-shop asset.
-  String? get brandLogoPath => prefs.getString(_brandLogoKey);
+  /// Absolute path of the shop's brand logo for a given appearance [slot]
+  /// (light / dark / wordmark). Null = none set for that slot. Set in Settings,
+  /// so a multi-shop build needs no bundled per-shop asset.
+  String? brandLogoPath(BrandLogoSlot slot) =>
+      prefs.getString(_brandLogoKeys[slot]!);
 
-  Future<void> setBrandLogoPath(String? path) async {
+  Future<void> setBrandLogoPath(BrandLogoSlot slot, String? path) async {
+    final key = _brandLogoKeys[slot]!;
     if (path == null || path.isEmpty) {
-      await prefs.remove(_brandLogoKey);
+      await prefs.remove(key);
     } else {
-      await prefs.setString(_brandLogoKey, path);
+      await prefs.setString(key, path);
     }
   }
 

@@ -10,6 +10,9 @@ class BrandLogoSyncService {
   final domain.ObjectStore store;
   final BrandLogoStore logo;
 
+  /// The slot name; Storage keys are scoped under `brand/<slot>/`.
+  final String slot;
+
   /// The device's current logo path (a content-addressed cache file), or null.
   final String? Function() readPath;
 
@@ -19,17 +22,20 @@ class BrandLogoSyncService {
   BrandLogoSyncService({
     required this.store,
     required this.logo,
+    required this.slot,
     required this.readPath,
     required this.writePath,
   });
+
+  String get _manifestKey => 'brand/$slot/manifest.json';
+  String _objectKey(String fileName) => 'brand/$slot/$fileName';
 
   /// Uploads this device's logo (if any) and rewrites the manifest, making it
   /// the shop-wide one. Call after the owner sets or clears the logo.
   Future<void> publish() async {
     final previous =
         domain.BrandLogoManifest.tryParse(
-          await store.getObject(domain.BrandLogoManifest.storageKey) ??
-              const [],
+          await store.getObject(_manifestKey) ?? const [],
         ) ??
         domain.BrandLogoManifest.none;
 
@@ -41,13 +47,13 @@ class BrandLogoSyncService {
 
     if (ref != null) {
       await store.putObject(
-        manifest.objectKey,
+        _objectKey(manifest.fileName),
         await logo.bytesOf(path!),
         contentType: _contentType(ref.ext),
       );
     }
     await store.putObject(
-      domain.BrandLogoManifest.storageKey,
+      _manifestKey,
       manifest.encode(),
       contentType: 'application/json',
     );
@@ -55,7 +61,7 @@ class BrandLogoSyncService {
     // Remove the previously-published logo object if it's no longer used.
     if (previous.hasLogo && previous.sha != ref?.sha) {
       try {
-        await store.deleteObject(previous.objectKey);
+        await store.deleteObject(_objectKey(previous.fileName));
       } on Object {
         // Best-effort — a failed delete just leaves a harmless orphan.
       }
@@ -67,7 +73,7 @@ class BrandLogoSyncService {
   /// remotely. Returns true when the local logo changed. Null manifest (never
   /// published) leaves the device's own logo untouched.
   Future<bool> pull() async {
-    final raw = await store.getObject(domain.BrandLogoManifest.storageKey);
+    final raw = await store.getObject(_manifestKey);
     if (raw == null) return false;
     final manifest = domain.BrandLogoManifest.tryParse(raw);
     if (manifest == null) return false;
@@ -80,7 +86,7 @@ class BrandLogoSyncService {
     }
 
     if (!await logo.hasSha(manifest.sha!)) {
-      final bytes = await store.getObject(manifest.objectKey);
+      final bytes = await store.getObject(_objectKey(manifest.fileName));
       if (bytes == null) return false; // manifest points at a missing object
       await logo.writeBytes(manifest.sha!, manifest.ext!, bytes);
     }

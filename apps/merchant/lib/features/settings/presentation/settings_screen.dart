@@ -51,6 +51,8 @@ class SettingsScreen extends ConsumerWidget {
               _printingBody),
           _hubTile(context, Icons.tv_outlined, l10n.setCustomerDisplay,
               _displayBody),
+          _hubTile(context, Icons.image_outlined, l10n.setBranding,
+              _brandingBody),
           _hubTile(context, Icons.table_restaurant_outlined, l10n.setTables,
               _tablesBody),
           _hubTile(context, Icons.cloud_outlined, l10n.setCloudSync,
@@ -258,37 +260,7 @@ class SettingsScreen extends ConsumerWidget {
 
   List<Widget> _displayBody(BuildContext context, WidgetRef ref) {
     final receiptConfig = ref.watch(receiptConfigProvider);
-    final brandLogo = ref.watch(brandLogoProvider);
     return [
-      ListTile(
-        leading: SizedBox(
-          width: 40,
-          height: 40,
-          child: BrandMark(
-            logoPath: brandLogo,
-            size: 40,
-            fallbackColor: Theme.of(context).colorScheme.primary,
-          ),
-        ),
-        title: Text(context.l10n.setBrandLogo),
-        subtitle: Text(
-          brandLogo == null
-              ? context.l10n.setBrandLogoNone
-              : context.l10n.setBrandLogoSet,
-        ),
-        trailing: brandLogo == null
-            ? null
-            : IconButton(
-                icon: const Icon(Icons.delete_outline),
-                tooltip: context.l10n.commonDelete,
-                onPressed: () async {
-                  await BrandLogoStore().clear();
-                  await ref.read(brandLogoProvider.notifier).set(null);
-                  await _publishBrandLogo(ref);
-                },
-              ),
-        onTap: () => _editBrandLogo(context, ref),
-      ),
       ListTile(
         leading: const Icon(Icons.view_carousel_outlined),
         title: Text(context.l10n.setDisplayMode),
@@ -312,7 +284,15 @@ class SettingsScreen extends ConsumerWidget {
               mode: ref.read(customerDisplayModeProvider),
               promoLines: ref.read(displayPromoProvider),
               promoImages: ref.read(displayPromoImagesProvider),
-              brandLogo: ref.read(brandLogoProvider),
+              brandLight: ref.read(brandLogosProvider).resolve(
+                BrandLogoSlot.light,
+              ),
+              brandDark: ref.read(brandLogosProvider).resolve(
+                BrandLogoSlot.dark,
+              ),
+              brandWordmark: ref.read(brandLogosProvider).resolve(
+                BrandLogoSlot.wordmark,
+              ),
             );
           }
         },
@@ -661,25 +641,115 @@ class SettingsScreen extends ConsumerWidget {
     await ref.read(customerDisplayProvider).pushCurrentPromo();
   }
 
-  /// Picks the shop's brand logo (a single image) and stores it locally.
-  Future<void> _editBrandLogo(BuildContext context, WidgetRef ref) async {
+  /// The Branding page: one logo per appearance slot. Each is optional and
+  /// falls back to the light logo, so a shop can set just one.
+  List<Widget> _brandingBody(BuildContext context, WidgetRef ref) {
+    final logos = ref.watch(brandLogosProvider);
+    return [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+        child: Text(
+          context.l10n.setBrandingHint,
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ),
+      _brandLogoTile(
+        context,
+        ref,
+        BrandLogoSlot.light,
+        logos.light,
+        title: context.l10n.setBrandLogoLight,
+        hint: context.l10n.setBrandLogoLightHint,
+        dark: false,
+      ),
+      _brandLogoTile(
+        context,
+        ref,
+        BrandLogoSlot.dark,
+        logos.dark,
+        title: context.l10n.setBrandLogoDark,
+        hint: context.l10n.setBrandLogoDarkHint,
+        dark: true,
+      ),
+      _brandLogoTile(
+        context,
+        ref,
+        BrandLogoSlot.wordmark,
+        logos.wordmark,
+        title: context.l10n.setBrandLogoWordmark,
+        hint: context.l10n.setBrandLogoWordmarkHint,
+        dark: false,
+      ),
+    ];
+  }
+
+  /// A single logo slot: a live preview on its representative background, plus
+  /// pick / clear.
+  Widget _brandLogoTile(
+    BuildContext context,
+    WidgetRef ref,
+    BrandLogoSlot slot,
+    String? path, {
+    required String title,
+    required String hint,
+    required bool dark,
+  }) {
+    final cs = Theme.of(context).colorScheme;
+    return ListTile(
+      leading: Container(
+        width: 52,
+        height: 52,
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: dark ? cs.primary : cs.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: BrandMark(
+          logoPath: path,
+          size: 36,
+          fallbackColor: dark ? cs.onPrimary : cs.primary,
+        ),
+      ),
+      title: Text(title),
+      subtitle: Text(path == null ? hint : context.l10n.setBrandLogoSet),
+      trailing: path == null
+          ? const Icon(Icons.add_photo_alternate_outlined)
+          : IconButton(
+              icon: const Icon(Icons.delete_outline),
+              tooltip: context.l10n.commonDelete,
+              onPressed: () async {
+                await BrandLogoStore(slot: slot.name).clear();
+                await ref.read(brandLogosProvider.notifier).set(slot, null);
+                await _publishBrandLogo(ref, slot);
+              },
+            ),
+      onTap: () => _editBrandLogo(context, ref, slot),
+    );
+  }
+
+  /// Picks the logo for [slot] and stores it locally.
+  Future<void> _editBrandLogo(
+    BuildContext context,
+    WidgetRef ref,
+    BrandLogoSlot slot,
+  ) async {
     const group = XTypeGroup(
       label: 'images',
       extensions: ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'],
     );
     final file = await openFile(acceptedTypeGroups: [group]);
     if (file == null) return;
-    final path = await BrandLogoStore().import(file.path);
-    await ref.read(brandLogoProvider.notifier).set(path);
-    await _publishBrandLogo(ref);
+    final path = await BrandLogoStore(slot: slot.name).import(file.path);
+    await ref.read(brandLogosProvider.notifier).set(slot, path);
+    await _publishBrandLogo(ref, slot);
   }
 
-  /// Uploads the brand logo to the shop's Storage bucket so other devices pick
-  /// it up on sync. Best-effort: no-op when the cloud isn't set up.
-  Future<void> _publishBrandLogo(WidgetRef ref) async {
+  /// Uploads a logo slot to the shop's Storage bucket so other devices pick it
+  /// up on sync. Best-effort: no-op when the cloud isn't set up.
+  Future<void> _publishBrandLogo(WidgetRef ref, BrandLogoSlot slot) async {
     if (!ref.read(syncSettingsProvider).config.isConfigured) return;
     try {
-      await ref.read(brandLogoSyncProvider).publish();
+      await ref.read(brandLogoSyncProvider(slot)).publish();
     } on Object {
       // The logo still works locally; it'll publish on the next change/sync.
     }

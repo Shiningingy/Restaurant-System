@@ -31,7 +31,11 @@ class CustomerDisplayApp extends StatelessWidget {
       theme: buildPosTheme(),
       home: CustomerDisplayScreen(
         businessName: args['businessName'] as String? ?? '',
-        brandLogo: args['brandLogo'] as String?,
+        brand: DisplayBrand(
+          light: args['brandLight'] as String?,
+          dark: args['brandDark'] as String?,
+          wordmark: args['brandWordmark'] as String?,
+        ),
         promoLines:
             (args['promo'] as List?)?.map((e) => e.toString()).toList() ??
             const [],
@@ -51,9 +55,20 @@ class CustomerDisplayApp extends StatelessWidget {
 /// - **mirror** — live view of the order the cashier is ringing up;
 /// - **promo** — rotating idle screen (with a "tap to order" call in hybrid);
 /// - **kiosk** — the interactive self-order flow.
+/// The shop's brand logos for each display surface (resolved by the POS, with
+/// the light logo as the fallback). Plain data — the sub-window owns no
+/// providers.
+class DisplayBrand {
+  final String? light;
+  final String? dark;
+  final String? wordmark;
+
+  const DisplayBrand({this.light, this.dark, this.wordmark});
+}
+
 class CustomerDisplayScreen extends StatefulWidget {
   final String businessName;
-  final String? brandLogo;
+  final DisplayBrand brand;
   final List<String> promoLines;
   final List<String> promoImages;
   final CustomerDisplayMode mode;
@@ -61,7 +76,7 @@ class CustomerDisplayScreen extends StatefulWidget {
   const CustomerDisplayScreen({
     super.key,
     required this.businessName,
-    required this.brandLogo,
+    required this.brand,
     required this.promoLines,
     required this.promoImages,
     required this.mode,
@@ -241,7 +256,8 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
     if (_interactive) {
       return KioskSurface(
         businessName: _businessName,
-        brandLogo: widget.brandLogo,
+        brandHeader: widget.brand.dark,
+        brandConfirm: widget.brand.wordmark,
         menu: _menu,
         onSubmit: _submit,
         onRefreshMenu: _requestMenu,
@@ -258,7 +274,7 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
       return Scaffold(
         body: _OrderMirror(
           businessName: _businessName,
-          brandLogo: widget.brandLogo,
+          brandLogo: widget.brand.dark,
           lines: lines.cast<Map<String, dynamic>>(),
           order: order!,
         ),
@@ -267,7 +283,7 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
     return Scaffold(
       body: _IdlePromo(
         businessName: _businessName,
-        brandLogo: widget.brandLogo,
+        brandLogo: widget.brand.light,
         promo: _promoLines.isEmpty
             ? null
             : _promoLines[_promoIndex % _promoLines.length],

@@ -233,7 +233,7 @@ class _HomeShell extends ConsumerWidget {
             leading: Padding(
               padding: const EdgeInsets.only(top: 12, bottom: 8),
               child: BrandMark(
-                logoPath: ref.watch(brandLogoProvider),
+                logoPath: ref.watch(brandLogosProvider).light,
                 size: 40,
                 fallbackColor: Theme.of(context).colorScheme.primary,
               ),

@@ -3,10 +3,9 @@ import 'package:test/test.dart';
 
 void main() {
   group('BrandLogoManifest', () {
-    test('content-addressed object key + file name', () {
+    test('content-addressed file name', () {
       const m = BrandLogoManifest(sha: 'abc', ext: '.png');
       expect(m.hasLogo, isTrue);
-      expect(m.objectKey, 'brand/abc.png');
       expect(m.fileName, 'abc.png');
     });
 

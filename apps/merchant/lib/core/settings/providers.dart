@@ -108,23 +108,50 @@ final displayPromoImagesProvider =
       DisplayPromoImagesNotifier.new,
     );
 
-/// The shop's brand logo path (null = generic glyph). Set in Settings; shown on
-/// the nav rail and pushed to the customer display.
-class BrandLogoNotifier extends Notifier<String?> {
-  @override
-  String? build() => ref.watch(settingsRepositoryProvider).brandLogoPath;
+/// The shop's brand logos, one optional image per appearance [BrandLogoSlot].
+/// [resolve] falls back to the light logo so callers only need one set.
+class BrandLogos {
+  final String? light;
+  final String? dark;
+  final String? wordmark;
 
-  Future<void> set(String? path) async {
-    await ref.read(settingsRepositoryProvider).setBrandLogoPath(path);
+  const BrandLogos({this.light, this.dark, this.wordmark});
+
+  String? forSlot(BrandLogoSlot slot) => switch (slot) {
+    BrandLogoSlot.light => light,
+    BrandLogoSlot.dark => dark,
+    BrandLogoSlot.wordmark => wordmark,
+  };
+
+  /// The logo to use for [slot], falling back to the light logo (then null).
+  String? resolve(BrandLogoSlot slot) => forSlot(slot) ?? light;
+}
+
+/// The shop's brand logos (per slot). Set in Settings → Branding; shown on the
+/// nav rail and pushed to the customer display.
+class BrandLogosNotifier extends Notifier<BrandLogos> {
+  @override
+  BrandLogos build() {
+    final r = ref.watch(settingsRepositoryProvider);
+    return BrandLogos(
+      light: r.brandLogoPath(BrandLogoSlot.light),
+      dark: r.brandLogoPath(BrandLogoSlot.dark),
+      wordmark: r.brandLogoPath(BrandLogoSlot.wordmark),
+    );
+  }
+
+  Future<void> set(BrandLogoSlot slot, String? path) async {
+    await ref.read(settingsRepositoryProvider).setBrandLogoPath(slot, path);
     ref.invalidateSelf();
   }
 
-  /// Applies a logo pulled from the cloud (no re-publish — it came *from* there).
-  Future<void> applyFromCloud(String? path) => set(path);
+  /// Applies a logo pulled from the cloud (no re-publish — it came from there).
+  Future<void> applyFromCloud(BrandLogoSlot slot, String? path) =>
+      set(slot, path);
 }
 
-final brandLogoProvider = NotifierProvider<BrandLogoNotifier, String?>(
-  BrandLogoNotifier.new,
+final brandLogosProvider = NotifierProvider<BrandLogosNotifier, BrandLogos>(
+  BrandLogosNotifier.new,
 );
 
 /// Whether the kiosk offers a "pay here" option (card at the kiosk) alongside
