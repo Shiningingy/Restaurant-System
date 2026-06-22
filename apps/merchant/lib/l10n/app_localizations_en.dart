@@ -824,7 +824,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setBusinessNameOnReceipts => 'Business name on receipts';
 
   @override
-  String get setBusinessName => 'Business name';
+  String get setBusinessName => 'Store name';
+
+  @override
+  String get setBusinessNameHint =>
+      'Shown on receipts, the customer display and kiosk';
 
   @override
   String get setReceiptFooter => 'Receipt footer';
@@ -833,7 +837,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setCustomerDisplay => 'Customer display (second screen)';
 
   @override
-  String get setBranding => 'Branding & logo';
+  String get setBranding => 'Store & branding';
 
   @override
   String get setBrandingHint =>

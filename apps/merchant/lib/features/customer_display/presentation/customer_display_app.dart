@@ -105,17 +105,14 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
   Map<String, dynamic>? _order;
   KioskMenu? _menu;
 
-  /// Hybrid only: the customer tapped "order" on the promo screen and is in the
-  /// kiosk flow. Reset when the cashier starts ringing an order.
-  bool _hybridKiosk = false;
+  /// The customer is in the self-order flow (tapped the attract/cover screen).
+  /// Both kiosk and hybrid start on the cover and only enter the menu on a tap;
+  /// reset back to the cover after an order, or when a cashier rings one.
+  bool _ordering = false;
 
   Timer? _promoTimer;
   int _promoIndex = 0;
   int _photoIndex = 0;
-
-  bool get _interactive =>
-      _mode == CustomerDisplayMode.kiosk ||
-      (_mode == CustomerDisplayMode.hybrid && _hybridKiosk);
 
   @override
   void initState() {
@@ -132,7 +129,7 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
     // Only rotate if there's more than one thing to cycle through.
     if (_promoLines.length > 1 || _promoImages.length > 1) {
       _promoTimer = Timer.periodic(const Duration(seconds: 5), (_) {
-        if (mounted && !_interactive) {
+        if (mounted && !_ordering) {
           setState(() {
             if (_promoLines.isNotEmpty) {
               _promoIndex = (_promoIndex + 1) % _promoLines.length;
@@ -185,7 +182,7 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
           setState(() {
             _order = order;
             // A cashier order takes the screen back from a hybrid kiosk session.
-            if (order != null) _hybridKiosk = false;
+            if (order != null) _ordering = false;
           });
         }
       case 'menu':
@@ -259,8 +256,8 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
     final lines = (order?['lines'] as List?) ?? const [];
     final hasOrder = lines.isNotEmpty;
 
-    // Dedicated kiosk, or hybrid with the customer ordering: interactive flow.
-    if (_interactive) {
+    // The customer tapped the cover and is ordering (kiosk or hybrid).
+    if (_ordering) {
       return KioskSurface(
         businessName: _businessName,
         brandHeader: widget.brand.kioskHeader,
@@ -268,16 +265,14 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
         menu: _menu,
         onSubmit: _submit,
         onRefreshMenu: _requestMenu,
-        // Hybrid sessions can bow out back to the promo screen; a dedicated
-        // kiosk has nowhere to exit to.
-        onExit: _mode == CustomerDisplayMode.hybrid
-            ? () => setState(() => _hybridKiosk = false)
-            : null,
+        // Finishing or backing out returns to the attract/cover screen.
+        onExit: () => setState(() => _ordering = false),
       );
     }
 
-    // Passive / hybrid-idle: mirror the cashier's order, else show promo.
-    if (hasOrder) {
+    // A cashier order takes the screen (passive, or hybrid while ringing). Pure
+    // kiosk has no cashier, so it never mirrors — it stays on its own cover.
+    if (hasOrder && _mode != CustomerDisplayMode.kiosk) {
       return Scaffold(
         body: _OrderMirror(
           businessName: _businessName,
@@ -287,6 +282,11 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
         ),
       );
     }
+
+    // Idle. In kiosk/hybrid this is the attract/cover screen: tap anywhere (or
+    // the button) to start ordering. Passive is view-only. Gated on a loaded
+    // menu so a dead channel shows no (broken) order button.
+    final canOrder = _mode != CustomerDisplayMode.passive && _menu != null;
     return Scaffold(
       body: _IdlePromo(
         businessName: _businessName,
@@ -297,13 +297,8 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
         photo: _promoImages.isEmpty
             ? null
             : _promoImages[_photoIndex % _promoImages.length],
-        // Hybrid invites the customer to order; passive is view-only. Kept
-        // gated on a loaded menu on purpose: if the menu failed to load the
-        // missing button is a visible signal that something's wrong (the menu
-        // load itself now awaits channel pairing + retries, so this should only
-        // stay hidden on a real fault).
-        onTapToOrder: _mode == CustomerDisplayMode.hybrid && _menu != null
-            ? () => setState(() => _hybridKiosk = true)
+        onTapToOrder: canOrder
+            ? () => setState(() => _ordering = true)
             : null,
       ),
     );
@@ -335,13 +330,22 @@ class _IdlePromo extends StatelessWidget {
         ? _slideshow(context)
         : _branded(context);
     if (onTapToOrder == null) return content;
-    // A small "Tap to order" pill in the bottom-right corner — the promo stays
-    // the focus; ordering is a discreet call to action (matches the mockup).
-    return Stack(
-      children: [
-        Positioned.fill(child: content),
-        Positioned(right: 24, bottom: 24, child: _tapToOrderButton(context)),
-      ],
+    // Attract/cover: the whole screen is tappable, with a clear "Tap to order"
+    // call to action near the bottom so it's never missed.
+    return GestureDetector(
+      onTap: onTapToOrder,
+      behavior: HitTestBehavior.opaque,
+      child: Stack(
+        children: [
+          Positioned.fill(child: content),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 48,
+            child: Center(child: _tapToOrderButton(context)),
+          ),
+        ],
+      ),
     );
   }
 
@@ -415,16 +419,23 @@ class _IdlePromo extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          BrandMark(
-            logoPath: brandLogo,
-            size: 140,
-            fallbackColor: theme.colorScheme.onPrimaryContainer,
-          ),
-          const SizedBox(height: 24),
-          Text(
-            businessName.isEmpty ? 'Welcome' : businessName,
-            style: theme.textTheme.displayMedium,
-            textAlign: TextAlign.center,
+          // Logo lockup: the mark beside the shop name.
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              BrandMark(
+                logoPath: brandLogo,
+                size: 96,
+                fallbackColor: theme.colorScheme.onPrimaryContainer,
+              ),
+              const SizedBox(width: 24),
+              Flexible(
+                child: Text(
+                  businessName.isEmpty ? 'Welcome' : businessName,
+                  style: theme.textTheme.displaySmall,
+                ),
+              ),
+            ],
           ),
           if (promo != null && promo!.isNotEmpty) ...[
             const SizedBox(height: 24),
@@ -445,15 +456,16 @@ class _IdlePromo extends StatelessWidget {
     );
   }
 
-  /// A compact ordering CTA — sits in the bottom-right corner over the promo,
-  /// not a full-screen target.
+  /// The ordering CTA — centered near the bottom of the cover. Clearly visible
+  /// but calm; the whole screen is also tappable.
   Widget _tapToOrderButton(BuildContext context) => FilledButton.icon(
     onPressed: onTapToOrder,
     style: FilledButton.styleFrom(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      textStyle: Theme.of(context).textTheme.titleMedium,
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
+      textStyle: Theme.of(context).textTheme.headlineSmall,
+      shape: const StadiumBorder(),
     ),
-    icon: const Icon(Icons.touch_app, size: 20),
+    icon: const Icon(Icons.touch_app, size: 28),
     label: const Text('Tap to order'),
   );
 }

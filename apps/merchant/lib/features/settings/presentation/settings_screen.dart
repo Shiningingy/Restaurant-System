@@ -40,6 +40,9 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: 8),
         children: [
+          // Store identity first — the shop name + logos.
+          _hubTile(context, Icons.storefront_outlined, l10n.setBranding,
+              _brandingBody),
           _hubTile(context, Icons.translate_outlined, l10n.setLanguage,
               _languageBody),
           _hubTile(context, Icons.percent_outlined, l10n.setTax, _taxBody),
@@ -51,12 +54,21 @@ class SettingsScreen extends ConsumerWidget {
               _printingBody),
           _hubTile(context, Icons.tv_outlined, l10n.setCustomerDisplay,
               _displayBody),
-          _hubTile(context, Icons.image_outlined, l10n.setBranding,
-              _brandingBody),
           _hubTile(context, Icons.table_restaurant_outlined, l10n.setTables,
               _tablesBody),
           _hubTile(context, Icons.cloud_outlined, l10n.setCloudSync,
               _cloudBody),
+          // The user guide, opened directly (not a sub-page).
+          Card(
+            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            child: ListTile(
+              leading: const Icon(Icons.menu_book_outlined),
+              title: Text(l10n.setHelp),
+              subtitle: Text(l10n.setHelpSubtitle),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => openHelp(context),
+            ),
+          ),
         ],
       ),
     );
@@ -93,12 +105,6 @@ class SettingsScreen extends ConsumerWidget {
         title: Text(context.l10n.setLanguage),
         subtitle: Text(_languageLabel(context, localePref)),
         onTap: () => _editLanguage(context, ref, localePref),
-      ),
-      ListTile(
-        leading: const Icon(Icons.menu_book_outlined),
-        title: Text(context.l10n.setHelp),
-        subtitle: Text(context.l10n.setHelpSubtitle),
-        onTap: () => openHelp(context),
       ),
       const Divider(height: 32),
       Padding(
@@ -214,21 +220,6 @@ class SettingsScreen extends ConsumerWidget {
               : null,
           onTap: () => _editPrinterConfig(context, ref, role, printers[role]!),
         ),
-      ListTile(
-        leading: const Icon(Icons.storefront_outlined),
-        title: Text(context.l10n.setBusinessNameOnReceipts),
-        subtitle: Text(receiptConfig.businessName),
-        onTap: () async {
-          final name = await _editText(
-            context,
-            title: context.l10n.setBusinessName,
-            current: receiptConfig.businessName,
-          );
-          if (name != null && name.isNotEmpty) {
-            await ref.read(receiptConfigProvider.notifier).setBusinessName(name);
-          }
-        },
-      ),
       ListTile(
         leading: const Icon(Icons.notes_outlined),
         title: Text(context.l10n.setReceiptFooter),
@@ -648,6 +639,7 @@ class SettingsScreen extends ConsumerWidget {
   /// Each placement with none falls back to the default.
   List<Widget> _brandingBody(BuildContext context, WidgetRef ref) {
     final logos = ref.watch(brandLogosProvider);
+    final receiptConfig = ref.watch(receiptConfigProvider);
     final l10n = context.l10n;
     // (slot, title, dark-background?) — the global default first.
     final rows = <(BrandLogoSlot, String, bool)>[
@@ -659,8 +651,29 @@ class SettingsScreen extends ConsumerWidget {
       (BrandLogoSlot.kioskConfirm, l10n.setBrandKioskConfirm, false),
     ];
     return [
+      // The shop name — shown on receipts, the customer display and kiosk.
+      ListTile(
+        leading: const Icon(Icons.storefront_outlined),
+        title: Text(context.l10n.setBusinessName),
+        subtitle: Text(
+          receiptConfig.businessName.isEmpty
+              ? context.l10n.setBusinessNameHint
+              : receiptConfig.businessName,
+        ),
+        onTap: () async {
+          final name = await _editText(
+            context,
+            title: context.l10n.setBusinessName,
+            current: receiptConfig.businessName,
+          );
+          if (name != null && name.isNotEmpty) {
+            await ref.read(receiptConfigProvider.notifier).setBusinessName(name);
+          }
+        },
+      ),
+      const Divider(height: 1),
       Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
         child: Text(
           l10n.setBrandingHint,
           style: Theme.of(context).textTheme.bodySmall,

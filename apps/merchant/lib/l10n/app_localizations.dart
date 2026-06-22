@@ -1493,8 +1493,14 @@ abstract class AppLocalizations {
   /// No description provided for @setBusinessName.
   ///
   /// In en, this message translates to:
-  /// **'Business name'**
+  /// **'Store name'**
   String get setBusinessName;
+
+  /// No description provided for @setBusinessNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Shown on receipts, the customer display and kiosk'**
+  String get setBusinessNameHint;
 
   /// No description provided for @setReceiptFooter.
   ///
@@ -1511,7 +1517,7 @@ abstract class AppLocalizations {
   /// No description provided for @setBranding.
   ///
   /// In en, this message translates to:
-  /// **'Branding & logo'**
+  /// **'Store & branding'**
   String get setBranding;
 
   /// No description provided for @setBrandingHint.

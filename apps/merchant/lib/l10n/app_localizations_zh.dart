@@ -806,7 +806,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get setBusinessNameOnReceipts => '小票上的商家名称';
 
   @override
-  String get setBusinessName => '商家名称';
+  String get setBusinessName => '店铺名称';
+
+  @override
+  String get setBusinessNameHint => '显示在小票、顾客显示屏和自助点餐机上';
 
   @override
   String get setReceiptFooter => '小票页脚';
@@ -815,7 +818,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get setCustomerDisplay => '顾客显示屏（第二屏幕）';
 
   @override
-  String get setBranding => '品牌与标识';
+  String get setBranding => '店铺与品牌';
 
   @override
   String get setBrandingHint => '为整个应用设置一个默认标识。下方任意位置都可单独使用自己的标识。';
