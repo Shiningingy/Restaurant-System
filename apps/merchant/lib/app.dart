@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:restaurant_ui/restaurant_ui.dart';
 
 import 'core/l10n_ext.dart';
 import 'core/window/window_control.dart';
@@ -133,10 +134,7 @@ class _MerchantAppState extends ConsumerState<MerchantApp> {
       locale: ref.watch(localePreferenceProvider),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
-        useMaterial3: true,
-      ),
+      theme: buildPosTheme(),
       routerConfig: _router,
     );
   }

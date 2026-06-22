@@ -24,6 +24,8 @@ dependencies:
   qr_flutter: ^4.1.0
   restaurant_domain:
     path: ../../packages/domain
+  restaurant_ui:
+    path: ../../packages/ui
   shared_preferences: ^2.5.0
   zxing2: ^0.2.3
   local_notifier: ^0.1.6
