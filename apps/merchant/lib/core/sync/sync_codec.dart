@@ -118,7 +118,7 @@ class SyncCodec {
                 'amount': r.amount.cents,
                 'tip': r.tip.cents,
                 'terminalRef': r.terminalRef,
-                'createdAt': r.createdAt.toIso8601String(),
+                'createdAt': r.createdAt.toUtc().toIso8601String(),
               };
     }
     throw ArgumentError('Unknown sync entity: $entity');
@@ -138,8 +138,8 @@ class SyncCodec {
       'type': o.type.name,
       'status': o.status.name,
       'tableId': o.tableId,
-      'createdAt': o.createdAt.toIso8601String(),
-      'closedAt': o.closedAt?.toIso8601String(),
+      'createdAt': o.createdAt.toUtc().toIso8601String(),
+      'closedAt': o.closedAt?.toUtc().toIso8601String(),
       'taxRateBp': o.taxRateBp,
       'subtotal': o.subtotal.cents,
       'tax': o.tax.cents,
@@ -293,7 +293,7 @@ class SyncCodec {
                 amount: domain.Money(p['amount'] as int),
                 tip: domain.Money(p['tip'] as int),
                 terminalRef: Value(p['terminalRef'] as String?),
-                createdAt: DateTime.parse(p['createdAt'] as String),
+                createdAt: DateTime.parse(p['createdAt'] as String).toLocal(),
               ),
             );
         return;
@@ -311,11 +311,11 @@ class SyncCodec {
               type: domain.OrderType.values.byName(p['type'] as String),
               status: domain.OrderStatus.values.byName(p['status'] as String),
               tableId: Value(p['tableId'] as String?),
-              createdAt: DateTime.parse(p['createdAt'] as String),
+              createdAt: DateTime.parse(p['createdAt'] as String).toLocal(),
               closedAt: Value(
                 p['closedAt'] == null
                     ? null
-                    : DateTime.parse(p['closedAt'] as String),
+                    : DateTime.parse(p['closedAt'] as String).toLocal(),
               ),
               taxRateBp: p['taxRateBp'] as int,
               subtotal: domain.Money(p['subtotal'] as int),
