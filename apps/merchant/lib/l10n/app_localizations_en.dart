@@ -823,6 +823,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setCustomerDisplay => 'Customer display (second screen)';
 
   @override
+  String get setBrandLogo => 'Brand logo';
+
+  @override
+  String get setBrandLogoNone =>
+      'Optional — a default icon is used until you set one';
+
+  @override
+  String get setBrandLogoSet =>
+      'Shown on the nav rail and the customer display';
+
+  @override
   String get setOpenCustomerDisplay => 'Open customer display';
 
   @override

@@ -108,6 +108,22 @@ final displayPromoImagesProvider =
       DisplayPromoImagesNotifier.new,
     );
 
+/// The shop's brand logo path (null = generic glyph). Set in Settings; shown on
+/// the nav rail and pushed to the customer display.
+class BrandLogoNotifier extends Notifier<String?> {
+  @override
+  String? build() => ref.watch(settingsRepositoryProvider).brandLogoPath;
+
+  Future<void> set(String? path) async {
+    await ref.read(settingsRepositoryProvider).setBrandLogoPath(path);
+    ref.invalidateSelf();
+  }
+}
+
+final brandLogoProvider = NotifierProvider<BrandLogoNotifier, String?>(
+  BrandLogoNotifier.new,
+);
+
 /// Whether the kiosk offers a "pay here" option (card at the kiosk) alongside
 /// pay-at-counter. Card-at-kiosk isn't wired to a processor yet.
 class KioskPayHereNotifier extends Notifier<bool> {

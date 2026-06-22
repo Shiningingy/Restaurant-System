@@ -7,5 +7,6 @@
 /// the [PosStatusColors] order-state / brand-mark tokens.
 library;
 
+export 'src/brand_mark.dart';
 export 'src/pos_status_colors.dart';
 export 'src/pos_theme.dart';

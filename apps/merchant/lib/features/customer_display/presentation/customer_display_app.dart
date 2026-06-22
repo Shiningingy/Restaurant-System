@@ -31,6 +31,7 @@ class CustomerDisplayApp extends StatelessWidget {
       theme: buildPosTheme(),
       home: CustomerDisplayScreen(
         businessName: args['businessName'] as String? ?? '',
+        brandLogo: args['brandLogo'] as String?,
         promoLines:
             (args['promo'] as List?)?.map((e) => e.toString()).toList() ??
             const [],
@@ -52,6 +53,7 @@ class CustomerDisplayApp extends StatelessWidget {
 /// - **kiosk** — the interactive self-order flow.
 class CustomerDisplayScreen extends StatefulWidget {
   final String businessName;
+  final String? brandLogo;
   final List<String> promoLines;
   final List<String> promoImages;
   final CustomerDisplayMode mode;
@@ -59,6 +61,7 @@ class CustomerDisplayScreen extends StatefulWidget {
   const CustomerDisplayScreen({
     super.key,
     required this.businessName,
+    required this.brandLogo,
     required this.promoLines,
     required this.promoImages,
     required this.mode,
@@ -238,6 +241,7 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
     if (_interactive) {
       return KioskSurface(
         businessName: _businessName,
+        brandLogo: widget.brandLogo,
         menu: _menu,
         onSubmit: _submit,
         onRefreshMenu: _requestMenu,
@@ -254,6 +258,7 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
       return Scaffold(
         body: _OrderMirror(
           businessName: _businessName,
+          brandLogo: widget.brandLogo,
           lines: lines.cast<Map<String, dynamic>>(),
           order: order!,
         ),
@@ -262,6 +267,7 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
     return Scaffold(
       body: _IdlePromo(
         businessName: _businessName,
+        brandLogo: widget.brandLogo,
         promo: _promoLines.isEmpty
             ? null
             : _promoLines[_promoIndex % _promoLines.length],
@@ -287,12 +293,14 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
 /// action is added in hybrid mode.
 class _IdlePromo extends StatelessWidget {
   final String businessName;
+  final String? brandLogo;
   final String? promo;
   final String? photo;
   final VoidCallback? onTapToOrder;
 
   const _IdlePromo({
     required this.businessName,
+    required this.brandLogo,
     required this.promo,
     required this.photo,
     this.onTapToOrder,
@@ -384,10 +392,10 @@ class _IdlePromo extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.restaurant,
-            size: 120,
-            color: theme.colorScheme.onPrimaryContainer,
+          BrandMark(
+            logoPath: brandLogo,
+            size: 140,
+            fallbackColor: theme.colorScheme.onPrimaryContainer,
           ),
           const SizedBox(height: 24),
           Text(
@@ -429,11 +437,13 @@ class _IdlePromo extends StatelessWidget {
 
 class _OrderMirror extends StatelessWidget {
   final String businessName;
+  final String? brandLogo;
   final List<Map<String, dynamic>> lines;
   final Map<String, dynamic> order;
 
   const _OrderMirror({
     required this.businessName,
+    required this.brandLogo,
     required this.lines,
     required this.order,
   });
@@ -457,11 +467,23 @@ class _OrderMirror extends StatelessWidget {
           Container(
             color: theme.colorScheme.primary,
             padding: const EdgeInsets.all(24),
-            child: Text(
-              businessName.isEmpty ? 'Your order' : businessName,
-              style: theme.textTheme.headlineMedium?.copyWith(
-                color: theme.colorScheme.onPrimary,
-              ),
+            child: Row(
+              children: [
+                BrandMark(
+                  logoPath: brandLogo,
+                  size: 44,
+                  fallbackColor: theme.colorScheme.onPrimary,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    businessName.isEmpty ? 'Your order' : businessName,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      color: theme.colorScheme.onPrimary,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           Expanded(

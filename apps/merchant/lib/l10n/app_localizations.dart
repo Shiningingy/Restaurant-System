@@ -1490,6 +1490,24 @@ abstract class AppLocalizations {
   /// **'Customer display (second screen)'**
   String get setCustomerDisplay;
 
+  /// No description provided for @setBrandLogo.
+  ///
+  /// In en, this message translates to:
+  /// **'Brand logo'**
+  String get setBrandLogo;
+
+  /// No description provided for @setBrandLogoNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional — a default icon is used until you set one'**
+  String get setBrandLogoNone;
+
+  /// No description provided for @setBrandLogoSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Shown on the nav rail and the customer display'**
+  String get setBrandLogoSet;
+
   /// No description provided for @setOpenCustomerDisplay.
   ///
   /// In en, this message translates to:

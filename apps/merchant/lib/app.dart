@@ -230,6 +230,14 @@ class _HomeShell extends ConsumerWidget {
               );
             },
             labelType: NavigationRailLabelType.all,
+            leading: Padding(
+              padding: const EdgeInsets.only(top: 12, bottom: 8),
+              child: BrandMark(
+                logoPath: ref.watch(brandLogoProvider),
+                size: 40,
+                fallbackColor: Theme.of(context).colorScheme.primary,
+              ),
+            ),
             trailing: Expanded(
               child: Align(
                 alignment: Alignment.bottomCenter,

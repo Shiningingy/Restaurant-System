@@ -806,6 +806,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get setCustomerDisplay => '顾客显示屏（第二屏幕）';
 
   @override
+  String get setBrandLogo => '品牌标识';
+
+  @override
+  String get setBrandLogoNone => '可选 — 未设置时使用默认图标';
+
+  @override
+  String get setBrandLogoSet => '显示在导航栏和顾客显示屏上';
+
+  @override
   String get setOpenCustomerDisplay => '打开顾客显示屏';
 
   @override

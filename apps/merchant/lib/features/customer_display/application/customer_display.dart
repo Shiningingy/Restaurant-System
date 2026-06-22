@@ -35,6 +35,7 @@ class CustomerDisplayController {
     required CustomerDisplayMode mode,
     List<String> promoLines = const [],
     List<String> promoImages = const [],
+    String? brandLogo,
   }) async {
     if (_window != null) return;
     // Register the POS-side handler before the window exists so the kiosk's
@@ -50,6 +51,7 @@ class CustomerDisplayController {
           'promo': promoLines,
           'promoImages': promoImages,
           'mode': mode.name,
+          'brandLogo': brandLogo,
         }),
         hiddenAtLaunch: false,
       ),

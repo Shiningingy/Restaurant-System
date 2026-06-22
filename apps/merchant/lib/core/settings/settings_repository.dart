@@ -117,6 +117,7 @@ class SettingsRepository {
   static const _categoryVerticalKey = 'categoryVertical';
   static const _displayPromoKey = 'displayPromoLines';
   static const _displayPromoImagesKey = 'displayPromoImages';
+  static const _brandLogoKey = 'brandLogoPath';
   static const _displayModeKey = 'customerDisplayMode';
   static const _kioskSeqKey = 'kioskOrderSeq';
   static const _kioskPayHereKey = 'kioskPayHere';
@@ -314,6 +315,19 @@ class SettingsRepository {
 
   Future<void> setDisplayPromoImages(List<String> paths) =>
       prefs.setStringList(_displayPromoImagesKey, paths);
+
+  /// Absolute path of the shop's brand logo, shown on the nav rail and the
+  /// customer display. Null = use the generic glyph. Set in Settings, so a
+  /// multi-shop build needs no bundled per-shop asset.
+  String? get brandLogoPath => prefs.getString(_brandLogoKey);
+
+  Future<void> setBrandLogoPath(String? path) async {
+    if (path == null || path.isEmpty) {
+      await prefs.remove(_brandLogoKey);
+    } else {
+      await prefs.setString(_brandLogoKey, path);
+    }
+  }
 
   /// How the customer-facing second screen behaves: a passive order/promo
   /// display, a dedicated self-order kiosk, or hybrid (promo + tap-to-order

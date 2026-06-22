@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
+import 'package:restaurant_ui/restaurant_ui.dart';
 
 import '../../../core/db/database.dart';
 import '../../../core/l10n_ext.dart';
+import '../../../core/settings/brand_logo_store.dart';
 import '../../../core/settings/providers.dart';
 import '../../../core/settings/settings_repository.dart';
 import '../../../core/supabase_auth.dart';
@@ -256,7 +258,36 @@ class SettingsScreen extends ConsumerWidget {
 
   List<Widget> _displayBody(BuildContext context, WidgetRef ref) {
     final receiptConfig = ref.watch(receiptConfigProvider);
+    final brandLogo = ref.watch(brandLogoProvider);
     return [
+      ListTile(
+        leading: SizedBox(
+          width: 40,
+          height: 40,
+          child: BrandMark(
+            logoPath: brandLogo,
+            size: 40,
+            fallbackColor: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+        title: Text(context.l10n.setBrandLogo),
+        subtitle: Text(
+          brandLogo == null
+              ? context.l10n.setBrandLogoNone
+              : context.l10n.setBrandLogoSet,
+        ),
+        trailing: brandLogo == null
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.delete_outline),
+                tooltip: context.l10n.commonDelete,
+                onPressed: () async {
+                  await BrandLogoStore().clear();
+                  await ref.read(brandLogoProvider.notifier).set(null);
+                },
+              ),
+        onTap: () => _editBrandLogo(context, ref),
+      ),
       ListTile(
         leading: const Icon(Icons.view_carousel_outlined),
         title: Text(context.l10n.setDisplayMode),
@@ -280,6 +311,7 @@ class SettingsScreen extends ConsumerWidget {
               mode: ref.read(customerDisplayModeProvider),
               promoLines: ref.read(displayPromoProvider),
               promoImages: ref.read(displayPromoImagesProvider),
+              brandLogo: ref.read(brandLogoProvider),
             );
           }
         },
@@ -626,6 +658,18 @@ class SettingsScreen extends ConsumerWidget {
     ]);
     await _publishPromo(ref);
     await ref.read(customerDisplayProvider).pushCurrentPromo();
+  }
+
+  /// Picks the shop's brand logo (a single image) and stores it locally.
+  Future<void> _editBrandLogo(BuildContext context, WidgetRef ref) async {
+    const group = XTypeGroup(
+      label: 'images',
+      extensions: ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'],
+    );
+    final file = await openFile(acceptedTypeGroups: [group]);
+    if (file == null) return;
+    final path = await BrandLogoStore().import(file.path);
+    await ref.read(brandLogoProvider.notifier).set(path);
   }
 
   /// Uploads the current promo set to the shop's Storage bucket so other
