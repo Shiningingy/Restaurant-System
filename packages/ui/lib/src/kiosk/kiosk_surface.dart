@@ -2,34 +2,43 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
-import 'package:restaurant_ui/restaurant_ui.dart';
 
+import '../brand_mark.dart';
+import '../pos_theme.dart';
+import 'kiosk_labels.dart';
 import 'kiosk_menu.dart';
 
-/// The interactive self-order surface shown in the customer-display window when
-/// it's in kiosk (or hybrid-tapped) mode. The customer browses the menu, builds
-/// a cart, and places the order — which is sent back to the POS to register.
+/// The interactive self-order surface — the customer browses the [menu], builds
+/// a cart, and places the order through [onSubmit]. Shared by the merchant's
+/// customer-display kiosk and the customer app's tablet kiosk so they look and
+/// behave identically.
 ///
-/// Owns no database: it renders the [menu] the POS pushed and returns the cart
-/// through [onSubmit]. Everything is local to the one machine — fully offline.
+/// Owns no database and no providers: it renders the [menu] it's given and
+/// returns the cart through [onSubmit]; the host decides what placing an order
+/// means (register it locally, or submit a cloud preorder). All wording comes
+/// from [labels] so the host controls localization.
 class KioskSurface extends StatefulWidget {
   final String businessName;
 
   /// Logo for the terracotta header (dark slot) and the confirmation screen
-  /// (wordmark slot). Resolved by the POS.
+  /// (wordmark slot). Null falls back to the generic brand glyph.
   final String? brandHeader;
   final String? brandConfirm;
   final KioskMenu? menu;
 
-  /// Sends the built cart to the POS; resolves with `{ok, code}` (or `{ok:
-  /// false}` on failure). The POS creates the real order on its DB connection.
-  final Future<Map<String, dynamic>> Function(List<CartLine>) onSubmit;
+  /// All user-facing strings (so the same widget is English on the merchant
+  /// display and localized in the customer app).
+  final KioskLabels labels;
 
-  /// Asks the POS to re-push the menu (used while waiting for the first push).
+  /// Sends the built cart to the host; resolves with `{ok, code}` (or `{ok:
+  /// false}` on failure). `code` (when present) is shown as the pickup number.
+  final Future<Map<String, dynamic>> Function(List<KioskCartLine>) onSubmit;
+
+  /// Asks the host to re-supply the menu (used while waiting for the first one).
   final Future<void> Function() onRefreshMenu;
 
-  /// Hybrid only: leave the kiosk flow back to the promo screen. Null for a
-  /// dedicated kiosk (nowhere to exit to).
+  /// Leave the kiosk flow (back to the host's attract/promo screen). Null when
+  /// there's nowhere to exit to.
   final VoidCallback? onExit;
 
   const KioskSurface({
@@ -38,6 +47,7 @@ class KioskSurface extends StatefulWidget {
     required this.brandHeader,
     required this.brandConfirm,
     required this.menu,
+    required this.labels,
     required this.onSubmit,
     required this.onRefreshMenu,
     this.onExit,
@@ -50,12 +60,14 @@ class KioskSurface extends StatefulWidget {
 enum _Stage { browse, review, confirm }
 
 class _KioskSurfaceState extends State<KioskSurface> {
-  final List<CartLine> _cart = [];
+  final List<KioskCartLine> _cart = [];
   int _categoryIndex = 0;
   _Stage _stage = _Stage.browse;
   bool _submitting = false;
   String? _confirmCode;
   Timer? _resetTimer;
+
+  KioskLabels get _l => widget.labels;
 
   int get _cartCount => _cart.fold(0, (s, l) => s + l.qty);
   int get _cartCents => _cart.fold(0, (s, l) => s + l.lineCents);
@@ -67,7 +79,7 @@ class _KioskSurfaceState extends State<KioskSurface> {
   }
 
   void _addToCart(KioskItem item, List<KioskModifier> modifiers) {
-    final line = CartLine(item: item, modifiers: modifiers);
+    final line = KioskCartLine(item: item, modifiers: modifiers);
     final existing = _cart
         .where((l) => l.signature == line.signature)
         .firstOrNull;
@@ -88,7 +100,7 @@ class _KioskSurfaceState extends State<KioskSurface> {
     final mods = await showModalBottomSheet<List<KioskModifier>>(
       context: context,
       isScrollControlled: true,
-      builder: (_) => _ModifierSheet(item: item),
+      builder: (_) => _ModifierSheet(item: item, labels: _l),
     );
     if (mods != null) _addToCart(item, mods);
   }
@@ -108,11 +120,9 @@ class _KioskSurfaceState extends State<KioskSurface> {
       _resetTimer = Timer(const Duration(seconds: 9), _reset);
     } else {
       setState(() => _submitting = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Could not place the order. Please ask staff.'),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_l.submitFailed)));
     }
   }
 
@@ -147,13 +157,10 @@ class _KioskSurfaceState extends State<KioskSurface> {
         children: [
           const CircularProgressIndicator(),
           const SizedBox(height: 16),
-          const Text('Loading menu…'),
-          TextButton(
-            onPressed: widget.onRefreshMenu,
-            child: const Text('Retry'),
-          ),
+          Text(_l.loadingMenu),
+          TextButton(onPressed: widget.onRefreshMenu, child: Text(_l.retry)),
           if (widget.onExit != null)
-            TextButton(onPressed: widget.onExit, child: const Text('Back')),
+            TextButton(onPressed: widget.onExit, child: Text(_l.back)),
         ],
       ),
     ),
@@ -182,7 +189,7 @@ class _KioskSurfaceState extends State<KioskSurface> {
                   Expanded(
                     child: Text(
                       widget.businessName.isEmpty
-                          ? 'Order here'
+                          ? _l.headerFallbackTitle
                           : widget.businessName,
                       style: theme.textTheme.headlineSmall?.copyWith(
                         color: theme.colorScheme.onPrimary,
@@ -193,7 +200,7 @@ class _KioskSurfaceState extends State<KioskSurface> {
                     TextButton(
                       onPressed: widget.onExit,
                       child: Text(
-                        'Cancel',
+                        _l.cancel,
                         style: TextStyle(color: theme.colorScheme.onPrimary),
                       ),
                     ),
@@ -324,12 +331,12 @@ class _KioskSurfaceState extends State<KioskSurface> {
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            Icon(Icons.shopping_cart_outlined, size: 28),
+            const Icon(Icons.shopping_cart_outlined, size: 28),
             const SizedBox(width: 12),
             Text(
               empty
-                  ? 'Your cart is empty'
-                  : '$_cartCount item${_cartCount == 1 ? '' : 's'}  ·  ${formatCents(_cartCents)}',
+                  ? _l.cartEmpty
+                  : _l.cartSummary(_cartCount, formatCents(_cartCents)),
               style: theme.textTheme.titleMedium,
             ),
             const Spacer(),
@@ -339,7 +346,7 @@ class _KioskSurfaceState extends State<KioskSurface> {
                   : () => setState(() => _stage = _Stage.review),
               style: FilledButton.styleFrom(minimumSize: const Size(160, 56)),
               icon: const Icon(Icons.arrow_forward),
-              label: const Text('Review order'),
+              label: Text(_l.reviewOrder),
             ),
           ],
         ),
@@ -350,7 +357,7 @@ class _KioskSurfaceState extends State<KioskSurface> {
   Widget _review() {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Your order'),
+        title: Text(_l.reviewTitle),
         leading: BackButton(
           onPressed: () => setState(() => _stage = _Stage.browse),
         ),
@@ -360,7 +367,7 @@ class _KioskSurfaceState extends State<KioskSurface> {
           children: [
             Expanded(
               child: _cart.isEmpty
-                  ? const Center(child: Text('Your cart is empty'))
+                  ? Center(child: Text(_l.cartEmpty))
                   : ListView.builder(
                       padding: const EdgeInsets.all(16),
                       itemCount: _cart.length,
@@ -431,12 +438,11 @@ class _KioskSurfaceState extends State<KioskSurface> {
 
     return Column(
       children: [
-        row('Subtotal', t.subtotal),
-        if (!t.serviceFee.isZero)
-          row('Service (${_pct(serviceFeeBp)}%)', t.serviceFee),
-        row('Tax (${_pct(taxBp)}%)', t.tax),
+        row(_l.subtotal, t.subtotal),
+        if (!t.serviceFee.isZero) row(_l.service(_pct(serviceFeeBp)), t.serviceFee),
+        row(_l.tax(_pct(taxBp)), t.tax),
         const Divider(height: 16),
-        row('Total', t.total, bold: true),
+        row(_l.total, t.total, bold: true),
       ],
     );
   }
@@ -446,7 +452,7 @@ class _KioskSurfaceState extends State<KioskSurface> {
       onPressed: () => setState(() => _stage = _Stage.browse),
       style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(56)),
       icon: const Icon(Icons.add),
-      label: const Text('Add more'),
+      label: Text(_l.addMore),
     );
     final canPlace = _cart.isNotEmpty && !_submitting;
     final payAtCounter = FilledButton.icon(
@@ -459,7 +465,7 @@ class _KioskSurfaceState extends State<KioskSurface> {
               child: CircularProgressIndicator(strokeWidth: 2),
             )
           : const Icon(Icons.storefront),
-      label: Text(_submitting ? 'Placing…' : 'Pay at counter'),
+      label: Text(_submitting ? _l.placing : _l.payAtCounter),
     );
 
     // Pay-here disabled by the owner: a single counter action.
@@ -479,7 +485,7 @@ class _KioskSurfaceState extends State<KioskSurface> {
       onPressed: null,
       style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(56)),
       icon: const Icon(Icons.credit_card),
-      label: const Text('Pay here (soon)'),
+      label: Text(_l.payHereSoon),
     );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -497,7 +503,7 @@ class _KioskSurfaceState extends State<KioskSurface> {
     );
   }
 
-  Widget _cartTile(CartLine line) {
+  Widget _cartTile(KioskCartLine line) {
     final theme = Theme.of(context);
     return Card(
       child: Padding(
@@ -565,13 +571,13 @@ class _KioskSurfaceState extends State<KioskSurface> {
               ),
               const SizedBox(height: 24),
               Text(
-                'Order placed!',
+                _l.orderPlaced,
                 style: theme.textTheme.displaySmall,
                 textAlign: TextAlign.center,
               ),
               if (_confirmCode != null) ...[
                 const SizedBox(height: 16),
-                Text('Your number', style: theme.textTheme.titleMedium),
+                Text(_l.yourNumber, style: theme.textTheme.titleMedium),
                 Text(
                   _confirmCode!,
                   style: theme.textTheme.displayMedium?.copyWith(
@@ -582,7 +588,7 @@ class _KioskSurfaceState extends State<KioskSurface> {
               ],
               const SizedBox(height: 24),
               Text(
-                'Please pay at the counter.',
+                _l.payAtCounterNote,
                 style: theme.textTheme.headlineSmall,
                 textAlign: TextAlign.center,
               ),
@@ -590,7 +596,7 @@ class _KioskSurfaceState extends State<KioskSurface> {
               FilledButton(
                 onPressed: _reset,
                 style: FilledButton.styleFrom(minimumSize: const Size(200, 60)),
-                child: const Text('Done'),
+                child: Text(_l.done),
               ),
             ],
           ),
@@ -604,8 +610,9 @@ class _KioskSurfaceState extends State<KioskSurface> {
 /// render as radios (first option pre-selected); multi-select groups as checks.
 class _ModifierSheet extends StatefulWidget {
   final KioskItem item;
+  final KioskLabels labels;
 
-  const _ModifierSheet({required this.item});
+  const _ModifierSheet({required this.item, required this.labels});
 
   @override
   State<_ModifierSheet> createState() => _ModifierSheetState();
@@ -708,8 +715,8 @@ class _ModifierSheetState extends State<_ModifierSheet> {
                 ),
                 child: Text(
                   _extraCents == 0
-                      ? 'Add to order'
-                      : 'Add to order  ·  +${formatCents(_extraCents)}',
+                      ? widget.labels.addToOrder
+                      : widget.labels.addToOrderExtra(formatCents(_extraCents)),
                 ),
               ),
             ),

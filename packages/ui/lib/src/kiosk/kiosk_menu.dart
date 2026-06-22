@@ -1,7 +1,8 @@
-/// Lightweight, presentation-only menu model for the kiosk sub-window. It owns
-/// no database — these are plain value objects parsed from the JSON the POS
-/// window pushes over the customer-display channel. Prices keep cents (for the
-/// running cart total) and a pre-formatted string (for display).
+/// Lightweight, presentation-only menu model for the kiosk surface. It owns no
+/// database — these are plain value objects. The merchant builds them from the
+/// JSON it pushes over the customer-display channel; the customer app builds
+/// them from its published menu. Prices keep cents (for the running cart total)
+/// and a pre-formatted string (for display).
 class KioskMenu {
   final String businessName;
   final int taxRateBp;
@@ -146,13 +147,13 @@ class KioskModifier {
 
 /// One line in the kiosk cart: the chosen item, quantity and selected
 /// modifiers. Carries snapshots so the cart renders without re-looking-up the
-/// menu; only ids + qty are sent back to the POS on submit.
-class CartLine {
+/// menu; only ids + qty are sent back on submit.
+class KioskCartLine {
   final KioskItem item;
   final List<KioskModifier> modifiers;
   int qty;
 
-  CartLine({required this.item, required this.modifiers, this.qty = 1});
+  KioskCartLine({required this.item, required this.modifiers, this.qty = 1});
 
   int get unitCents =>
       item.priceCents + modifiers.fold(0, (s, m) => s + m.deltaCents);
@@ -174,7 +175,7 @@ class CartLine {
 }
 
 /// Formats integer cents the same way the POS does on receipts ("$12.34"),
-/// without depending on the domain Money type in the sub-window.
+/// without depending on the domain Money type.
 String formatCents(int cents) {
   final sign = cents < 0 ? '-' : '';
   final abs = cents.abs();

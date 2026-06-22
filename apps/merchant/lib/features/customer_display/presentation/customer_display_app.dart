@@ -10,8 +10,6 @@ import 'package:restaurant_ui/restaurant_ui.dart';
 import '../../../core/settings/settings_repository.dart'
     show CustomerDisplayMode;
 import '../customer_display_channel.dart';
-import 'kiosk_menu.dart';
-import 'kiosk_surface.dart';
 
 /// Root of the customer-facing display sub-window (runs in its own engine on
 /// the extended monitor). It owns no database; the POS window pushes it the
@@ -256,7 +254,7 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
     }
   }
 
-  Future<Map<String, dynamic>> _submit(List<CartLine> cart) async {
+  Future<Map<String, dynamic>> _submit(List<KioskCartLine> cart) async {
     final res = await _channel.invokeMethod<String>(
       'submitOrder',
       jsonEncode({
@@ -280,6 +278,7 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
         brandHeader: _brand.kioskHeader,
         brandConfirm: _brand.kioskConfirm,
         menu: _menu,
+        labels: const KioskLabels.en(),
         onSubmit: _submit,
         onRefreshMenu: _requestMenu,
         // Finishing or backing out returns to the attract/cover screen.
