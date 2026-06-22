@@ -49,6 +49,91 @@ final receiptPrinterReadyProvider = Provider<bool>((ref) {
       printers[PrinterRole.kitchen]!.isConfigured;
 });
 
+/// Whether the order screen shows categories in a vertical column (all at once)
+/// instead of the horizontal row. Toggled from the order screen, persisted.
+class CategoryVerticalNotifier extends Notifier<bool> {
+  @override
+  bool build() => ref.watch(settingsRepositoryProvider).categoryVertical;
+
+  Future<void> toggle() async {
+    final repo = ref.read(settingsRepositoryProvider);
+    await repo.setCategoryVertical(!state);
+    ref.invalidateSelf();
+  }
+}
+
+final categoryVerticalProvider =
+    NotifierProvider<CategoryVerticalNotifier, bool>(
+      CategoryVerticalNotifier.new,
+    );
+
+/// Promo lines shown on the customer display while idle.
+class DisplayPromoNotifier extends Notifier<List<String>> {
+  @override
+  List<String> build() =>
+      ref.watch(settingsRepositoryProvider).displayPromoLines;
+
+  Future<void> set(List<String> lines) async {
+    await ref.read(settingsRepositoryProvider).setDisplayPromoLines(lines);
+    ref.invalidateSelf();
+  }
+}
+
+final displayPromoProvider =
+    NotifierProvider<DisplayPromoNotifier, List<String>>(
+      DisplayPromoNotifier.new,
+    );
+
+/// Promo photo paths shown as a slideshow on the customer display while idle.
+class DisplayPromoImagesNotifier extends Notifier<List<String>> {
+  @override
+  List<String> build() =>
+      ref.watch(settingsRepositoryProvider).displayPromoImages;
+
+  Future<void> set(List<String> paths) async {
+    await ref.read(settingsRepositoryProvider).setDisplayPromoImages(paths);
+    ref.invalidateSelf();
+  }
+}
+
+final displayPromoImagesProvider =
+    NotifierProvider<DisplayPromoImagesNotifier, List<String>>(
+      DisplayPromoImagesNotifier.new,
+    );
+
+/// Whether the kiosk offers a "pay here" option (card at the kiosk) alongside
+/// pay-at-counter. Card-at-kiosk isn't wired to a processor yet.
+class KioskPayHereNotifier extends Notifier<bool> {
+  @override
+  bool build() => ref.watch(settingsRepositoryProvider).kioskPayHere;
+
+  Future<void> set(bool on) async {
+    await ref.read(settingsRepositoryProvider).setKioskPayHere(on);
+    ref.invalidateSelf();
+  }
+}
+
+final kioskPayHereProvider = NotifierProvider<KioskPayHereNotifier, bool>(
+  KioskPayHereNotifier.new,
+);
+
+/// How the customer-facing second screen behaves (passive / kiosk / hybrid).
+class CustomerDisplayModeNotifier extends Notifier<CustomerDisplayMode> {
+  @override
+  CustomerDisplayMode build() =>
+      ref.watch(settingsRepositoryProvider).customerDisplayMode;
+
+  Future<void> set(CustomerDisplayMode mode) async {
+    await ref.read(settingsRepositoryProvider).setCustomerDisplayMode(mode);
+    ref.invalidateSelf();
+  }
+}
+
+final customerDisplayModeProvider =
+    NotifierProvider<CustomerDisplayModeNotifier, CustomerDisplayMode>(
+      CustomerDisplayModeNotifier.new,
+    );
+
 class ReceiptConfigNotifier extends Notifier<domain.ReceiptConfig> {
   @override
   domain.ReceiptConfig build() =>

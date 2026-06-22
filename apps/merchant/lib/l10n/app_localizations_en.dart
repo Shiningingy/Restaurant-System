@@ -84,6 +84,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'No open orders — start a dine-in or takeout order.';
 
   @override
+  String get ordersSelfOrderSection => 'Self-order (unpaid)';
+
+  @override
+  String get ordersStaffSection => 'Orders';
+
+  @override
   String ordersLoadFailed(String error) {
     return 'Failed to load orders: $error';
   }
@@ -159,6 +165,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ordEditDiscount => 'Edit discount';
+
+  @override
+  String get ordCategoryLayout => 'Category layout';
 
   @override
   String get ordRemoveDiscount => 'Remove';
@@ -794,6 +803,92 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setReceiptFooter => 'Receipt footer';
+
+  @override
+  String get setCustomerDisplay => 'Customer display (second screen)';
+
+  @override
+  String get setOpenCustomerDisplay => 'Open customer display';
+
+  @override
+  String get setCustomerDisplayHint =>
+      'Opens a window for the extended monitor; drag it to the customer-facing screen. Shows the order while ringing up, promos when idle.';
+
+  @override
+  String get setDisplayPromo => 'Promo messages';
+
+  @override
+  String get setDisplayPromoNone => 'None — shows the business name when idle.';
+
+  @override
+  String get setDisplayPromoHint =>
+      'One message per line; they rotate on the idle screen.';
+
+  @override
+  String get setDisplayMode => 'Display mode';
+
+  @override
+  String get setDisplayModePassive => 'Order display';
+
+  @override
+  String get setDisplayModePassiveDesc =>
+      'Mirrors the order being rung up; rotating promo when idle.';
+
+  @override
+  String get setDisplayModeKiosk => 'Self-order kiosk';
+
+  @override
+  String get setDisplayModeKioskDesc =>
+      'Customers browse the menu and order themselves on the screen.';
+
+  @override
+  String get setDisplayModeHybrid => 'Hybrid (display + kiosk)';
+
+  @override
+  String get setDisplayModeHybridDesc =>
+      'Promo with “tap to order” when idle; mirrors the cashier\'s order while ringing up.';
+
+  @override
+  String get setDisplayPromoPhotos => 'Promo photos';
+
+  @override
+  String get setDisplayPromoPhotosNone =>
+      'None — add photos to play a slideshow when idle.';
+
+  @override
+  String setDisplayPromoPhotosCount(int count) {
+    return '$count photo(s) — playing as a slideshow.';
+  }
+
+  @override
+  String get setDisplayPromoPhotosAdd => 'Add photos…';
+
+  @override
+  String get setDisplayPromoPhotosClear => 'Remove all photos';
+
+  @override
+  String get setKioskPayHere => 'Allow pay at kiosk';
+
+  @override
+  String get setKioskPayHereHint =>
+      'Off: all kiosk orders are paid at the counter. On: shows a “pay here” option (card payment coming soon).';
+
+  @override
+  String get setDisplayHide => 'Hide customer display';
+
+  @override
+  String get setDisplayHideHint =>
+      'Tap to hide it off-screen; “Open” shows it again. The second screen has no close button so customers can\'t misclick.';
+
+  @override
+  String get setDisplayClose => 'Close';
+
+  @override
+  String get setMainFullscreen => 'Full screen (this window)';
+
+  @override
+  String get setMainFullscreenHint =>
+      'Fill the screen with no title bar (F11).';
 
   @override
   String get setPrintQueue => 'Print queue';

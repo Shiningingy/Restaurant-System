@@ -5,6 +5,7 @@ import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../../core/l10n_ext.dart';
 import '../../../core/settings/providers.dart';
+import '../../customer_display/application/kiosk_bridge.dart';
 import '../application/providers.dart';
 
 class OrdersScreen extends ConsumerWidget {
@@ -45,55 +46,136 @@ class OrdersScreen extends ConsumerWidget {
           if (orders.isEmpty) {
             return Center(child: Text(context.l10n.ordersEmpty));
           }
-          return GridView.builder(
-            padding: const EdgeInsets.all(16),
-            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: 260,
-              mainAxisExtent: 120,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-            ),
-            itemCount: orders.length,
-            itemBuilder: (context, i) {
-              final order = orders[i];
-              final title = switch (order.type) {
-                domain.OrderType.dineIn => context.l10n.orderTableLabel(
-                  tableLabels[order.tableId] ?? '?',
-                ),
-                domain.OrderType.takeout => context.l10n.orderTakeout,
-                domain.OrderType.online => context.l10n.orderOnline,
-              };
-              return Card(
-                child: InkWell(
-                  onTap: () => context.go('/orders/${order.id}'),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        const Spacer(),
-                        Text(
-                          order.total.format(),
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                        Text(
-                          TimeOfDay.fromDateTime(
-                            order.createdAt,
-                          ).format(context),
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
+          // Self-order (kiosk) orders are unpaid and customer-placed — show them
+          // in their own section, each card carrying its pickup number, so staff
+          // can spot and reconcile them at the counter.
+          final kiosk = [
+            for (final o in orders)
+              if (kioskPickupCode(o.note) != null) o,
+          ];
+          final regular = [
+            for (final o in orders)
+              if (kioskPickupCode(o.note) == null) o,
+          ];
+
+          if (kiosk.isEmpty) {
+            return GridView.builder(
+              padding: const EdgeInsets.all(16),
+              gridDelegate: _ordersGridDelegate,
+              itemCount: regular.length,
+              itemBuilder: (context, i) =>
+                  _orderCard(context, regular[i], tableLabels),
+            );
+          }
+
+          return CustomScrollView(
+            slivers: [
+              _sectionHeader(context, context.l10n.ordersSelfOrderSection),
+              _ordersSliver(context, kiosk, tableLabels),
+              _sectionHeader(context, context.l10n.ordersStaffSection),
+              _ordersSliver(context, regular, tableLabels),
+              const SliverToBoxAdapter(child: SizedBox(height: 88)),
+            ],
           );
         },
+      ),
+    );
+  }
+
+  static const _ordersGridDelegate = SliverGridDelegateWithMaxCrossAxisExtent(
+    maxCrossAxisExtent: 260,
+    mainAxisExtent: 120,
+    crossAxisSpacing: 12,
+    mainAxisSpacing: 12,
+  );
+
+  Widget _sectionHeader(BuildContext context, String label) =>
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+          child: Text(label, style: Theme.of(context).textTheme.titleSmall),
+        ),
+      );
+
+  Widget _ordersSliver(
+    BuildContext context,
+    List<domain.Order> orders,
+    Map<String, String> tableLabels,
+  ) => SliverPadding(
+    padding: const EdgeInsets.all(16),
+    sliver: SliverGrid(
+      gridDelegate: _ordersGridDelegate,
+      delegate: SliverChildBuilderDelegate(
+        (context, i) => _orderCard(context, orders[i], tableLabels),
+        childCount: orders.length,
+      ),
+    ),
+  );
+
+  Widget _orderCard(
+    BuildContext context,
+    domain.Order order,
+    Map<String, String> tableLabels,
+  ) {
+    final theme = Theme.of(context);
+    final code = kioskPickupCode(order.note);
+    final title = switch (order.type) {
+      domain.OrderType.dineIn => context.l10n.orderTableLabel(
+        tableLabels[order.tableId] ?? '?',
+      ),
+      domain.OrderType.takeout => context.l10n.orderTakeout,
+      domain.OrderType.online => context.l10n.orderOnline,
+    };
+    return Card(
+      // Self-order cards stand out so staff can reconcile them at the counter.
+      color: code != null ? theme.colorScheme.tertiaryContainer : null,
+      child: InkWell(
+        onTap: () => context.go('/orders/${order.id}'),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  if (code != null) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.tertiary,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        code,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: theme.colorScheme.onTertiary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: theme.textTheme.titleMedium,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              const Spacer(),
+              Text(order.total.format(), style: theme.textTheme.titleLarge),
+              Text(
+                TimeOfDay.fromDateTime(order.createdAt).format(context),
+                style: theme.textTheme.bodySmall,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

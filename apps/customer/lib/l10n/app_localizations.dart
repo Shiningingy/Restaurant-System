@@ -260,6 +260,84 @@ abstract class AppLocalizations {
   /// **'Cancel'**
   String get commonCancel;
 
+  /// No description provided for @kioskEnter.
+  ///
+  /// In en, this message translates to:
+  /// **'Kiosk mode'**
+  String get kioskEnter;
+
+  /// No description provided for @kioskEnterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to kiosk mode?'**
+  String get kioskEnterTitle;
+
+  /// No description provided for @kioskEnterBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This tablet becomes a self-order kiosk for {name}. Customers can order but can\'t switch restaurant. To exit, long-press the top-left corner.'**
+  String kioskEnterBody(String name);
+
+  /// No description provided for @kioskTapToOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to order'**
+  String get kioskTapToOrder;
+
+  /// No description provided for @kioskStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start order'**
+  String get kioskStart;
+
+  /// No description provided for @kioskExit.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit kiosk'**
+  String get kioskExit;
+
+  /// No description provided for @kioskExitTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit kiosk mode?'**
+  String get kioskExitTitle;
+
+  /// No description provided for @kioskExitBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This device returns to normal mode.'**
+  String get kioskExitBody;
+
+  /// No description provided for @kioskNotConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Kiosk isn\'t set up yet.'**
+  String get kioskNotConnected;
+
+  /// No description provided for @kioskThankYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you!'**
+  String get kioskThankYou;
+
+  /// No description provided for @kioskThankYouBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your order is in. Please pay at the counter.'**
+  String get kioskThankYouBody;
+
+  /// No description provided for @kioskStartNewOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Start new order'**
+  String get kioskStartNewOrder;
+
+  /// No description provided for @kioskDefaultName.
+  ///
+  /// In en, this message translates to:
+  /// **'Kiosk'**
+  String get kioskDefaultName;
+
   /// No description provided for @profileTitle.
   ///
   /// In en, this message translates to:

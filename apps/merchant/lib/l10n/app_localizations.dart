@@ -242,6 +242,18 @@ abstract class AppLocalizations {
   /// **'No open orders — start a dine-in or takeout order.'**
   String get ordersEmpty;
 
+  /// No description provided for @ordersSelfOrderSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Self-order (unpaid)'**
+  String get ordersSelfOrderSection;
+
+  /// No description provided for @ordersStaffSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get ordersStaffSection;
+
   /// No description provided for @ordersLoadFailed.
   ///
   /// In en, this message translates to:
@@ -379,6 +391,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Edit discount'**
   String get ordEditDiscount;
+
+  /// No description provided for @ordCategoryLayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Category layout'**
+  String get ordCategoryLayout;
 
   /// No description provided for @ordRemoveDiscount.
   ///
@@ -1435,6 +1453,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Receipt footer'**
   String get setReceiptFooter;
+
+  /// No description provided for @setCustomerDisplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer display (second screen)'**
+  String get setCustomerDisplay;
+
+  /// No description provided for @setOpenCustomerDisplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Open customer display'**
+  String get setOpenCustomerDisplay;
+
+  /// No description provided for @setCustomerDisplayHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Opens a window for the extended monitor; drag it to the customer-facing screen. Shows the order while ringing up, promos when idle.'**
+  String get setCustomerDisplayHint;
+
+  /// No description provided for @setDisplayPromo.
+  ///
+  /// In en, this message translates to:
+  /// **'Promo messages'**
+  String get setDisplayPromo;
+
+  /// No description provided for @setDisplayPromoNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None — shows the business name when idle.'**
+  String get setDisplayPromoNone;
+
+  /// No description provided for @setDisplayPromoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'One message per line; they rotate on the idle screen.'**
+  String get setDisplayPromoHint;
+
+  /// No description provided for @setDisplayMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Display mode'**
+  String get setDisplayMode;
+
+  /// No description provided for @setDisplayModePassive.
+  ///
+  /// In en, this message translates to:
+  /// **'Order display'**
+  String get setDisplayModePassive;
+
+  /// No description provided for @setDisplayModePassiveDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Mirrors the order being rung up; rotating promo when idle.'**
+  String get setDisplayModePassiveDesc;
+
+  /// No description provided for @setDisplayModeKiosk.
+  ///
+  /// In en, this message translates to:
+  /// **'Self-order kiosk'**
+  String get setDisplayModeKiosk;
+
+  /// No description provided for @setDisplayModeKioskDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Customers browse the menu and order themselves on the screen.'**
+  String get setDisplayModeKioskDesc;
+
+  /// No description provided for @setDisplayModeHybrid.
+  ///
+  /// In en, this message translates to:
+  /// **'Hybrid (display + kiosk)'**
+  String get setDisplayModeHybrid;
+
+  /// No description provided for @setDisplayModeHybridDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Promo with “tap to order” when idle; mirrors the cashier\'s order while ringing up.'**
+  String get setDisplayModeHybridDesc;
+
+  /// No description provided for @setDisplayPromoPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Promo photos'**
+  String get setDisplayPromoPhotos;
+
+  /// No description provided for @setDisplayPromoPhotosNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None — add photos to play a slideshow when idle.'**
+  String get setDisplayPromoPhotosNone;
+
+  /// No description provided for @setDisplayPromoPhotosCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} photo(s) — playing as a slideshow.'**
+  String setDisplayPromoPhotosCount(int count);
+
+  /// No description provided for @setDisplayPromoPhotosAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add photos…'**
+  String get setDisplayPromoPhotosAdd;
+
+  /// No description provided for @setDisplayPromoPhotosClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove all photos'**
+  String get setDisplayPromoPhotosClear;
+
+  /// No description provided for @setKioskPayHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow pay at kiosk'**
+  String get setKioskPayHere;
+
+  /// No description provided for @setKioskPayHereHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Off: all kiosk orders are paid at the counter. On: shows a “pay here” option (card payment coming soon).'**
+  String get setKioskPayHereHint;
+
+  /// No description provided for @setDisplayHide.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide customer display'**
+  String get setDisplayHide;
+
+  /// No description provided for @setDisplayHideHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to hide it off-screen; “Open” shows it again. The second screen has no close button so customers can\'t misclick.'**
+  String get setDisplayHideHint;
+
+  /// No description provided for @setDisplayClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get setDisplayClose;
+
+  /// No description provided for @setMainFullscreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Full screen (this window)'**
+  String get setMainFullscreen;
+
+  /// No description provided for @setMainFullscreenHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill the screen with no title bar (F11).'**
+  String get setMainFullscreenHint;
 
   /// No description provided for @setPrintQueue.
   ///

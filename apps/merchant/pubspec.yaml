@@ -36,6 +36,8 @@ dependencies:
   sqlite3: ^3.3.0
   # Windows spooler FFI for raw ESC/POS printing to USB/installed printers.
   win32: ^5.5.0
+  # Second window (customer-facing display) on the extended monitor.
+  desktop_multi_window: ^0.3.0
 
 dev_dependencies:
   build_runner: ^2.15.0

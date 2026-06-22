@@ -125,6 +125,30 @@ final walletProvider = NotifierProvider<WalletNotifier, Wallet>(
   WalletNotifier.new,
 );
 
+/// Whether this device runs as a self-order kiosk, locked to one storefront.
+/// Enabling opens that storefront; the app then shows the attract screen.
+class KioskController extends Notifier<bool> {
+  @override
+  bool build() => ref.watch(storefrontConfigRepositoryProvider).kioskMode;
+
+  Future<void> enable(String storefrontId) async {
+    await ref
+        .read(storefrontConfigRepositoryProvider)
+        .setKiosk(enabled: true, storefrontId: storefrontId);
+    await ref.read(walletProvider.notifier).open(storefrontId);
+    state = true;
+  }
+
+  Future<void> disable() async {
+    await ref.read(storefrontConfigRepositoryProvider).setKiosk(enabled: false);
+    state = false;
+  }
+}
+
+final kioskModeProvider = NotifierProvider<KioskController, bool>(
+  KioskController.new,
+);
+
 /// The active storefront merged with the customer profile. Derived from
 /// [walletProvider] so the existing menu/cart/status flow needs no changes.
 final storefrontConfigProvider = Provider<StorefrontConfig>((ref) {

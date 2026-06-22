@@ -181,6 +181,8 @@ class StorefrontConfigRepository {
   static const _notifySmsKey = 'customerNotifyBySms';
   static const _appLocaleKey = 'appLocale';
   static const _helpSeenKey = 'helpSeen';
+  static const _kioskModeKey = 'kioskMode';
+  static const _kioskStorefrontIdKey = 'kioskStorefrontId';
 
   // Pre-wallet single-storefront keys, migrated forward on first write.
   static const _legacyUrlKey = 'storefrontUrl';
@@ -204,6 +206,22 @@ class StorefrontConfigRepository {
   bool get helpSeen => prefs.getBool(_helpSeenKey) ?? false;
 
   Future<void> setHelpSeen(bool seen) => prefs.setBool(_helpSeenKey, seen);
+
+  /// Whether this device runs as a self-order kiosk (locked to one storefront,
+  /// attract screen + auto-reset). Off by default.
+  bool get kioskMode => prefs.getBool(_kioskModeKey) ?? false;
+
+  /// The storefront the kiosk is locked to, so a reboot returns to it.
+  String? get kioskStorefrontId => prefs.getString(_kioskStorefrontIdKey);
+
+  Future<void> setKiosk({required bool enabled, String? storefrontId}) async {
+    await prefs.setBool(_kioskModeKey, enabled);
+    if (enabled && storefrontId != null) {
+      await prefs.setString(_kioskStorefrontIdKey, storefrontId);
+    } else if (!enabled) {
+      await prefs.remove(_kioskStorefrontIdKey);
+    }
+  }
 
   CustomerProfile get profile => CustomerProfile(
     name: prefs.getString(_nameKey),

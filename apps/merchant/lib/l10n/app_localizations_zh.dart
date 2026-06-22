@@ -83,6 +83,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get ordersEmpty => '暂无未结订单 — 开始一笔堂食或外带订单。';
 
   @override
+  String get ordersSelfOrderSection => '自助点餐（未付款）';
+
+  @override
+  String get ordersStaffSection => '订单';
+
+  @override
   String ordersLoadFailed(String error) {
     return '加载订单失败：$error';
   }
@@ -158,6 +164,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get ordEditDiscount => '修改折扣';
+
+  @override
+  String get ordCategoryLayout => '分类布局';
 
   @override
   String get ordRemoveDiscount => '移除';
@@ -777,6 +786,84 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get setReceiptFooter => '小票页脚';
+
+  @override
+  String get setCustomerDisplay => '顾客显示屏（第二屏幕）';
+
+  @override
+  String get setOpenCustomerDisplay => '打开顾客显示屏';
+
+  @override
+  String get setCustomerDisplayHint =>
+      '打开一个用于扩展显示器的窗口；将其拖到面向顾客的屏幕。点单时显示订单，空闲时显示促销。';
+
+  @override
+  String get setDisplayPromo => '促销信息';
+
+  @override
+  String get setDisplayPromoNone => '无 — 空闲时显示商家名称。';
+
+  @override
+  String get setDisplayPromoHint => '每行一条信息；将在空闲屏幕轮播。';
+
+  @override
+  String get setDisplayMode => '显示模式';
+
+  @override
+  String get setDisplayModePassive => '订单显示';
+
+  @override
+  String get setDisplayModePassiveDesc => '同步显示正在结账的订单；空闲时轮播促销信息。';
+
+  @override
+  String get setDisplayModeKiosk => '自助点餐机';
+
+  @override
+  String get setDisplayModeKioskDesc => '顾客在屏幕上浏览菜单并自助下单。';
+
+  @override
+  String get setDisplayModeHybrid => '混合（显示 + 自助点餐）';
+
+  @override
+  String get setDisplayModeHybridDesc => '空闲时显示促销与“点击点餐”；收银员结账时同步显示订单。';
+
+  @override
+  String get setDisplayPromoPhotos => '促销图片';
+
+  @override
+  String get setDisplayPromoPhotosNone => '无 — 添加图片可在空闲时轮播。';
+
+  @override
+  String setDisplayPromoPhotosCount(int count) {
+    return '$count 张图片 — 正在轮播。';
+  }
+
+  @override
+  String get setDisplayPromoPhotosAdd => '添加图片…';
+
+  @override
+  String get setDisplayPromoPhotosClear => '清除所有图片';
+
+  @override
+  String get setKioskPayHere => '允许自助点餐机付款';
+
+  @override
+  String get setKioskPayHereHint => '关闭：所有自助点餐订单在柜台付款。开启：显示“在此付款”选项（刷卡付款即将推出）。';
+
+  @override
+  String get setDisplayHide => '隐藏顾客屏幕';
+
+  @override
+  String get setDisplayHideHint => '点击可将其隐藏；“打开”可再次显示。第二屏幕没有关闭按钮，顾客不会误点。';
+
+  @override
+  String get setDisplayClose => '关闭';
+
+  @override
+  String get setMainFullscreen => '全屏（此窗口）';
+
+  @override
+  String get setMainFullscreenHint => '全屏显示且无标题栏（F11）。';
 
   @override
   String get setPrintQueue => '打印队列';

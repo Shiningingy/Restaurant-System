@@ -9,7 +9,7 @@ A plain-language guide for shop owners and staff. No technical knowledge needed.
 The app comes in two parts:
 
 - **Merchant app** — your point-of-sale (POS). Runs on a Windows 10/11 PC or an Android tablet. This is most of the guide.
-- **Customer app** — what your customers use to preorder for pickup. Covered in [§9](#9-the-customer-app).
+- **Customer app** — what your customers use to preorder for pickup. Covered in [§10](#10-the-customer-app).
 
 Everything works **offline** — the POS keeps running with no internet. The cloud features (online orders, backup) are optional and run on your own account; nothing is hosted by us, and there is no required subscription.
 
@@ -25,9 +25,10 @@ Everything works **offline** — the POS keeps running with no internet. The clo
 6. [Managing the menu](#6-managing-the-menu)
 7. [Online orders (Inbox)](#7-online-orders-inbox)
 8. [Reports](#8-reports)
-9. [The customer app](#9-the-customer-app)
-10. [Cloud backup & privacy](#10-cloud-backup--privacy)
-11. [Troubleshooting](#11-troubleshooting)
+9. [Customer display & self-order kiosk](#9-customer-display--self-order-kiosk)
+10. [The customer app](#10-the-customer-app)
+11. [Cloud backup & privacy](#11-cloud-backup--privacy)
+12. [Troubleshooting](#12-troubleshooting)
 
 ---
 
@@ -63,11 +64,19 @@ Open **Settings** and work down the list. You only do this once.
 - **Discount without manager** — discounts up to this size are free for any staff; bigger ones ask for a manager PIN.
 
 ### Printing
-- **Network printer** — your receipt printer's IP address and port (usually **9100**). Pick **58 mm** or **80 mm** paper to match your printer.
-  - Tap **Search for printers** to scan your network, or type the IP by hand.
-  - **Test print** sends a test page so you can confirm it works.
-- **Business name on receipts** and **Receipt footer** — what prints at the top and bottom of customer receipts.
-- **Print queue** — shows pending/failed print jobs; you can retry or discard.
+You can set up **two printers** independently — a **Kitchen printer** and a **Receipt printer**. A one-printer shop can just set up one; the other falls back to it.
+
+For each printer, choose how it connects:
+- **Network** — the printer's IP address and port (usually **9100**). Tap **Search for printers** to scan, or type the IP by hand.
+- **USB / Windows printer** — pick any printer installed in Windows from the list (covers USB and shared printers).
+
+Then for each:
+- **Paper width** — **58 mm** or **80 mm**, to match the printer.
+- **Chinese** — turn this on if a printer prints Chinese (or other non-Latin) second names as `?????`. It switches the printer into Chinese mode so second names print correctly.
+- **Open cash drawer** *(receipt printer)* — kicks the drawer open when a receipt prints.
+- **Test print** sends a test page so you can confirm it works.
+
+Also here: **Business name on receipts** and **Receipt footer** (top/bottom of receipts), and **Print queue** (pending/failed jobs — retry or discard).
 
 > 📷 _[screenshot: Settings → Printing]_
 
@@ -184,7 +193,7 @@ On Windows or Android you can speed up data entry with **Import from photo**:
 
 ## 7. Online orders (Inbox)
 
-This lets customers preorder for pickup. It needs the optional cloud setup ([§10](#10-cloud-backup--privacy)) and a published menu.
+This lets customers preorder for pickup. It needs the optional cloud setup ([§11](#11-cloud-backup--privacy)) and a published menu.
 
 1. In **Inbox**, tap **Publish menu** to send your current menu to your storefront. Re-publish whenever the menu changes.
 2. Customers add your restaurant by scanning your **Customer connect code** (Settings) and place preorders.
@@ -212,7 +221,38 @@ The **Reports** tab shows one day at a time (use **Previous day / Next day**):
 
 ---
 
-## 9. The customer app
+## 9. Customer display & self-order kiosk
+
+If your POS has a **second screen**, the merchant app can drive it as a customer-facing display — or even a self-order kiosk. It all runs on the **one machine, offline**. Set it up in **Settings → Customer display**.
+
+### Display mode
+Choose how the second screen behaves:
+- **Order display** — mirrors the order you're ringing up (items + the full Subtotal → Tax → Total breakdown), and shows a rotating promo when idle.
+- **Self-order kiosk** — the screen is a customer self-order station: they browse the menu and order themselves.
+- **Hybrid** — promo with a **"Tap to order"** button when idle, but it switches to mirror your order whenever you're ringing one up.
+
+### Opening & controlling it
+- **Open customer display** puts the display on the second monitor. It opens **frameless with no close button**, so a customer can't accidentally close or move it. (On a single-screen PC it opens as a normal window for testing.)
+- **Hide** / **Close** the display from Settings — the customer can't, only you can.
+- **Full screen (this window)** — make the POS itself fill the screen; or press **F11** anywhere.
+
+### Promo
+- **Promo messages** — one per line; they rotate on the idle screen.
+- **Promo photos** — pick photos to play as a full-screen slideshow when idle.
+
+### Self-ordering
+When a customer places an order at the kiosk:
+1. They build it (with options/modifiers), see the **tax-inclusive total**, and tap **Place order**.
+2. It appears on your **Orders** board in a **Self-order** section, each card tinted and showing a **pickup number** (`K0`, `K1`, `K2`…) so you can match it to the customer.
+3. They **pay at the counter** — send to kitchen / take payment like any order.
+
+> **Pay at kiosk** is a setting you can switch on for later: it shows a "pay here" choice on the kiosk. Card payment at the kiosk isn't available yet, so it's marked *coming soon*; with it off, all kiosk orders are pay-at-counter.
+
+> 📷 _[screenshot: customer display in kiosk mode + a Self-order card on the board]_
+
+---
+
+## 10. The customer app
 
 What your customers do (for your reference when helping them):
 
@@ -226,7 +266,7 @@ What your customers do (for your reference when helping them):
 
 ---
 
-## 10. Cloud backup & privacy
+## 11. Cloud backup & privacy
 
 The POS is **offline-first** — the tablet's own storage is the source of truth, and everything works with no internet.
 
@@ -240,11 +280,14 @@ Cloud features (online orders + backup) are **optional** and run on **your own f
 
 ---
 
-## 11. Troubleshooting
+## 12. Troubleshooting
 
 | Problem | Fix |
 |---|---|
-| **Printer not found / nothing prints** | Settings → Printing → **Search for printers**, or check the printer's IP, that it's on the same network, and the port is **9100**. Use **Test print** to confirm. |
+| **Printer not found / nothing prints** | Settings → Printing → **Search for printers**, or check the printer's IP, that it's on the same network, and the port is **9100**. For a USB printer, make sure it's installed in Windows and pick it from the list. Use **Test print** to confirm. |
+| **Chinese names print as `?????`** | Settings → Printing → turn on **Chinese** for that printer, then Test print. |
+| **Second screen shows the full POS, or the kiosk is blank** | Reopen the display from **Settings → Customer display → Open**. The display picks the second monitor automatically; on a single screen it opens as a normal window. |
+| **Customer touches the wrong screen** | Windows maps touch to monitors separately: search **"Calibrate the screen for pen or touch input" → Setup**, then tap each screen when prompted. |
 | **Online orders show an auth error (400)** | In Settings → Cloud sync, **Sign out and sign back in** to refresh the login. |
 | **Sign-in says "no host specified in URL"** | Your Project URL is missing `https://` at the front — add it. |
 | **"No OCR language pack found"** (photo import) | Windows → Settings → Time & language → Language — add Chinese or English. |

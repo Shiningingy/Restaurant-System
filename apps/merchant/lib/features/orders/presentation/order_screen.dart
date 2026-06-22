@@ -8,6 +8,7 @@ import '../../../core/labels.dart';
 import '../../../core/widgets/item_name_lines.dart';
 import '../../admin/domain/staff.dart';
 import '../../admin/presentation/pin_dialog.dart';
+import '../../customer_display/application/customer_display.dart';
 import '../../menu/application/providers.dart';
 import '../../payments/application/payment_service.dart';
 import '../../payments/application/providers.dart';
@@ -30,8 +31,58 @@ class OrderScreen extends ConsumerStatefulWidget {
 class _OrderScreenState extends ConsumerState<OrderScreen> {
   String? _selectedCategoryId;
 
+  /// Held so [dispose] can reach it without `ref` (the container may already be
+  /// torn down by then).
+  CustomerDisplayController? _display;
+
+  @override
+  void dispose() {
+    // Leaving the order returns the customer display to its idle screen.
+    _display?.pushOrder(null);
+    super.dispose();
+  }
+
+  /// Sends the current order (items + total) to the customer display when it's
+  /// open; a no-op otherwise.
+  void _pushToDisplay() {
+    final display = _display;
+    if (display == null || !display.isOpen) return;
+    final order = ref.read(orderProvider(widget.orderId)).value;
+    if (order == null) {
+      display.pushOrder(null);
+      return;
+    }
+    final lines =
+        ref.read(orderLinesProvider(widget.orderId)).value ?? const [];
+    final visible = lines
+        .where((l) => l.status == domain.OrderLineStatus.active)
+        .toList();
+    display.pushOrder({
+      'lines': [
+        for (final l in visible)
+          {
+            'qty': l.qty,
+            'name': l.nameSnapshot,
+            'amount': l.lineTotal.format(),
+          },
+      ],
+      // Full breakdown so the customer sees how the total is reached, not just
+      // the final number. Null fields are omitted on the display.
+      'subtotal': order.subtotal.format(),
+      'discount': order.discount.isZero
+          ? null
+          : (domain.Money.zero - order.discount).format(),
+      'serviceFee': order.serviceFee.isZero ? null : order.serviceFee.format(),
+      'serviceFeeBp': order.serviceFeeBp,
+      'tax': order.tax.format(),
+      'taxRateBp': order.taxRateBp,
+      'total': order.total.format(),
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    _display ??= ref.read(customerDisplayProvider);
     final order = ref.watch(orderProvider(widget.orderId)).value;
     final lines =
         ref.watch(orderLinesProvider(widget.orderId)).value ?? const [];
@@ -40,17 +91,31 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
         order?.status == domain.OrderStatus.open ||
         order?.status == domain.OrderStatus.sent;
 
+    // Mirror the order to the customer display (if open) as it's rung up.
+    ref.listen(orderProvider(widget.orderId), (_, _) => _pushToDisplay());
+    ref.listen(orderLinesProvider(widget.orderId), (_, _) => _pushToDisplay());
+
     return Scaffold(
       appBar: AppBar(
         leading: BackButton(onPressed: () => context.go('/orders')),
         title: Text(_title(context, order)),
         actions: [
-          if (isOpen)
+          if (order != null && isOpen) ...[
+            TextButton.icon(
+              onPressed: () => _editDiscount(context, order),
+              icon: const Icon(Icons.local_offer_outlined),
+              label: Text(
+                order.discount.isZero
+                    ? context.l10n.ordAddDiscount
+                    : context.l10n.ordEditDiscount,
+              ),
+            ),
             TextButton.icon(
               onPressed: () => _voidOrder(context),
               icon: const Icon(Icons.delete_outline),
               label: Text(context.l10n.ordVoidOrder),
             ),
+          ],
         ],
       ),
       body: order == null
@@ -131,6 +196,34 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
       if (context.mounted) context.go('/orders');
     }
   }
+
+  /// Apply or change the order discount. Offers the manager-set presets plus a
+  /// manual percent; a manual percent above the threshold needs a manager PIN.
+  Future<void> _editDiscount(BuildContext context, domain.Order order) async {
+    final settings = ref.read(settingsRepositoryProvider);
+    final chosenBp = await showDialog<int>(
+      context: context,
+      builder: (context) => _DiscountDialog(
+        presetsBp: settings.discountPresetsBp,
+        currentBp: order.subtotal.isZero
+            ? 0
+            : (order.discount.cents * 10000 / order.subtotal.cents).round(),
+      ),
+    );
+    if (chosenBp == null) return; // cancelled
+    // A manual discount above the free-staff threshold needs a manager.
+    if (chosenBp > settings.discountThresholdBp) {
+      if (!context.mounted) return;
+      final ok = await requirePermission(
+        context,
+        ref,
+        AppPermission.largeDiscount,
+      );
+      if (!ok) return;
+    }
+    final discount = order.subtotal.percent(chosenBp / 100);
+    await ref.read(orderRepositoryProvider).setDiscount(order.id, discount);
+  }
 }
 
 class _MenuPicker extends ConsumerWidget {
@@ -160,85 +253,185 @@ class _MenuPicker extends ConsumerWidget {
             .where((i) => i.isActive)
             .toList();
     final showSecondary = ref.watch(nameDisplayProvider).orderScreen;
+    final vertical = ref.watch(categoryVerticalProvider);
+    final grid = _itemsGrid(context, items, showSecondary);
+
+    if (vertical) {
+      // A left column that can show every category at once.
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            width: 148,
+            child: Column(
+              children: [
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: _layoutToggle(context, ref, vertical),
+                ),
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+                    children: [
+                      for (final c in categories)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: _CategoryButton(
+                            label: c.name,
+                            selected: c.id == activeCategoryId,
+                            onTap: () => onCategorySelected(c.id),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const VerticalDivider(width: 1),
+          Expanded(child: grid),
+        ],
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SizedBox(
-          height: 56,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            children: [
-              for (final c in categories)
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text(c.name),
-                    selected: c.id == activeCategoryId,
-                    onSelected: (_) => onCategorySelected(c.id),
+        Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                height: 56,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
                   ),
+                  children: [
+                    for (final c in categories)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: ChoiceChip(
+                          label: Text(c.name),
+                          selected: c.id == activeCategoryId,
+                          onSelected: (_) => onCategorySelected(c.id),
+                        ),
+                      ),
+                  ],
                 ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: GridView.builder(
-            padding: const EdgeInsets.all(12),
-            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: 180,
-              mainAxisExtent: 90,
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
+              ),
             ),
-            itemCount: items.length,
-            itemBuilder: (context, i) {
-              final item = items[i];
-              return Card(
-                child: InkWell(
-                  onTap: enabled ? () => onItemTapped(item) : null,
-                  child: Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                item.code == null || item.code!.isEmpty
-                                    ? item.name
-                                    : '${item.code}  ${item.name}',
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              if (showSecondary &&
-                                  item.nameSecondary != null &&
-                                  item.nameSecondary!.isNotEmpty)
-                                Text(
-                                  item.nameSecondary!,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                            ],
-                          ),
-                        ),
-                        Text(
-                          item.price.format(),
-                          style: Theme.of(context).textTheme.labelLarge,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
+            _layoutToggle(context, ref, vertical),
+            const SizedBox(width: 4),
+          ],
         ),
+        Expanded(child: grid),
       ],
     );
+  }
+
+  Widget _layoutToggle(BuildContext context, WidgetRef ref, bool vertical) =>
+      IconButton(
+        tooltip: context.l10n.ordCategoryLayout,
+        icon: Icon(
+          vertical ? Icons.view_stream_outlined : Icons.view_column_outlined,
+        ),
+        onPressed: () => ref.read(categoryVerticalProvider.notifier).toggle(),
+      );
+
+  Widget _itemsGrid(
+    BuildContext context,
+    List<domain.MenuItem> items,
+    bool showSecondary,
+  ) => GridView.builder(
+    padding: const EdgeInsets.all(12),
+    gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+      maxCrossAxisExtent: 200,
+      mainAxisExtent: 116,
+      crossAxisSpacing: 10,
+      mainAxisSpacing: 10,
+    ),
+    itemCount: items.length,
+    itemBuilder: (context, i) {
+      final item = items[i];
+      final hasSecondary =
+          showSecondary &&
+          item.nameSecondary != null &&
+          item.nameSecondary!.isNotEmpty;
+      return Card(
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: enabled ? () => onItemTapped(item) : null,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Flexible (not Expanded) so the name block takes only the room
+                // it needs and the price stays pinned below it — no overlap.
+                Flexible(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.code == null || item.code!.isEmpty
+                            ? item.name
+                            : '${item.code}  ${item.name}',
+                        maxLines: hasSecondary ? 1 : 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                      if (hasSecondary)
+                        Text(
+                          item.nameSecondary!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                    ],
+                  ),
+                ),
+                Text(
+                  item.price.format(),
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}
+
+/// A full-width category button for the vertical category column.
+class _CategoryButton extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _CategoryButton({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final child = Align(
+      alignment: Alignment.centerLeft,
+      child: Text(label, maxLines: 2, overflow: TextOverflow.ellipsis),
+    );
+    final style = ButtonStyle(
+      minimumSize: WidgetStateProperty.all(const Size.fromHeight(48)),
+      alignment: Alignment.centerLeft,
+    );
+    return selected
+        ? FilledButton(onPressed: onTap, style: style, child: child)
+        : OutlinedButton(onPressed: onTap, style: style, child: child);
   }
 }
 
@@ -355,19 +548,6 @@ class _Ticket extends ConsumerWidget {
                 order.total,
                 emphasized: true,
               ),
-              if (isOpen)
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton.icon(
-                    onPressed: () => _editDiscount(context, ref, order),
-                    icon: const Icon(Icons.local_offer_outlined, size: 18),
-                    label: Text(
-                      order.discount.isZero
-                          ? context.l10n.ordAddDiscount
-                          : context.l10n.ordEditDiscount,
-                    ),
-                  ),
-                ),
               if (settled.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 for (final p in settled)
@@ -389,46 +569,44 @@ class _Ticket extends ConsumerWidget {
                 ),
               ],
               const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: isOpen && visibleLines.isNotEmpty
-                      ? () => _sendToKitchen(context, ref)
-                      : null,
-                  icon: const Icon(Icons.print_outlined),
-                  label: Text(
-                    order.status == domain.OrderStatus.sent
-                        ? context.l10n.ordReprintKitchenTicket
-                        : context.l10n.ordSendToKitchen,
-                  ),
+              OutlinedButton.icon(
+                onPressed: isOpen && visibleLines.isNotEmpty
+                    ? () => _sendToKitchen(context, ref)
+                    : null,
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(52),
+                ),
+                icon: const Icon(Icons.print_outlined),
+                label: Text(
+                  order.status == domain.OrderStatus.sent
+                      ? context.l10n.ordReprintKitchenTicket
+                      : context.l10n.ordSendToKitchen,
                 ),
               ),
               if (isOpen && visibleLines.length >= 2) ...[
                 const SizedBox(height: 8),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () => _splitByItem(context, ref),
-                    icon: const Icon(Icons.call_split),
-                    label: Text(context.l10n.ordSplitByItem),
+                OutlinedButton.icon(
+                  onPressed: () => _splitByItem(context, ref),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(52),
                   ),
+                  icon: const Icon(Icons.call_split),
+                  label: Text(context.l10n.ordSplitByItem),
                 ),
               ],
               const SizedBox(height: 8),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: isOpen && visibleLines.isNotEmpty
-                      ? () => _pay(context, ref, balance)
-                      : null,
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.all(20),
-                  ),
-                  child: Text(
-                    isOpen
-                        ? context.l10n.ordPayAmount(balance.format())
-                        : context.l10n.ordClosed,
-                  ),
+              FilledButton(
+                onPressed: isOpen && visibleLines.isNotEmpty
+                    ? () => _pay(context, ref, balance)
+                    : null,
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size.fromHeight(64),
+                  textStyle: Theme.of(context).textTheme.titleMedium,
+                ),
+                child: Text(
+                  isOpen
+                      ? context.l10n.ordPayAmount(balance.format())
+                      : context.l10n.ordClosed,
                 ),
               ),
             ],
@@ -470,38 +648,6 @@ class _Ticket extends ConsumerWidget {
     messenger.showSnackBar(
       SnackBar(content: Text(l10n.ordKitchenTicketQueued)),
     );
-  }
-
-  /// Apply or change the order discount. Offers the manager-set presets plus a
-  /// manual percent; a manual percent above the threshold needs a manager PIN.
-  Future<void> _editDiscount(
-    BuildContext context,
-    WidgetRef ref,
-    domain.Order order,
-  ) async {
-    final settings = ref.read(settingsRepositoryProvider);
-    final chosenBp = await showDialog<int>(
-      context: context,
-      builder: (context) => _DiscountDialog(
-        presetsBp: settings.discountPresetsBp,
-        currentBp: order.subtotal.isZero
-            ? 0
-            : (order.discount.cents * 10000 / order.subtotal.cents).round(),
-      ),
-    );
-    if (chosenBp == null) return; // cancelled
-    // A manual discount above the free-staff threshold needs a manager.
-    if (chosenBp > settings.discountThresholdBp) {
-      if (!context.mounted) return;
-      final ok = await requirePermission(
-        context,
-        ref,
-        AppPermission.largeDiscount,
-      );
-      if (!ok) return;
-    }
-    final discount = order.subtotal.percent(chosenBp / 100);
-    await ref.read(orderRepositoryProvider).setDiscount(order.id, discount);
   }
 
   Future<void> _pay(

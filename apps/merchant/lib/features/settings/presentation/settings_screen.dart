@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -10,7 +11,10 @@ import '../../../core/l10n_ext.dart';
 import '../../../core/settings/providers.dart';
 import '../../../core/settings/settings_repository.dart';
 import '../../../core/supabase_auth.dart';
+import '../../../core/window/window_control.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../customer_display/application/customer_display.dart';
+import '../../customer_display/data/promo_image_store.dart';
 import '../../help/presentation/help_screen.dart';
 import '../../printing/application/providers.dart';
 import '../../printing/data/printer_discovery.dart';
@@ -202,6 +206,92 @@ class SettingsScreen extends ConsumerWidget {
               }
             },
           ),
+          const Divider(height: 32),
+          Text(
+            context.l10n.setCustomerDisplay,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          ListTile(
+            leading: const Icon(Icons.view_carousel_outlined),
+            title: Text(context.l10n.setDisplayMode),
+            subtitle: Text(
+              _displayModeLabel(
+                context,
+                ref.watch(customerDisplayModeProvider),
+              ),
+            ),
+            onTap: () => _editDisplayMode(context, ref),
+          ),
+          ListTile(
+            leading: const Icon(Icons.tv_outlined),
+            title: Text(context.l10n.setOpenCustomerDisplay),
+            subtitle: Text(context.l10n.setCustomerDisplayHint),
+            onTap: () {
+              final display = ref.read(customerDisplayProvider);
+              // "Open" doubles as "show again" after the display was hidden.
+              if (display.isOpen) {
+                display.restore();
+              } else {
+                display.open(
+                  businessName: receiptConfig.businessName,
+                  mode: ref.read(customerDisplayModeProvider),
+                  promoLines: ref.read(displayPromoProvider),
+                  promoImages: ref.read(displayPromoImagesProvider),
+                );
+              }
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.tv_off_outlined),
+            title: Text(context.l10n.setDisplayHide),
+            subtitle: Text(context.l10n.setDisplayHideHint),
+            trailing: TextButton(
+              onPressed: () => ref.read(customerDisplayProvider).close(),
+              child: Text(context.l10n.setDisplayClose),
+            ),
+            onTap: () => ref.read(customerDisplayProvider).minimize(),
+          ),
+          SwitchListTile(
+            secondary: const Icon(Icons.fullscreen),
+            title: Text(context.l10n.setMainFullscreen),
+            subtitle: Text(context.l10n.setMainFullscreenHint),
+            value: ref.watch(mainFullscreenProvider),
+            onChanged: (v) async {
+              final state = await ref
+                  .read(windowControlProvider)
+                  .setMainFullscreen(v);
+              ref.read(mainFullscreenProvider.notifier).set(state);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.campaign_outlined),
+            title: Text(context.l10n.setDisplayPromo),
+            subtitle: Text(
+              ref.watch(displayPromoProvider).isEmpty
+                  ? context.l10n.setDisplayPromoNone
+                  : ref.watch(displayPromoProvider).join(' · '),
+            ),
+            onTap: () => _editPromo(context, ref),
+          ),
+          ListTile(
+            leading: const Icon(Icons.photo_library_outlined),
+            title: Text(context.l10n.setDisplayPromoPhotos),
+            subtitle: Text(
+              ref.watch(displayPromoImagesProvider).isEmpty
+                  ? context.l10n.setDisplayPromoPhotosNone
+                  : context.l10n.setDisplayPromoPhotosCount(
+                      ref.watch(displayPromoImagesProvider).length,
+                    ),
+            ),
+            onTap: () => _editPromoPhotos(context, ref),
+          ),
+          SwitchListTile(
+            secondary: const Icon(Icons.point_of_sale_outlined),
+            title: Text(context.l10n.setKioskPayHere),
+            subtitle: Text(context.l10n.setKioskPayHereHint),
+            value: ref.watch(kioskPayHereProvider),
+            onChanged: (v) => ref.read(kioskPayHereProvider.notifier).set(v),
+          ),
           if (printJobs.isNotEmpty) ...[
             Padding(
               padding: const EdgeInsets.only(left: 16, top: 8),
@@ -359,6 +449,137 @@ class SettingsScreen extends ConsumerWidget {
     if (saved == true && percent != null && percent >= 0 && percent < 100) {
       await ref.read(taxRateBpProvider.notifier).setBp((percent * 100).round());
     }
+  }
+
+  Future<void> _editPromo(BuildContext context, WidgetRef ref) async {
+    final controller = TextEditingController(
+      text: ref.read(displayPromoProvider).join('\n'),
+    );
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.l10n.setDisplayPromo),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLines: 6,
+          decoration: InputDecoration(
+            helperText: context.l10n.setDisplayPromoHint,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(context.l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(context.l10n.commonSave),
+          ),
+        ],
+      ),
+    );
+    if (saved == true) {
+      final lines = controller.text
+          .split('\n')
+          .map((s) => s.trim())
+          .where((s) => s.isNotEmpty)
+          .toList();
+      await ref.read(displayPromoProvider.notifier).set(lines);
+    }
+  }
+
+  String _displayModeLabel(BuildContext context, CustomerDisplayMode mode) =>
+      switch (mode) {
+        CustomerDisplayMode.passive => context.l10n.setDisplayModePassive,
+        CustomerDisplayMode.kiosk => context.l10n.setDisplayModeKiosk,
+        CustomerDisplayMode.hybrid => context.l10n.setDisplayModeHybrid,
+      };
+
+  String _displayModeDesc(BuildContext context, CustomerDisplayMode mode) =>
+      switch (mode) {
+        CustomerDisplayMode.passive => context.l10n.setDisplayModePassiveDesc,
+        CustomerDisplayMode.kiosk => context.l10n.setDisplayModeKioskDesc,
+        CustomerDisplayMode.hybrid => context.l10n.setDisplayModeHybridDesc,
+      };
+
+  /// Picks how the customer-facing screen behaves. If the display is already
+  /// open, the new mode is pushed to it live.
+  Future<void> _editDisplayMode(BuildContext context, WidgetRef ref) async {
+    final current = ref.read(customerDisplayModeProvider);
+    final picked = await showDialog<CustomerDisplayMode>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text(context.l10n.setDisplayMode),
+        children: [
+          for (final mode in CustomerDisplayMode.values)
+            RadioListTile<CustomerDisplayMode>(
+              value: mode,
+              // ignore: deprecated_member_use
+              groupValue: current,
+              // ignore: deprecated_member_use
+              onChanged: (m) => Navigator.pop(context, m),
+              title: Text(_displayModeLabel(context, mode)),
+              subtitle: Text(_displayModeDesc(context, mode)),
+            ),
+        ],
+      ),
+    );
+    if (picked == null) return;
+    await ref.read(customerDisplayModeProvider.notifier).set(picked);
+    // Reflect the change on an already-open display without reopening it.
+    final display = ref.read(customerDisplayProvider);
+    if (display.isOpen) await display.pushMode(picked);
+  }
+
+  /// Manages the customer-display promo slideshow: shows the current photos,
+  /// with actions to add more (file picker) or clear them. Picked files are
+  /// copied into app storage so the paths stay valid.
+  Future<void> _editPromoPhotos(BuildContext context, WidgetRef ref) async {
+    final action = await showDialog<String>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text(context.l10n.setDisplayPromoPhotos),
+        children: [
+          SimpleDialogOption(
+            onPressed: () => Navigator.pop(context, 'add'),
+            child: ListTile(
+              leading: const Icon(Icons.add_photo_alternate_outlined),
+              title: Text(context.l10n.setDisplayPromoPhotosAdd),
+            ),
+          ),
+          if (ref.read(displayPromoImagesProvider).isNotEmpty)
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(context, 'clear'),
+              child: ListTile(
+                leading: const Icon(Icons.delete_outline),
+                title: Text(context.l10n.setDisplayPromoPhotosClear),
+              ),
+            ),
+        ],
+      ),
+    );
+    if (action == 'clear') {
+      final store = PromoImageStore();
+      for (final path in ref.read(displayPromoImagesProvider)) {
+        await store.delete(path);
+      }
+      await ref.read(displayPromoImagesProvider.notifier).set(const []);
+      return;
+    }
+    if (action != 'add') return;
+    const group = XTypeGroup(
+      label: 'images',
+      extensions: ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'],
+    );
+    final files = await openFiles(acceptedTypeGroups: [group]);
+    if (files.isEmpty) return;
+    final store = PromoImageStore();
+    final added = [for (final f in files) await store.import(f.path)];
+    await ref.read(displayPromoImagesProvider.notifier).set([
+      ...ref.read(displayPromoImagesProvider),
+      ...added,
+    ]);
   }
 
   String _printerSummary(BuildContext context, PrinterConfig cfg) {

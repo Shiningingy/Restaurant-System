@@ -18,6 +18,7 @@ class MenuScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final menuAsync = ref.watch(menuProvider);
     final cart = ref.watch(cartProvider);
+    final kiosk = ref.watch(kioskModeProvider);
 
     // Once the menu loads, learn the restaurant's name for the wallet if we
     // didn't get one at connect time (idempotent — no-op once set).
@@ -34,22 +35,36 @@ class MenuScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(menuAsync.value?.restaurantName ?? context.l10n.menuTitle),
         actions: [
-          IconButton(
-            tooltip: context.l10n.ordersTitle,
-            icon: const Icon(Icons.receipt_long_outlined),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const OrdersScreen()),
+          // In kiosk mode the customer can't browse history or switch
+          // restaurants; the app-bar back button returns to the attract screen.
+          if (!kiosk) ...[
+            IconButton(
+              tooltip: context.l10n.ordersTitle,
+              icon: const Icon(Icons.receipt_long_outlined),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(builder: (_) => const OrdersScreen()),
+              ),
             ),
-          ),
-          IconButton(
-            tooltip: context.l10n.walletTitle,
-            icon: const Icon(Icons.storefront_outlined),
-            onPressed: () {
-              ref.read(cartProvider.notifier).clear();
-              ref.read(walletProvider.notifier).leave();
-            },
-          ),
+            IconButton(
+              tooltip: context.l10n.walletTitle,
+              icon: const Icon(Icons.storefront_outlined),
+              onPressed: () {
+                ref.read(cartProvider.notifier).clear();
+                ref.read(walletProvider.notifier).leave();
+              },
+            ),
+          ],
           const LanguageMenu(),
+          if (!kiosk)
+            PopupMenuButton<String>(
+              onSelected: (_) => _enterKiosk(context, ref),
+              itemBuilder: (context) => [
+                PopupMenuItem<String>(
+                  value: 'kiosk',
+                  child: Text(context.l10n.kioskEnter),
+                ),
+              ],
+            ),
         ],
       ),
       body: menuAsync.when(
@@ -156,6 +171,32 @@ class MenuScreen extends ConsumerWidget {
           ),
       ],
     );
+  }
+
+  /// Locks this device into kiosk mode for the connected restaurant.
+  Future<void> _enterKiosk(BuildContext context, WidgetRef ref) async {
+    final active = ref.read(walletProvider).active;
+    if (active == null) return;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.l10n.kioskEnterTitle),
+        content: Text(context.l10n.kioskEnterBody(active.label)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(context.l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(context.l10n.kioskEnter),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) {
+      await ref.read(kioskModeProvider.notifier).enable(active.id);
+    }
   }
 
   Future<void> _addItem(
