@@ -390,8 +390,23 @@ class SyncCodec {
           db.modifierGroups,
         )..where((t) => t.id.equals(id))).go();
         return;
+      case SyncEntities.order:
+        // An owner deleted the order from history — cascade like the local
+        // delete so the row and its children disappear here too.
+        final lineRows = await (db.select(
+          db.orderLines,
+        )..where((t) => t.orderId.equals(id))).get();
+        await (db.delete(
+          db.orderLineModifiers,
+        )..where((t) => t.lineId.isIn(lineRows.map((l) => l.id)))).go();
+        await (db.delete(
+          db.orderLines,
+        )..where((t) => t.orderId.equals(id))).go();
+        await (db.delete(db.payments)..where((t) => t.orderId.equals(id))).go();
+        await (db.delete(db.orders)..where((t) => t.id.equals(id))).go();
+        return;
     }
-    // Other entities are never hard-deleted (voids are status flips).
+    // Remaining entities are never hard-deleted (voids are status flips).
   }
 
   Future<T?> _row<T, Tbl extends Table>(

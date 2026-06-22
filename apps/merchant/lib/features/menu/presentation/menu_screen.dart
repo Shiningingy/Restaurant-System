@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
+import 'package:restaurant_ui/restaurant_ui.dart';
+
 import '../../../core/l10n_ext.dart';
 import '../../../core/widgets/item_name_lines.dart';
 import '../../menu_capture/presentation/capture_screen.dart';
@@ -300,7 +302,7 @@ class _ItemsList extends ConsumerWidget {
                       : Text(context.l10n.menuHiddenFromOrderScreen),
                   trailing: Text(
                     item.price.format(),
-                    style: Theme.of(context).textTheme.titleMedium,
+                    style: moneyTextStyle(Theme.of(context).textTheme.titleMedium),
                   ),
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(

@@ -71,6 +71,30 @@ create policy sync_restaurant_all on sync_changes for all
 -- No policy grants anon or anonymous users anything → they are denied.
 
 -- ───────────────────────────────────────────────────────────────────────
+-- pos-assets (Storage bucket) : the restaurant's private binary assets that
+-- the row feed can't carry — currently the customer-display promo photos
+-- (objects promo/<sha>.<ext> + promo/manifest.json). Private, restaurant-only.
+-- ───────────────────────────────────────────────────────────────────────
+-- Create a NON-public bucket (public=false → no unauthenticated CDN URL).
+insert into storage.buckets (id, name, public)
+  values ('pos-assets', 'pos-assets', false)
+  on conflict (id) do nothing;
+
+-- Objects live in storage.objects; scope every policy to this bucket. Only the
+-- signed-in (non-anonymous) restaurant user may read or write; anon/anonymous
+-- get nothing (no policy → denied), same trust line as sync_changes.
+create policy assets_restaurant_all on storage.objects for all
+  to authenticated
+  using  (bucket_id = 'pos-assets'
+          and coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false) = false)
+  with check (bucket_id = 'pos-assets'
+          and coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false) = false);
+-- Promo photos are shown on the merchant-side customer display (which reads a
+-- local cache), so the bucket needs no public read. If a future customer-app
+-- feature must read an asset directly, add a narrow `for select to anon` policy
+-- for just that key prefix — never make the whole bucket public.
+
+-- ───────────────────────────────────────────────────────────────────────
 -- published_menu : public to read, restaurant to write.
 -- ───────────────────────────────────────────────────────────────────────
 create table published_menu (
@@ -214,8 +238,10 @@ permission error (the customer has no UPDATE policy) — which fails safe.
   submit a preorder tied to their own device id, and read their own order's
   status. Nothing else.
 - A customer **cannot** read or write `sync_changes`, read other customers'
-  orders, or change any order's status or price.
-- The restaurant (authenticated, non-anonymous) has full access to its data.
+  orders, change any order's status or price, or read/write the private
+  `pos-assets` Storage bucket (promo photos).
+- The restaurant (authenticated, non-anonymous) has full access to its data,
+  including the `pos-assets` bucket.
 - No client holds a key that bypasses RLS.
 
 ## Online payment (Phase 7) — forward note

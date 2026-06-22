@@ -66,10 +66,13 @@ enum AppPermission {
 
   /// Add/edit/delete staff and change roles.
   manageStaff,
+
+  /// Permanently delete a closed order from history (e.g. clearing test data).
+  deleteHistory,
 }
 
 StaffRole _minRole(AppPermission permission) => switch (permission) {
-  AppPermission.manageStaff => StaffRole.owner,
+  AppPermission.manageStaff || AppPermission.deleteHistory => StaffRole.owner,
   AppPermission.editMenu ||
   AppPermission.viewReports ||
   AppPermission.refundPaidOrder ||

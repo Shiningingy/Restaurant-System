@@ -37,6 +37,22 @@ final itemsInCategoryProvider =
           ref.watch(menuRepositoryProvider).watchItemsInCategory(categoryId),
     );
 
+/// The single leading letter shared by a category's item codes (e.g. P01..P04
+/// → `P`), or null when the items have no common code letter. Drives the
+/// category tile's prefix box on the order editor — shown only when it exists.
+final categoryCodeLetterProvider = Provider.family<String?, String>((
+  ref,
+  categoryId,
+) {
+  final items = ref.watch(itemsInCategoryProvider(categoryId)).value ?? const [];
+  final letters = <String>{};
+  for (final i in items) {
+    final code = i.code;
+    if (code != null && code.isNotEmpty) letters.add(code[0].toUpperCase());
+  }
+  return letters.length == 1 ? letters.first : null;
+});
+
 final modifierGroupsProvider = StreamProvider<List<domain.ModifierGroup>>(
   (ref) => ref.watch(menuRepositoryProvider).watchModifierGroups(),
 );

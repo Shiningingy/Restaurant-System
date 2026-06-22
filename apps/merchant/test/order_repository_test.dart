@@ -168,6 +168,34 @@ void main() {
     expect(order.subtotal, const Money(1000)); // burger only
   });
 
+  test('deleteOrder removes the order, its lines and payments', () async {
+    final orderId = await orders.createOrder(
+      type: OrderType.takeout,
+      taxRateBp: 1300,
+    );
+    await orders.addLine(orderId: orderId, item: burger, selectedModifiers: [
+      sizeLarge,
+    ]);
+    await orders.addLine(orderId: orderId, item: fries);
+    final order = (await orders.watchOrder(orderId).first)!;
+    await payments.recordApproved(
+      orderId: orderId,
+      method: PaymentMethod.cash,
+      amount: order.total,
+    );
+
+    await orders.deleteOrder(orderId);
+
+    expect(await orders.watchOrder(orderId).first, isNull);
+    expect(await orders.watchLines(orderId).first, isEmpty);
+    expect(
+      await (db.select(db.payments)
+            ..where((t) => t.orderId.equals(orderId)))
+          .get(),
+      isEmpty,
+    );
+  });
+
   test('menu edits never rewrite order history (price snapshot)', () async {
     final orderId = await orders.createOrder(
       type: OrderType.takeout,

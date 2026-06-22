@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
+import 'package:restaurant_ui/restaurant_ui.dart';
 
 import '../../../core/l10n_ext.dart';
 import '../../../core/settings/providers.dart';
+import '../../../core/widgets/status_pill.dart';
 import '../../customer_display/application/kiosk_bridge.dart';
 import '../application/providers.dart';
 
@@ -84,10 +86,46 @@ class OrdersScreen extends ConsumerWidget {
 
   static const _ordersGridDelegate = SliverGridDelegateWithMaxCrossAxisExtent(
     maxCrossAxisExtent: 260,
-    mainAxisExtent: 120,
+    mainAxisExtent: 138,
     crossAxisSpacing: 12,
     mainAxisSpacing: 12,
   );
+
+  /// The board card's status: an icon + label + colours. Never colour alone.
+  StatusPill _statusPill(BuildContext context, domain.Order order, String? code) {
+    final cs = Theme.of(context).colorScheme;
+    final st = context.posStatus;
+    if (code != null) {
+      return StatusPill(
+        icon: Icons.storefront,
+        label: context.l10n.ordStatusSelfOrder,
+        foreground: cs.onTertiaryContainer,
+        background: cs.tertiaryContainer,
+      );
+    }
+    if (order.type == domain.OrderType.online) {
+      return StatusPill(
+        icon: Icons.language,
+        label: context.l10n.orderOnline,
+        foreground: st.onInfoContainer,
+        background: st.infoContainer,
+      );
+    }
+    if (order.status == domain.OrderStatus.sent) {
+      return StatusPill(
+        icon: Icons.soup_kitchen,
+        label: context.l10n.ordStatusPreparing,
+        foreground: st.onWarningContainer,
+        background: st.warningContainer,
+      );
+    }
+    return StatusPill(
+      icon: Icons.hourglass_top,
+      label: context.l10n.ordStatusOpen,
+      foreground: cs.onSurfaceVariant,
+      background: cs.surfaceContainerHighest,
+    );
+  }
 
   Widget _sectionHeader(BuildContext context, String label) =>
       SliverToBoxAdapter(
@@ -167,11 +205,33 @@ class OrdersScreen extends ConsumerWidget {
                   ),
                 ],
               ),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: _statusPill(context, order, code),
+              ),
               const Spacer(),
-              Text(order.total.format(), style: theme.textTheme.titleLarge),
-              Text(
-                TimeOfDay.fromDateTime(order.createdAt).format(context),
-                style: theme.textTheme.bodySmall,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text(
+                    order.total.format(),
+                    style: moneyTextStyle(theme.textTheme.titleLarge),
+                  ),
+                  const SizedBox(width: 8),
+                  // Expanded so the time shrinks/ellipsizes rather than pushing
+                  // the row past a narrow card.
+                  Expanded(
+                    child: Text(
+                      TimeOfDay.fromDateTime(order.createdAt).format(context),
+                      textAlign: TextAlign.right,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

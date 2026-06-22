@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
+import '../../admin/domain/staff.dart';
+import '../../admin/presentation/pin_dialog.dart';
 import '../../orders/application/providers.dart';
 import '../../payments/application/providers.dart';
 import '../../printing/application/providers.dart';
@@ -311,6 +313,14 @@ class _OrderDetailDialog extends ConsumerWidget {
         ),
       ),
       actions: [
+        TextButton.icon(
+          onPressed: () => _confirmDelete(context, ref),
+          style: TextButton.styleFrom(
+            foregroundColor: Theme.of(context).colorScheme.error,
+          ),
+          icon: const Icon(Icons.delete_outline),
+          label: Text(context.l10n.repDeleteOrder),
+        ),
         if (canReprint)
           TextButton.icon(
             onPressed: () async {
@@ -332,5 +342,38 @@ class _OrderDetailDialog extends ConsumerWidget {
         ),
       ],
     );
+  }
+
+  /// Owner-only: permanently delete this order from history (clears test data).
+  Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+    final ok = await requirePermission(
+      context,
+      ref,
+      AppPermission.deleteHistory,
+    );
+    if (!ok || !context.mounted) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.l10n.repDeleteConfirmTitle),
+        content: Text(context.l10n.repDeleteConfirmBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(context.l10n.commonCancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(context.l10n.commonDelete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    await ref.read(orderRepositoryProvider).deleteOrder(order.id);
+    if (context.mounted) Navigator.pop(context); // close the detail dialog
   }
 }

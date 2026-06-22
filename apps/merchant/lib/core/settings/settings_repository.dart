@@ -13,6 +13,30 @@ enum PrinterRole { kitchen, receipt }
 ///   cashier's order while one is active (one screen serving both purposes).
 enum CustomerDisplayMode { passive, kiosk, hybrid }
 
+/// The brand-logo slots: a [global] default plus one per place a logo appears.
+/// Each is an optional image; a placement with none falls back to [global]
+/// (and [global] itself falls back to the generic glyph). So a shop can set a
+/// single default and be done, or give any individual spot its own logo.
+enum BrandLogoSlot {
+  /// The default logo, used wherever a placement has none of its own.
+  global,
+
+  /// Merchant app navigation rail.
+  appNav,
+
+  /// Customer display — the idle/welcome screen.
+  displayWelcome,
+
+  /// Customer display — the live order header (terracotta).
+  displayOrderHeader,
+
+  /// Kiosk — the header (terracotta).
+  kioskHeader,
+
+  /// Kiosk — the order-confirmation screen.
+  kioskConfirm,
+}
+
 /// Configuration for one printer. Transport is either a network printer
 /// (`network`, host:port over TCP 9100) or a Windows-installed printer
 /// (`usb`, addressed by name through the print spooler — covers USB, serial
@@ -117,6 +141,15 @@ class SettingsRepository {
   static const _categoryVerticalKey = 'categoryVertical';
   static const _displayPromoKey = 'displayPromoLines';
   static const _displayPromoImagesKey = 'displayPromoImages';
+  static const _brandLogoKeys = <BrandLogoSlot, String>{
+    // global keeps the original key so an already-set logo becomes the default.
+    BrandLogoSlot.global: 'brandLogoPath',
+    BrandLogoSlot.appNav: 'brandLogoAppNav',
+    BrandLogoSlot.displayWelcome: 'brandLogoWelcome',
+    BrandLogoSlot.displayOrderHeader: 'brandLogoOrderHeader',
+    BrandLogoSlot.kioskHeader: 'brandLogoKioskHeader',
+    BrandLogoSlot.kioskConfirm: 'brandLogoKioskConfirm',
+  };
   static const _displayModeKey = 'customerDisplayMode';
   static const _kioskSeqKey = 'kioskOrderSeq';
   static const _kioskPayHereKey = 'kioskPayHere';
@@ -314,6 +347,21 @@ class SettingsRepository {
 
   Future<void> setDisplayPromoImages(List<String> paths) =>
       prefs.setStringList(_displayPromoImagesKey, paths);
+
+  /// Absolute path of the shop's brand logo for a given appearance [slot]
+  /// (light / dark / wordmark). Null = none set for that slot. Set in Settings,
+  /// so a multi-shop build needs no bundled per-shop asset.
+  String? brandLogoPath(BrandLogoSlot slot) =>
+      prefs.getString(_brandLogoKeys[slot]!);
+
+  Future<void> setBrandLogoPath(BrandLogoSlot slot, String? path) async {
+    final key = _brandLogoKeys[slot]!;
+    if (path == null || path.isEmpty) {
+      await prefs.remove(key);
+    } else {
+      await prefs.setString(key, path);
+    }
+  }
 
   /// How the customer-facing second screen behaves: a passive order/promo
   /// display, a dedicated self-order kiosk, or hybrid (promo + tap-to-order

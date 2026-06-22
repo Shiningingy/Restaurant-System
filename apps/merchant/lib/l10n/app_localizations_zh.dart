@@ -89,6 +89,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get ordersStaffSection => '订单';
 
   @override
+  String get ordStatusOpen => '进行中';
+
+  @override
+  String get ordStatusPreparing => '备餐中';
+
+  @override
+  String get ordStatusSelfOrder => '自助点餐';
+
+  @override
   String ordersLoadFailed(String error) {
     return '加载订单失败：$error';
   }
@@ -649,6 +658,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get repReprintReceipt => '重新打印小票';
 
   @override
+  String get repDeleteOrder => '删除';
+
+  @override
+  String get repDeleteConfirmTitle => '删除此订单？';
+
+  @override
+  String get repDeleteConfirmBody => '这将从历史和报表中永久删除该订单及其付款，无法撤销。';
+
+  @override
   String get setLanguage => '语言';
 
   @override
@@ -788,13 +806,49 @@ class AppLocalizationsZh extends AppLocalizations {
   String get setBusinessNameOnReceipts => '小票上的商家名称';
 
   @override
-  String get setBusinessName => '商家名称';
+  String get setBusinessName => '店铺名称';
+
+  @override
+  String get setBusinessNameHint => '显示在小票、顾客显示屏和自助点餐机上';
 
   @override
   String get setReceiptFooter => '小票页脚';
 
   @override
   String get setCustomerDisplay => '顾客显示屏（第二屏幕）';
+
+  @override
+  String get setBranding => '店铺与品牌';
+
+  @override
+  String get setBrandingHint => '为整个应用设置一个默认标识。下方任意位置都可单独使用自己的标识。';
+
+  @override
+  String get setBrandGlobal => '默认标识';
+
+  @override
+  String get setBrandGlobalHint => '用于所有未单独设置标识的位置';
+
+  @override
+  String get setBrandNav => '应用导航栏';
+
+  @override
+  String get setBrandWelcome => '顾客显示屏 — 欢迎屏';
+
+  @override
+  String get setBrandOrderHeader => '顾客显示屏 — 订单标题栏';
+
+  @override
+  String get setBrandKioskHeader => '自助点餐 — 标题栏';
+
+  @override
+  String get setBrandKioskConfirm => '自助点餐 — 确认屏';
+
+  @override
+  String get setBrandUsingDefault => '使用默认标识';
+
+  @override
+  String get setBrandLogoSet => '已设置 — 使用自己的标识';
 
   @override
   String get setOpenCustomerDisplay => '打开顾客显示屏';

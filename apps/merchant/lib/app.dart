@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:restaurant_ui/restaurant_ui.dart';
 
 import 'core/l10n_ext.dart';
 import 'core/window/window_control.dart';
@@ -11,6 +12,7 @@ import 'features/admin/presentation/admin_screen.dart';
 import 'features/admin/presentation/role_indicator.dart';
 import 'features/help/presentation/help_screen.dart';
 import 'core/settings/providers.dart';
+import 'core/settings/settings_repository.dart' show BrandLogoSlot;
 import 'l10n/app_localizations.dart';
 import 'features/menu/presentation/menu_screen.dart';
 import 'features/online_orders/presentation/inbox_screen.dart';
@@ -133,10 +135,7 @@ class _MerchantAppState extends ConsumerState<MerchantApp> {
       locale: ref.watch(localePreferenceProvider),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
-        useMaterial3: true,
-      ),
+      theme: buildPosTheme(),
       routerConfig: _router,
     );
   }
@@ -232,6 +231,16 @@ class _HomeShell extends ConsumerWidget {
               );
             },
             labelType: NavigationRailLabelType.all,
+            leading: Padding(
+              padding: const EdgeInsets.only(top: 12, bottom: 8),
+              child: BrandMark(
+                logoPath: ref
+                    .watch(brandLogosProvider)
+                    .resolve(BrandLogoSlot.appNav),
+                size: 40,
+                fallbackColor: Theme.of(context).colorScheme.primary,
+              ),
+            ),
             trailing: Expanded(
               child: Align(
                 alignment: Alignment.bottomCenter,

@@ -45,6 +45,11 @@ class SyncService {
   /// NoopSyncBackend when the cloud isn't configured.
   final domain.SyncBackend Function() buildBackend;
 
+  /// Optional best-effort reconcile of non-row assets (promo photos via
+  /// Storage) after a successful pull. Runs only when the cloud is configured;
+  /// its failures never fail the row sync (assets are strictly additive).
+  final Future<void> Function()? reconcileAssets;
+
   final DateTime Function() _clock;
 
   SyncService({
@@ -52,8 +57,18 @@ class SyncService {
     required this.codec,
     required this.settings,
     required this.buildBackend,
+    this.reconcileAssets,
     DateTime Function()? clock,
   }) : _clock = clock ?? DateTime.now;
+
+  Future<void> _reconcileAssets() async {
+    if (reconcileAssets == null) return;
+    try {
+      await reconcileAssets!();
+    } on Object {
+      // Promo/asset sync is best-effort — never break the row sync over it.
+    }
+  }
 
   Future<domain.SyncHealth> health() => buildBackend().healthCheck();
 
@@ -64,6 +79,7 @@ class SyncService {
       final backend = buildBackend();
       final pulled = await _pull(backend);
       final pushed = await _push(backend);
+      await _reconcileAssets();
       await settings.setLastSyncedAt(_clock());
       return SyncOutcome(ok: true, pulled: pulled, pushed: pushed);
     } on Object catch (e) {
@@ -78,6 +94,7 @@ class SyncService {
     try {
       await settings.resetCursor();
       final pulled = await _pull(buildBackend());
+      await _reconcileAssets();
       await settings.setLastSyncedAt(_clock());
       return SyncOutcome(ok: true, pulled: pulled);
     } on Object catch (e) {

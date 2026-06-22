@@ -90,6 +90,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ordersStaffSection => 'Orders';
 
   @override
+  String get ordStatusOpen => 'Open';
+
+  @override
+  String get ordStatusPreparing => 'Preparing';
+
+  @override
+  String get ordStatusSelfOrder => 'Self-order';
+
+  @override
   String ordersLoadFailed(String error) {
     return 'Failed to load orders: $error';
   }
@@ -661,6 +670,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get repReprintReceipt => 'Reprint receipt';
 
   @override
+  String get repDeleteOrder => 'Delete';
+
+  @override
+  String get repDeleteConfirmTitle => 'Delete this order?';
+
+  @override
+  String get repDeleteConfirmBody =>
+      'This permanently removes the order and its payments from history and reports. It can\'t be undone.';
+
+  @override
   String get setLanguage => 'Language';
 
   @override
@@ -805,13 +824,52 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setBusinessNameOnReceipts => 'Business name on receipts';
 
   @override
-  String get setBusinessName => 'Business name';
+  String get setBusinessName => 'Store name';
+
+  @override
+  String get setBusinessNameHint =>
+      'Shown on receipts, the customer display and kiosk';
 
   @override
   String get setReceiptFooter => 'Receipt footer';
 
   @override
   String get setCustomerDisplay => 'Customer display (second screen)';
+
+  @override
+  String get setBranding => 'Store & branding';
+
+  @override
+  String get setBrandingHint =>
+      'Set a default logo for the whole app. Any spot below can use its own instead.';
+
+  @override
+  String get setBrandGlobal => 'Default logo';
+
+  @override
+  String get setBrandGlobalHint =>
+      'Used wherever a spot has no logo of its own';
+
+  @override
+  String get setBrandNav => 'App navigation bar';
+
+  @override
+  String get setBrandWelcome => 'Customer display — welcome';
+
+  @override
+  String get setBrandOrderHeader => 'Customer display — order header';
+
+  @override
+  String get setBrandKioskHeader => 'Kiosk — header';
+
+  @override
+  String get setBrandKioskConfirm => 'Kiosk — confirmation';
+
+  @override
+  String get setBrandUsingDefault => 'Using the default logo';
+
+  @override
+  String get setBrandLogoSet => 'Set — its own logo';
 
   @override
   String get setOpenCustomerDisplay => 'Open customer display';

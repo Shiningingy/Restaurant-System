@@ -254,6 +254,24 @@ abstract class AppLocalizations {
   /// **'Orders'**
   String get ordersStaffSection;
 
+  /// No description provided for @ordStatusOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get ordStatusOpen;
+
+  /// No description provided for @ordStatusPreparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing'**
+  String get ordStatusPreparing;
+
+  /// No description provided for @ordStatusSelfOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Self-order'**
+  String get ordStatusSelfOrder;
+
   /// No description provided for @ordersLoadFailed.
   ///
   /// In en, this message translates to:
@@ -1202,6 +1220,24 @@ abstract class AppLocalizations {
   /// **'Reprint receipt'**
   String get repReprintReceipt;
 
+  /// No description provided for @repDeleteOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get repDeleteOrder;
+
+  /// No description provided for @repDeleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this order?'**
+  String get repDeleteConfirmTitle;
+
+  /// No description provided for @repDeleteConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This permanently removes the order and its payments from history and reports. It can\'t be undone.'**
+  String get repDeleteConfirmBody;
+
   /// No description provided for @setLanguage.
   ///
   /// In en, this message translates to:
@@ -1457,8 +1493,14 @@ abstract class AppLocalizations {
   /// No description provided for @setBusinessName.
   ///
   /// In en, this message translates to:
-  /// **'Business name'**
+  /// **'Store name'**
   String get setBusinessName;
+
+  /// No description provided for @setBusinessNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Shown on receipts, the customer display and kiosk'**
+  String get setBusinessNameHint;
 
   /// No description provided for @setReceiptFooter.
   ///
@@ -1471,6 +1513,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Customer display (second screen)'**
   String get setCustomerDisplay;
+
+  /// No description provided for @setBranding.
+  ///
+  /// In en, this message translates to:
+  /// **'Store & branding'**
+  String get setBranding;
+
+  /// No description provided for @setBrandingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a default logo for the whole app. Any spot below can use its own instead.'**
+  String get setBrandingHint;
+
+  /// No description provided for @setBrandGlobal.
+  ///
+  /// In en, this message translates to:
+  /// **'Default logo'**
+  String get setBrandGlobal;
+
+  /// No description provided for @setBrandGlobalHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Used wherever a spot has no logo of its own'**
+  String get setBrandGlobalHint;
+
+  /// No description provided for @setBrandNav.
+  ///
+  /// In en, this message translates to:
+  /// **'App navigation bar'**
+  String get setBrandNav;
+
+  /// No description provided for @setBrandWelcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer display — welcome'**
+  String get setBrandWelcome;
+
+  /// No description provided for @setBrandOrderHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer display — order header'**
+  String get setBrandOrderHeader;
+
+  /// No description provided for @setBrandKioskHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Kiosk — header'**
+  String get setBrandKioskHeader;
+
+  /// No description provided for @setBrandKioskConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Kiosk — confirmation'**
+  String get setBrandKioskConfirm;
+
+  /// No description provided for @setBrandUsingDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Using the default logo'**
+  String get setBrandUsingDefault;
+
+  /// No description provided for @setBrandLogoSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set — its own logo'**
+  String get setBrandLogoSet;
 
   /// No description provided for @setOpenCustomerDisplay.
   ///

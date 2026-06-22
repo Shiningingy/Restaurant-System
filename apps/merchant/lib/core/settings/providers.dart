@@ -94,12 +94,63 @@ class DisplayPromoImagesNotifier extends Notifier<List<String>> {
     await ref.read(settingsRepositoryProvider).setDisplayPromoImages(paths);
     ref.invalidateSelf();
   }
+
+  /// Applies a promo set pulled from the cloud. Same as [set] but does NOT
+  /// re-publish (it came *from* the cloud), avoiding an upload ping-pong.
+  Future<void> applyFromCloud(List<String> paths) async {
+    await ref.read(settingsRepositoryProvider).setDisplayPromoImages(paths);
+    ref.invalidateSelf();
+  }
 }
 
 final displayPromoImagesProvider =
     NotifierProvider<DisplayPromoImagesNotifier, List<String>>(
       DisplayPromoImagesNotifier.new,
     );
+
+/// The shop's brand logos: an optional image per [BrandLogoSlot]. [resolve]
+/// falls back to the [BrandLogoSlot.global] default, so callers only need one
+/// set (and any individual placement can still override it).
+class BrandLogos {
+  final Map<BrandLogoSlot, String?> paths;
+
+  const BrandLogos(this.paths);
+
+  /// The image explicitly set for [slot] (no fallback), or null.
+  String? forSlot(BrandLogoSlot slot) => paths[slot];
+
+  /// The logo to use for [slot]: its own, else the global default, else null.
+  String? resolve(BrandLogoSlot slot) =>
+      paths[slot] ?? paths[BrandLogoSlot.global];
+
+  /// The global default logo (used for the merchant app icon spots).
+  String? get global => paths[BrandLogoSlot.global];
+}
+
+/// The shop's brand logos (per slot). Set in Settings → Branding; shown on the
+/// nav rail and pushed to the customer display.
+class BrandLogosNotifier extends Notifier<BrandLogos> {
+  @override
+  BrandLogos build() {
+    final r = ref.watch(settingsRepositoryProvider);
+    return BrandLogos({
+      for (final slot in BrandLogoSlot.values) slot: r.brandLogoPath(slot),
+    });
+  }
+
+  Future<void> set(BrandLogoSlot slot, String? path) async {
+    await ref.read(settingsRepositoryProvider).setBrandLogoPath(slot, path);
+    ref.invalidateSelf();
+  }
+
+  /// Applies a logo pulled from the cloud (no re-publish — it came from there).
+  Future<void> applyFromCloud(BrandLogoSlot slot, String? path) =>
+      set(slot, path);
+}
+
+final brandLogosProvider = NotifierProvider<BrandLogosNotifier, BrandLogos>(
+  BrandLogosNotifier.new,
+);
 
 /// Whether the kiosk offers a "pay here" option (card at the kiosk) alongside
 /// pay-at-counter. Card-at-kiosk isn't wired to a processor yet.

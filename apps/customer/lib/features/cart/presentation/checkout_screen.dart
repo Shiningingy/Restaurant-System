@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
+import 'package:restaurant_ui/restaurant_ui.dart';
 
 import '../../../core/l10n_ext.dart';
 import '../../kiosk/presentation/kiosk_thankyou_screen.dart';
@@ -286,7 +287,7 @@ class _AmountRow extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label, style: style),
-        Text(amount, style: style),
+        Text(amount, style: moneyTextStyle(style)),
       ],
     );
   }

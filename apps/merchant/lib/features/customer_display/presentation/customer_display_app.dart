@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:restaurant_ui/restaurant_ui.dart';
 
 import '../../../core/settings/settings_repository.dart'
     show CustomerDisplayMode;
@@ -27,12 +28,15 @@ class CustomerDisplayApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
-        useMaterial3: true,
-      ),
+      theme: buildPosTheme(),
       home: CustomerDisplayScreen(
         businessName: args['businessName'] as String? ?? '',
+        brand: DisplayBrand(
+          welcome: args['brandWelcome'] as String?,
+          orderHeader: args['brandOrderHeader'] as String?,
+          kioskHeader: args['brandKioskHeader'] as String?,
+          kioskConfirm: args['brandKioskConfirm'] as String?,
+        ),
         promoLines:
             (args['promo'] as List?)?.map((e) => e.toString()).toList() ??
             const [],
@@ -52,8 +56,26 @@ class CustomerDisplayApp extends StatelessWidget {
 /// - **mirror** — live view of the order the cashier is ringing up;
 /// - **promo** — rotating idle screen (with a "tap to order" call in hybrid);
 /// - **kiosk** — the interactive self-order flow.
+/// The shop's brand logos for each display surface (resolved by the POS, with
+/// the light logo as the fallback). Plain data — the sub-window owns no
+/// providers.
+class DisplayBrand {
+  final String? welcome;
+  final String? orderHeader;
+  final String? kioskHeader;
+  final String? kioskConfirm;
+
+  const DisplayBrand({
+    this.welcome,
+    this.orderHeader,
+    this.kioskHeader,
+    this.kioskConfirm,
+  });
+}
+
 class CustomerDisplayScreen extends StatefulWidget {
   final String businessName;
+  final DisplayBrand brand;
   final List<String> promoLines;
   final List<String> promoImages;
   final CustomerDisplayMode mode;
@@ -61,6 +83,7 @@ class CustomerDisplayScreen extends StatefulWidget {
   const CustomerDisplayScreen({
     super.key,
     required this.businessName,
+    required this.brand,
     required this.promoLines,
     required this.promoImages,
     required this.mode,
@@ -75,35 +98,44 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
 
   late CustomerDisplayMode _mode = widget.mode;
   late String _businessName = widget.businessName;
+  // Promo is mutable so the POS can update it live (owner edits in Settings)
+  // without the customer having to reopen the display window.
+  late List<String> _promoLines = widget.promoLines;
+  late List<String> _promoImages = widget.promoImages;
   Map<String, dynamic>? _order;
   KioskMenu? _menu;
 
-  /// Hybrid only: the customer tapped "order" on the promo screen and is in the
-  /// kiosk flow. Reset when the cashier starts ringing an order.
-  bool _hybridKiosk = false;
+  /// The customer is in the self-order flow (tapped the attract/cover screen).
+  /// Both kiosk and hybrid start on the cover and only enter the menu on a tap;
+  /// reset back to the cover after an order, or when a cashier rings one.
+  bool _ordering = false;
 
   Timer? _promoTimer;
   int _promoIndex = 0;
   int _photoIndex = 0;
 
-  bool get _interactive =>
-      _mode == CustomerDisplayMode.kiosk ||
-      (_mode == CustomerDisplayMode.hybrid && _hybridKiosk);
-
   @override
   void initState() {
     super.initState();
     _connect();
-    // Rotate the promo (text and/or photos) while idle.
-    if (widget.promoLines.length > 1 || widget.promoImages.length > 1) {
+    _restartPromoTimer();
+  }
+
+  /// (Re)starts the idle rotation for the current promo set. Cancels any
+  /// existing timer first, so a live promo update swaps cleanly.
+  void _restartPromoTimer() {
+    _promoTimer?.cancel();
+    _promoTimer = null;
+    // Only rotate if there's more than one thing to cycle through.
+    if (_promoLines.length > 1 || _promoImages.length > 1) {
       _promoTimer = Timer.periodic(const Duration(seconds: 5), (_) {
-        if (mounted && !_interactive) {
+        if (mounted && !_ordering) {
           setState(() {
-            if (widget.promoLines.isNotEmpty) {
-              _promoIndex = (_promoIndex + 1) % widget.promoLines.length;
+            if (_promoLines.isNotEmpty) {
+              _promoIndex = (_promoIndex + 1) % _promoLines.length;
             }
-            if (widget.promoImages.isNotEmpty) {
-              _photoIndex = (_photoIndex + 1) % widget.promoImages.length;
+            if (_promoImages.isNotEmpty) {
+              _photoIndex = (_photoIndex + 1) % _promoImages.length;
             }
           });
         }
@@ -150,7 +182,7 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
           setState(() {
             _order = order;
             // A cashier order takes the screen back from a hybrid kiosk session.
-            if (order != null) _hybridKiosk = false;
+            if (order != null) _ordering = false;
           });
         }
       case 'menu':
@@ -158,6 +190,23 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
       case 'mode':
         final m = CustomerDisplayMode.values.asNameMap()[call.arguments];
         if (m != null && mounted) setState(() => _mode = m);
+      case 'promo':
+        final data = jsonDecode(call.arguments as String) as Map<String, dynamic>;
+        final lines =
+            (data['promo'] as List?)?.map((e) => e.toString()).toList() ??
+            const <String>[];
+        final imgs =
+            (data['promoImages'] as List?)?.map((e) => e.toString()).toList() ??
+            const <String>[];
+        if (mounted) {
+          setState(() {
+            _promoLines = lines;
+            _promoImages = imgs;
+            _promoIndex = 0;
+            _photoIndex = 0;
+          });
+          _restartPromoTimer();
+        }
     }
     return null;
   }
@@ -207,47 +256,49 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
     final lines = (order?['lines'] as List?) ?? const [];
     final hasOrder = lines.isNotEmpty;
 
-    // Dedicated kiosk, or hybrid with the customer ordering: interactive flow.
-    if (_interactive) {
+    // The customer tapped the cover and is ordering (kiosk or hybrid).
+    if (_ordering) {
       return KioskSurface(
         businessName: _businessName,
+        brandHeader: widget.brand.kioskHeader,
+        brandConfirm: widget.brand.kioskConfirm,
         menu: _menu,
         onSubmit: _submit,
         onRefreshMenu: _requestMenu,
-        // Hybrid sessions can bow out back to the promo screen; a dedicated
-        // kiosk has nowhere to exit to.
-        onExit: _mode == CustomerDisplayMode.hybrid
-            ? () => setState(() => _hybridKiosk = false)
-            : null,
+        // Finishing or backing out returns to the attract/cover screen.
+        onExit: () => setState(() => _ordering = false),
       );
     }
 
-    // Passive / hybrid-idle: mirror the cashier's order, else show promo.
-    if (hasOrder) {
+    // A cashier order takes the screen (passive, or hybrid while ringing). Pure
+    // kiosk has no cashier, so it never mirrors — it stays on its own cover.
+    if (hasOrder && _mode != CustomerDisplayMode.kiosk) {
       return Scaffold(
         body: _OrderMirror(
           businessName: _businessName,
+          brandLogo: widget.brand.orderHeader,
           lines: lines.cast<Map<String, dynamic>>(),
           order: order!,
         ),
       );
     }
+
+    // Idle. In kiosk/hybrid this is the attract/cover screen: tap anywhere (or
+    // the button) to start ordering. Passive is view-only. Gated on a loaded
+    // menu so a dead channel shows no (broken) order button.
+    final canOrder = _mode != CustomerDisplayMode.passive && _menu != null;
     return Scaffold(
       body: _IdlePromo(
         businessName: _businessName,
-        promo: widget.promoLines.isEmpty
+        brandLogo: widget.brand.welcome,
+        promo: _promoLines.isEmpty
             ? null
-            : widget.promoLines[_promoIndex % widget.promoLines.length],
-        photo: widget.promoImages.isEmpty
+            : _promoLines[_promoIndex % _promoLines.length],
+        photo: _promoImages.isEmpty
             ? null
-            : widget.promoImages[_photoIndex % widget.promoImages.length],
-        // Hybrid invites the customer to order; passive is view-only. Kept
-        // gated on a loaded menu on purpose: if the menu failed to load the
-        // missing button is a visible signal that something's wrong (the menu
-        // load itself now awaits channel pairing + retries, so this should only
-        // stay hidden on a real fault).
-        onTapToOrder: _mode == CustomerDisplayMode.hybrid && _menu != null
-            ? () => setState(() => _hybridKiosk = true)
+            : _promoImages[_photoIndex % _promoImages.length],
+        onTapToOrder: canOrder
+            ? () => setState(() => _ordering = true)
             : null,
       ),
     );
@@ -260,12 +311,14 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
 /// action is added in hybrid mode.
 class _IdlePromo extends StatelessWidget {
   final String businessName;
+  final String? brandLogo;
   final String? promo;
   final String? photo;
   final VoidCallback? onTapToOrder;
 
   const _IdlePromo({
     required this.businessName,
+    required this.brandLogo,
     required this.promo,
     required this.photo,
     this.onTapToOrder,
@@ -276,10 +329,19 @@ class _IdlePromo extends StatelessWidget {
     final content = (photo != null && photo!.isNotEmpty)
         ? _slideshow(context)
         : _branded(context);
-    // The whole idle screen is tappable in hybrid, so anywhere starts an order.
-    return onTapToOrder == null
-        ? content
-        : GestureDetector(onTap: onTapToOrder, child: content);
+    if (onTapToOrder == null) return content;
+    // Attract/cover (per the mockup): the whole screen is tappable, with the
+    // "Tap to order" button in the bottom-right (opposite the logo lockup).
+    return GestureDetector(
+      onTap: onTapToOrder,
+      behavior: HitTestBehavior.opaque,
+      child: Stack(
+        children: [
+          Positioned.fill(child: content),
+          Positioned(right: 40, bottom: 40, child: _tapToOrderButton(context)),
+        ],
+      ),
+    );
   }
 
   /// Photo slideshow: the current image fills the screen (cross-fading on
@@ -312,41 +374,48 @@ class _IdlePromo extends StatelessWidget {
           alignment: Alignment.bottomLeft,
           child: Padding(
             padding: const EdgeInsets.all(40),
-            child: Column(
+            // Logo lockup: the white mark beside the name + rotating promo.
+            child: Row(
               mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                if (businessName.isNotEmpty)
-                  Text(
-                    businessName,
-                    style: theme.textTheme.displaySmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
+                BrandMark(
+                  logoPath: brandLogo,
+                  size: 104,
+                  fallbackColor: Colors.white,
+                ),
+                const SizedBox(width: 20),
+                Flexible(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (businessName.isNotEmpty)
+                        Text(
+                          businessName,
+                          style: theme.textTheme.displaySmall?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      if (promo != null && promo!.isNotEmpty)
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 400),
+                          child: Text(
+                            promo!,
+                            key: ValueKey(promo),
+                            style: theme.textTheme.headlineSmall?.copyWith(
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
-                if (promo != null && promo!.isNotEmpty)
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 400),
-                    child: Text(
-                      promo!,
-                      key: ValueKey(promo),
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        color: Colors.white70,
-                      ),
-                    ),
-                  ),
+                ),
               ],
             ),
           ),
         ),
-        if (onTapToOrder != null)
-          Align(
-            alignment: Alignment.bottomRight,
-            child: Padding(
-              padding: const EdgeInsets.all(40),
-              child: _tapToOrderButton(context),
-            ),
-          ),
       ],
     );
   }
@@ -360,16 +429,23 @@ class _IdlePromo extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.restaurant,
-            size: 120,
-            color: theme.colorScheme.onPrimaryContainer,
-          ),
-          const SizedBox(height: 24),
-          Text(
-            businessName.isEmpty ? 'Welcome' : businessName,
-            style: theme.textTheme.displayMedium,
-            textAlign: TextAlign.center,
+          // Logo lockup: the mark beside the shop name.
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              BrandMark(
+                logoPath: brandLogo,
+                size: 96,
+                fallbackColor: theme.colorScheme.onPrimaryContainer,
+              ),
+              const SizedBox(width: 24),
+              Flexible(
+                child: Text(
+                  businessName.isEmpty ? 'Welcome' : businessName,
+                  style: theme.textTheme.displaySmall,
+                ),
+              ),
+            ],
           ),
           if (promo != null && promo!.isNotEmpty) ...[
             const SizedBox(height: 24),
@@ -385,33 +461,34 @@ class _IdlePromo extends StatelessWidget {
               ),
             ),
           ],
-          if (onTapToOrder != null) ...[
-            const SizedBox(height: 48),
-            _tapToOrderButton(context),
-          ],
         ],
       ),
     );
   }
 
+  /// The ordering CTA — a standard xl button in the bottom-right (per the
+  /// mockup). The whole screen is also tappable.
   Widget _tapToOrderButton(BuildContext context) => FilledButton.icon(
     onPressed: onTapToOrder,
     style: FilledButton.styleFrom(
-      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
-      textStyle: Theme.of(context).textTheme.headlineSmall,
+      minimumSize: const Size(0, 64),
+      padding: const EdgeInsets.symmetric(horizontal: 28),
+      textStyle: Theme.of(context).textTheme.titleLarge,
     ),
-    icon: const Icon(Icons.touch_app, size: 32),
+    icon: const Icon(Icons.touch_app),
     label: const Text('Tap to order'),
   );
 }
 
 class _OrderMirror extends StatelessWidget {
   final String businessName;
+  final String? brandLogo;
   final List<Map<String, dynamic>> lines;
   final Map<String, dynamic> order;
 
   const _OrderMirror({
     required this.businessName,
+    required this.brandLogo,
     required this.lines,
     required this.order,
   });
@@ -435,11 +512,23 @@ class _OrderMirror extends StatelessWidget {
           Container(
             color: theme.colorScheme.primary,
             padding: const EdgeInsets.all(24),
-            child: Text(
-              businessName.isEmpty ? 'Your order' : businessName,
-              style: theme.textTheme.headlineMedium?.copyWith(
-                color: theme.colorScheme.onPrimary,
-              ),
+            child: Row(
+              children: [
+                BrandMark(
+                  logoPath: brandLogo,
+                  size: 44,
+                  fallbackColor: theme.colorScheme.onPrimary,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    businessName.isEmpty ? 'Your order' : businessName,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      color: theme.colorScheme.onPrimary,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           Expanded(

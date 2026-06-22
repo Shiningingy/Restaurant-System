@@ -35,6 +35,10 @@ class CustomerDisplayController {
     required CustomerDisplayMode mode,
     List<String> promoLines = const [],
     List<String> promoImages = const [],
+    String? brandWelcome,
+    String? brandOrderHeader,
+    String? brandKioskHeader,
+    String? brandKioskConfirm,
   }) async {
     if (_window != null) return;
     // Register the POS-side handler before the window exists so the kiosk's
@@ -50,6 +54,10 @@ class CustomerDisplayController {
           'promo': promoLines,
           'promoImages': promoImages,
           'mode': mode.name,
+          'brandWelcome': brandWelcome,
+          'brandOrderHeader': brandOrderHeader,
+          'brandKioskHeader': brandKioskHeader,
+          'brandKioskConfirm': brandKioskConfirm,
         }),
         hiddenAtLaunch: false,
       ),
@@ -85,6 +93,27 @@ class CustomerDisplayController {
 
   /// Changes the display mode live without reopening the window.
   Future<void> pushMode(CustomerDisplayMode mode) => _invoke('mode', mode.name);
+
+  /// Updates the idle promo (text lines + photo slideshow) live, so an owner's
+  /// edit in Settings shows immediately without reopening the display window.
+  Future<void> pushPromo({
+    required List<String> promoLines,
+    required List<String> promoImages,
+  }) => _invoke(
+    'promo',
+    jsonEncode({'promo': promoLines, 'promoImages': promoImages}),
+  );
+
+  /// Pushes the currently-configured promo (lines + photos) to the display.
+  /// Call after any change — a local edit or a cloud pull. No-ops when the
+  /// display window isn't open.
+  Future<void> pushCurrentPromo() {
+    final settings = _ref.read(settingsRepositoryProvider);
+    return pushPromo(
+      promoLines: settings.displayPromoLines,
+      promoImages: settings.displayPromoImages,
+    );
+  }
 
   Future<void> _invoke(String method, dynamic args) async {
     final channel = _channel;

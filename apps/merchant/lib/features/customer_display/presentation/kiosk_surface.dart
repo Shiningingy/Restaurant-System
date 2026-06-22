@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
+import 'package:restaurant_ui/restaurant_ui.dart';
 
 import 'kiosk_menu.dart';
 
@@ -13,6 +14,11 @@ import 'kiosk_menu.dart';
 /// through [onSubmit]. Everything is local to the one machine — fully offline.
 class KioskSurface extends StatefulWidget {
   final String businessName;
+
+  /// Logo for the terracotta header (dark slot) and the confirmation screen
+  /// (wordmark slot). Resolved by the POS.
+  final String? brandHeader;
+  final String? brandConfirm;
   final KioskMenu? menu;
 
   /// Sends the built cart to the POS; resolves with `{ok, code}` (or `{ok:
@@ -29,6 +35,8 @@ class KioskSurface extends StatefulWidget {
   const KioskSurface({
     super.key,
     required this.businessName,
+    required this.brandHeader,
+    required this.brandConfirm,
     required this.menu,
     required this.onSubmit,
     required this.onRefreshMenu,
@@ -165,6 +173,12 @@ class _KioskSurfaceState extends State<KioskSurface> {
               padding: const EdgeInsets.fromLTRB(24, 16, 16, 16),
               child: Row(
                 children: [
+                  BrandMark(
+                    logoPath: widget.brandHeader,
+                    size: 40,
+                    fallbackColor: theme.colorScheme.onPrimary,
+                  ),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       widget.businessName.isEmpty
@@ -286,7 +300,10 @@ class _KioskSurfaceState extends State<KioskSurface> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(item.price, style: theme.textTheme.titleMedium),
+                    Text(
+                      item.price,
+                      style: moneyTextStyle(theme.textTheme.titleMedium),
+                    ),
                     Icon(Icons.add_circle, color: theme.colorScheme.primary),
                   ],
                 ),
@@ -406,7 +423,7 @@ class _KioskSurfaceState extends State<KioskSurface> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(label, style: style),
-            Text(formatCents(amount.cents), style: style),
+            Text(formatCents(amount.cents), style: moneyTextStyle(style)),
           ],
         ),
       );
@@ -535,9 +552,15 @@ class _KioskSurfaceState extends State<KioskSurface> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              BrandMark(
+                logoPath: widget.brandConfirm,
+                size: 96,
+                fallbackColor: theme.colorScheme.primary,
+              ),
+              const SizedBox(height: 24),
               Icon(
                 Icons.check_circle,
-                size: 120,
+                size: 96,
                 color: theme.colorScheme.primary,
               ),
               const SizedBox(height: 24),
