@@ -94,6 +94,13 @@ class DisplayPromoImagesNotifier extends Notifier<List<String>> {
     await ref.read(settingsRepositoryProvider).setDisplayPromoImages(paths);
     ref.invalidateSelf();
   }
+
+  /// Applies a promo set pulled from the cloud. Same as [set] but does NOT
+  /// re-publish (it came *from* the cloud), avoiding an upload ping-pong.
+  Future<void> applyFromCloud(List<String> paths) async {
+    await ref.read(settingsRepositoryProvider).setDisplayPromoImages(paths);
+    ref.invalidateSelf();
+  }
 }
 
 final displayPromoImagesProvider =

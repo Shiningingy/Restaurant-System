@@ -2,10 +2,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../../core/providers.dart';
+import '../../../core/settings/providers.dart';
 import '../../../core/supabase_auth.dart';
 import '../../../core/sync/providers.dart';
+import '../../customer_display/application/promo_sync.dart';
+import '../../customer_display/data/promo_image_store.dart';
 import '../data/sync_settings.dart';
+import '../drivers/noop_object_store.dart';
 import '../drivers/noop_sync_backend.dart';
+import '../drivers/supabase_object_store.dart';
 import '../drivers/supabase_sync_backend.dart';
 import 'sync_service.dart';
 
@@ -51,6 +56,30 @@ final supabaseAuthProvider = Provider<SupabaseAuth?>((ref) {
 /// fall back to the anon key, which RLS will rightly restrict).
 Future<String?> Function()? _bearer(SupabaseAuth? auth) => auth?.accessToken;
 
+/// Remote blob storage (the restaurant's own Supabase Storage bucket) for
+/// binary assets the row feed can't carry. NoopObjectStore when not configured.
+final objectStoreProvider = Provider<domain.ObjectStore>((ref) {
+  final config = ref.watch(syncSettingsProvider).config;
+  if (!config.isConfigured) return const NoopObjectStore();
+  return SupabaseObjectStore(
+    url: config.url!,
+    anonKey: config.anonKey!,
+    accessToken: _bearer(ref.read(supabaseAuthProvider)),
+  );
+});
+
+/// Syncs customer-display promo photos via Storage (bytes) + a manifest (set).
+/// `publish()` after the owner edits the photos; `pull()` on each sync cycle.
+final promoSyncProvider = Provider<PromoSyncService>((ref) {
+  return PromoSyncService(
+    store: ref.watch(objectStoreProvider),
+    images: PromoImageStore(),
+    readPaths: () => ref.read(settingsRepositoryProvider).displayPromoImages,
+    writePaths: (paths) =>
+        ref.read(displayPromoImagesProvider.notifier).applyFromCloud(paths),
+  );
+});
+
 final syncServiceProvider = Provider<SyncService>((ref) {
   final settings = ref.watch(syncSettingsProvider);
   return SyncService(
@@ -68,6 +97,8 @@ final syncServiceProvider = Provider<SyncService>((ref) {
         accessToken: _bearer(ref.read(supabaseAuthProvider)),
       );
     },
+    // Best-effort: download any promo photos published by another device.
+    reconcileAssets: () => ref.read(promoSyncProvider).pull(),
   );
 });
 

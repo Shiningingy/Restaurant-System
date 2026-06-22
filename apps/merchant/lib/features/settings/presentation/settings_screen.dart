@@ -565,6 +565,7 @@ class SettingsScreen extends ConsumerWidget {
         await store.delete(path);
       }
       await ref.read(displayPromoImagesProvider.notifier).set(const []);
+      await _publishPromo(ref);
       return;
     }
     if (action != 'add') return;
@@ -580,6 +581,19 @@ class SettingsScreen extends ConsumerWidget {
       ...ref.read(displayPromoImagesProvider),
       ...added,
     ]);
+    await _publishPromo(ref);
+  }
+
+  /// Uploads the current promo set to the shop's Storage bucket so other
+  /// devices pick it up on sync. Best-effort: no-op when the cloud isn't set
+  /// up, and a failure never blocks the (already-saved) local change.
+  Future<void> _publishPromo(WidgetRef ref) async {
+    if (!ref.read(syncSettingsProvider).config.isConfigured) return;
+    try {
+      await ref.read(promoSyncProvider).publish();
+    } on Object {
+      // Photos still work locally; they'll publish on the next edit/sync.
+    }
   }
 
   String _printerSummary(BuildContext context, PrinterConfig cfg) {
