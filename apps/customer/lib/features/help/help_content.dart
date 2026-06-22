@@ -43,6 +43,7 @@ const _en = <HelpSection>[
   HelpSection('Good to know', [
     '- Change the language any time from the language menu.',
     '- You pay at the counter when you pick up — no card details are entered here.',
+    '- Staff: to set this tablet up as a self-order kiosk, open your restaurant, then tap ⋮ → Set up kiosk (needs your store login).',
   ]),
 ];
 
@@ -69,5 +70,9 @@ const _zh = <HelpSection>[
   HelpSection('我的信息', [
     '在我的信息中保存姓名、电话和邮箱，结账时可快速填写。您也可以选择在订单就绪时收到通知（仅当餐厅已开启该功能时有效）。',
   ]),
-  HelpSection('温馨提示', ['- 可随时从语言菜单切换语言。', '- 取餐时在柜台付款——此处不输入任何银行卡信息。']),
+  HelpSection('温馨提示', [
+    '- 可随时从语言菜单切换语言。',
+    '- 取餐时在柜台付款——此处不输入任何银行卡信息。',
+    '- 工作人员：要将本平板设为自助点餐机，请先打开您的餐厅，然后点 ⋮ → 设置自助点餐机（需要商家登录信息）。',
+  ]),
 ];

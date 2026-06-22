@@ -50,6 +50,58 @@
   "kioskThankYouBody": "Your order is in. Please pay at the counter.",
   "kioskStartNewOrder": "Start new order",
   "kioskDefaultName": "Kiosk",
+  "kioskSetup": "Set up kiosk",
+  "kioskLoadingMenu": "Loading menu…",
+  "kioskRetry": "Retry",
+  "kioskBack": "Back",
+  "kioskHeaderFallback": "Order here",
+  "kioskCartEmpty": "Your cart is empty",
+  "kioskReviewOrder": "Review order",
+  "kioskReviewTitle": "Your order",
+  "kioskAddMore": "Add more",
+  "kioskPayAtCounter": "Pay at counter",
+  "kioskPlacing": "Placing…",
+  "kioskPayHereSoon": "Pay here (soon)",
+  "kioskSubtotal": "Subtotal",
+  "kioskTotal": "Total",
+  "kioskOrderPlaced": "Order placed!",
+  "kioskYourNumber": "Your number",
+  "kioskPayAtCounterNote": "Please pay at the counter.",
+  "kioskDone": "Done",
+  "kioskAddToOrder": "Add to order",
+  "kioskSubmitFailed": "Could not place the order. Please ask staff.",
+  "kioskCartSummary": "{count, plural, =1{1 item} other{{count} items}}  ·  {total}",
+  "@kioskCartSummary": {
+    "placeholders": { "count": { "type": "int" }, "total": { "type": "String" } }
+  },
+  "kioskService": "Service ({pct}%)",
+  "@kioskService": {
+    "placeholders": { "pct": { "type": "String" } }
+  },
+  "kioskTax": "Tax ({pct}%)",
+  "@kioskTax": {
+    "placeholders": { "pct": { "type": "String" } }
+  },
+  "kioskAddToOrderExtra": "Add to order  ·  +{extra}",
+  "@kioskAddToOrderExtra": {
+    "placeholders": { "extra": { "type": "String" } }
+  },
+  "kioskOrderName": "Kiosk {number}",
+  "@kioskOrderName": {
+    "placeholders": { "number": { "type": "int" } }
+  },
+  "kioskSetupTitle": "Set up kiosk",
+  "kioskSetupBody": "Sign in with the restaurant's store login to turn this device into a self-order kiosk. The login authorizes setup only — it isn't saved on the device.",
+  "kioskSetupEmail": "Store email",
+  "kioskSetupPassword": "Store password",
+  "kioskSetupNumber": "Kiosk number",
+  "kioskSetupNumberHint": "Shown on this kiosk's orders, e.g. Kiosk 3",
+  "kioskSetupStart": "Set up kiosk",
+  "kioskSetupNoStore": "Open a restaurant first, then set up the kiosk.",
+  "kioskSetupSignInFailed": "Couldn't sign in: {error}",
+  "@kioskSetupSignInFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
 
   "profileTitle": "My details",
   "profileIntro": "Saved on this device to prefill your pickup orders. No account, no sign-in.",

@@ -183,6 +183,7 @@ class StorefrontConfigRepository {
   static const _helpSeenKey = 'helpSeen';
   static const _kioskModeKey = 'kioskMode';
   static const _kioskStorefrontIdKey = 'kioskStorefrontId';
+  static const _kioskNumberKey = 'kioskNumber';
 
   // Pre-wallet single-storefront keys, migrated forward on first write.
   static const _legacyUrlKey = 'storefrontUrl';
@@ -214,12 +215,23 @@ class StorefrontConfigRepository {
   /// The storefront the kiosk is locked to, so a reboot returns to it.
   String? get kioskStorefrontId => prefs.getString(_kioskStorefrontIdKey);
 
-  Future<void> setKiosk({required bool enabled, String? storefrontId}) async {
+  /// This kiosk's number (e.g. 3 → "Kiosk 3"), set at setup and used to label
+  /// its orders so staff can tell which kiosk placed one (and, later, to
+  /// attribute tips). Null until assigned.
+  int? get kioskNumber => prefs.getInt(_kioskNumberKey);
+
+  Future<void> setKiosk({
+    required bool enabled,
+    String? storefrontId,
+    int? number,
+  }) async {
     await prefs.setBool(_kioskModeKey, enabled);
     if (enabled && storefrontId != null) {
       await prefs.setString(_kioskStorefrontIdKey, storefrontId);
+      if (number != null) await prefs.setInt(_kioskNumberKey, number);
     } else if (!enabled) {
       await prefs.remove(_kioskStorefrontIdKey);
+      await prefs.remove(_kioskNumberKey);
     }
   }
 

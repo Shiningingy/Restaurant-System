@@ -338,6 +338,210 @@ abstract class AppLocalizations {
   /// **'Kiosk'**
   String get kioskDefaultName;
 
+  /// No description provided for @kioskSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up kiosk'**
+  String get kioskSetup;
+
+  /// No description provided for @kioskLoadingMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading menu…'**
+  String get kioskLoadingMenu;
+
+  /// No description provided for @kioskRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get kioskRetry;
+
+  /// No description provided for @kioskBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get kioskBack;
+
+  /// No description provided for @kioskHeaderFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Order here'**
+  String get kioskHeaderFallback;
+
+  /// No description provided for @kioskCartEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Your cart is empty'**
+  String get kioskCartEmpty;
+
+  /// No description provided for @kioskReviewOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Review order'**
+  String get kioskReviewOrder;
+
+  /// No description provided for @kioskReviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your order'**
+  String get kioskReviewTitle;
+
+  /// No description provided for @kioskAddMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Add more'**
+  String get kioskAddMore;
+
+  /// No description provided for @kioskPayAtCounter.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay at counter'**
+  String get kioskPayAtCounter;
+
+  /// No description provided for @kioskPlacing.
+  ///
+  /// In en, this message translates to:
+  /// **'Placing…'**
+  String get kioskPlacing;
+
+  /// No description provided for @kioskPayHereSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay here (soon)'**
+  String get kioskPayHereSoon;
+
+  /// No description provided for @kioskSubtotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtotal'**
+  String get kioskSubtotal;
+
+  /// No description provided for @kioskTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get kioskTotal;
+
+  /// No description provided for @kioskOrderPlaced.
+  ///
+  /// In en, this message translates to:
+  /// **'Order placed!'**
+  String get kioskOrderPlaced;
+
+  /// No description provided for @kioskYourNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Your number'**
+  String get kioskYourNumber;
+
+  /// No description provided for @kioskPayAtCounterNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Please pay at the counter.'**
+  String get kioskPayAtCounterNote;
+
+  /// No description provided for @kioskDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get kioskDone;
+
+  /// No description provided for @kioskAddToOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to order'**
+  String get kioskAddToOrder;
+
+  /// No description provided for @kioskSubmitFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not place the order. Please ask staff.'**
+  String get kioskSubmitFailed;
+
+  /// No description provided for @kioskCartSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 item} other{{count} items}}  ·  {total}'**
+  String kioskCartSummary(int count, String total);
+
+  /// No description provided for @kioskService.
+  ///
+  /// In en, this message translates to:
+  /// **'Service ({pct}%)'**
+  String kioskService(String pct);
+
+  /// No description provided for @kioskTax.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax ({pct}%)'**
+  String kioskTax(String pct);
+
+  /// No description provided for @kioskAddToOrderExtra.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to order  ·  +{extra}'**
+  String kioskAddToOrderExtra(String extra);
+
+  /// No description provided for @kioskOrderName.
+  ///
+  /// In en, this message translates to:
+  /// **'Kiosk {number}'**
+  String kioskOrderName(int number);
+
+  /// No description provided for @kioskSetupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up kiosk'**
+  String get kioskSetupTitle;
+
+  /// No description provided for @kioskSetupBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with the restaurant\'s store login to turn this device into a self-order kiosk. The login authorizes setup only — it isn\'t saved on the device.'**
+  String get kioskSetupBody;
+
+  /// No description provided for @kioskSetupEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Store email'**
+  String get kioskSetupEmail;
+
+  /// No description provided for @kioskSetupPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Store password'**
+  String get kioskSetupPassword;
+
+  /// No description provided for @kioskSetupNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Kiosk number'**
+  String get kioskSetupNumber;
+
+  /// No description provided for @kioskSetupNumberHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Shown on this kiosk\'s orders, e.g. Kiosk 3'**
+  String get kioskSetupNumberHint;
+
+  /// No description provided for @kioskSetupStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up kiosk'**
+  String get kioskSetupStart;
+
+  /// No description provided for @kioskSetupNoStore.
+  ///
+  /// In en, this message translates to:
+  /// **'Open a restaurant first, then set up the kiosk.'**
+  String get kioskSetupNoStore;
+
+  /// No description provided for @kioskSetupSignInFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t sign in: {error}'**
+  String kioskSetupSignInFailed(String error);
+
   /// No description provided for @profileTitle.
   ///
   /// In en, this message translates to:

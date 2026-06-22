@@ -11,6 +11,8 @@ resolution: workspace
 dependencies:
   flutter:
     sdk: flutter
+  restaurant_domain:
+    path: ../domain
 
 dev_dependencies:
   flutter_lints: ^6.0.0

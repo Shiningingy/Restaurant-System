@@ -250,6 +250,22 @@ When a customer places an order at the kiosk:
 
 > 📷 _[screenshot: customer display in kiosk mode + a Self-order card on the board]_
 
+### Self-order kiosks on tablets
+
+Beyond the POS's own second screen, you can put out **any number of tablets** as self-order stations. They run the **customer app** in kiosk mode and look exactly like the on-PC kiosk.
+
+To set one up:
+1. Install the customer app on the tablet and **connect it to your restaurant** (scan your Customer connect code — see §10).
+2. On the menu, open the **⋮ menu → Set up kiosk**.
+3. **Sign in with your store login** (the same email + password you use for cloud sync) and give the kiosk a **number** (e.g. 3). The sign-in only authorises the setup — it's **not saved on the tablet**. The tablet then locks into kiosk mode.
+
+A customer taps **Tap to order**, builds their order, and places it. Because a tablet is a separate device, its orders arrive in your **Inbox** like any online order — each labelled **"Kiosk N"** so you know which station it came from. Accept it as usual; they **pay at the counter**.
+
+- Only someone with your **store login** can turn a tablet into a kiosk, so a customer can't switch it on (or off).
+- To take a tablet **out** of kiosk mode, **long-press the top-left corner** and confirm.
+
+> Tablet kiosks need **cloud setup** (online orders) — they reach you over your Supabase. The POS's own second-screen kiosk (above) works fully offline.
+
 ---
 
 ## 10. The customer app

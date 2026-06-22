@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n_ext.dart';
-import '../../cart/cart.dart';
 import '../../storefront/application/providers.dart';
-import '../../storefront/presentation/menu_screen.dart';
+import 'kiosk_order_screen.dart';
 
 /// The kiosk's home. Ensures the device is locked to its storefront, then shows
 /// a full-screen attract screen; tapping it starts a fresh order. This is the
@@ -40,10 +39,9 @@ class _AttractScreen extends ConsumerWidget {
   const _AttractScreen();
 
   void _start(BuildContext context, WidgetRef ref) {
-    ref.read(cartProvider.notifier).clear(); // every customer starts fresh
     Navigator.of(
       context,
-    ).push(MaterialPageRoute<void>(builder: (_) => const MenuScreen()));
+    ).push(MaterialPageRoute<void>(builder: (_) => const KioskOrderScreen()));
   }
 
   Future<void> _confirmExit(BuildContext context, WidgetRef ref) async {

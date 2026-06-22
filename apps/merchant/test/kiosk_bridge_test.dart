@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:merchant/core/db/database.dart';
 import 'package:merchant/features/customer_display/application/kiosk_bridge.dart';
-import 'package:merchant/features/customer_display/presentation/kiosk_menu.dart';
 import 'package:merchant/features/menu/data/menu_repository.dart';
 import 'package:merchant/features/orders/data/order_repository.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
+import 'package:restaurant_ui/restaurant_ui.dart';
 
 import 'helpers/test_db.dart';
 
@@ -198,7 +198,7 @@ void main() {
     });
   });
 
-  group('CartLine', () {
+  group('KioskCartLine', () {
     KioskItem item(String id) => KioskItem(
       id: id,
       code: null,
@@ -213,7 +213,7 @@ void main() {
         KioskModifier(id: id, name: id, deltaCents: cents, delta: '');
 
     test('unit/line totals include modifier deltas', () {
-      final line = CartLine(
+      final line = KioskCartLine(
         item: item('i1'),
         modifiers: [mod('a', 100), mod('b', 50)],
         qty: 3,
@@ -223,15 +223,15 @@ void main() {
     });
 
     test('signature stacks same item+mods regardless of mod order', () {
-      final a = CartLine(
+      final a = KioskCartLine(
         item: item('i1'),
         modifiers: [mod('a', 0), mod('b', 0)],
       );
-      final b = CartLine(
+      final b = KioskCartLine(
         item: item('i1'),
         modifiers: [mod('b', 0), mod('a', 0)],
       );
-      final c = CartLine(item: item('i1'), modifiers: [mod('a', 0)]);
+      final c = KioskCartLine(item: item('i1'), modifiers: [mod('a', 0)]);
       expect(a.signature, b.signature);
       expect(a.signature, isNot(c.signature));
     });

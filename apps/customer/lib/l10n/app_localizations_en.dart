@@ -137,6 +137,130 @@ class AppLocalizationsEn extends AppLocalizations {
   String get kioskDefaultName => 'Kiosk';
 
   @override
+  String get kioskSetup => 'Set up kiosk';
+
+  @override
+  String get kioskLoadingMenu => 'Loading menu…';
+
+  @override
+  String get kioskRetry => 'Retry';
+
+  @override
+  String get kioskBack => 'Back';
+
+  @override
+  String get kioskHeaderFallback => 'Order here';
+
+  @override
+  String get kioskCartEmpty => 'Your cart is empty';
+
+  @override
+  String get kioskReviewOrder => 'Review order';
+
+  @override
+  String get kioskReviewTitle => 'Your order';
+
+  @override
+  String get kioskAddMore => 'Add more';
+
+  @override
+  String get kioskPayAtCounter => 'Pay at counter';
+
+  @override
+  String get kioskPlacing => 'Placing…';
+
+  @override
+  String get kioskPayHereSoon => 'Pay here (soon)';
+
+  @override
+  String get kioskSubtotal => 'Subtotal';
+
+  @override
+  String get kioskTotal => 'Total';
+
+  @override
+  String get kioskOrderPlaced => 'Order placed!';
+
+  @override
+  String get kioskYourNumber => 'Your number';
+
+  @override
+  String get kioskPayAtCounterNote => 'Please pay at the counter.';
+
+  @override
+  String get kioskDone => 'Done';
+
+  @override
+  String get kioskAddToOrder => 'Add to order';
+
+  @override
+  String get kioskSubmitFailed =>
+      'Could not place the order. Please ask staff.';
+
+  @override
+  String kioskCartSummary(int count, String total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '1 item',
+    );
+    return '$_temp0  ·  $total';
+  }
+
+  @override
+  String kioskService(String pct) {
+    return 'Service ($pct%)';
+  }
+
+  @override
+  String kioskTax(String pct) {
+    return 'Tax ($pct%)';
+  }
+
+  @override
+  String kioskAddToOrderExtra(String extra) {
+    return 'Add to order  ·  +$extra';
+  }
+
+  @override
+  String kioskOrderName(int number) {
+    return 'Kiosk $number';
+  }
+
+  @override
+  String get kioskSetupTitle => 'Set up kiosk';
+
+  @override
+  String get kioskSetupBody =>
+      'Sign in with the restaurant\'s store login to turn this device into a self-order kiosk. The login authorizes setup only — it isn\'t saved on the device.';
+
+  @override
+  String get kioskSetupEmail => 'Store email';
+
+  @override
+  String get kioskSetupPassword => 'Store password';
+
+  @override
+  String get kioskSetupNumber => 'Kiosk number';
+
+  @override
+  String get kioskSetupNumberHint =>
+      'Shown on this kiosk\'s orders, e.g. Kiosk 3';
+
+  @override
+  String get kioskSetupStart => 'Set up kiosk';
+
+  @override
+  String get kioskSetupNoStore =>
+      'Open a restaurant first, then set up the kiosk.';
+
+  @override
+  String kioskSetupSignInFailed(String error) {
+    return 'Couldn\'t sign in: $error';
+  }
+
+  @override
   String get profileTitle => 'My details';
 
   @override

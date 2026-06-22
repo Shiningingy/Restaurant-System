@@ -133,6 +133,125 @@ class AppLocalizationsZh extends AppLocalizations {
   String get kioskDefaultName => '自助点餐';
 
   @override
+  String get kioskSetup => '设置自助点餐机';
+
+  @override
+  String get kioskLoadingMenu => '正在加载菜单…';
+
+  @override
+  String get kioskRetry => '重试';
+
+  @override
+  String get kioskBack => '返回';
+
+  @override
+  String get kioskHeaderFallback => '在此点餐';
+
+  @override
+  String get kioskCartEmpty => '购物车是空的';
+
+  @override
+  String get kioskReviewOrder => '确认订单';
+
+  @override
+  String get kioskReviewTitle => '您的订单';
+
+  @override
+  String get kioskAddMore => '继续添加';
+
+  @override
+  String get kioskPayAtCounter => '柜台付款';
+
+  @override
+  String get kioskPlacing => '正在提交…';
+
+  @override
+  String get kioskPayHereSoon => '在此付款（即将推出）';
+
+  @override
+  String get kioskSubtotal => '小计';
+
+  @override
+  String get kioskTotal => '合计';
+
+  @override
+  String get kioskOrderPlaced => '下单成功！';
+
+  @override
+  String get kioskYourNumber => '您的取餐号';
+
+  @override
+  String get kioskPayAtCounterNote => '请到柜台付款。';
+
+  @override
+  String get kioskDone => '完成';
+
+  @override
+  String get kioskAddToOrder => '加入订单';
+
+  @override
+  String get kioskSubmitFailed => '无法下单，请联系工作人员。';
+
+  @override
+  String kioskCartSummary(int count, String total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 件商品',
+    );
+    return '$_temp0  ·  $total';
+  }
+
+  @override
+  String kioskService(String pct) {
+    return '服务费 ($pct%)';
+  }
+
+  @override
+  String kioskTax(String pct) {
+    return '税 ($pct%)';
+  }
+
+  @override
+  String kioskAddToOrderExtra(String extra) {
+    return '加入订单  ·  +$extra';
+  }
+
+  @override
+  String kioskOrderName(int number) {
+    return '自助机 $number';
+  }
+
+  @override
+  String get kioskSetupTitle => '设置自助点餐机';
+
+  @override
+  String get kioskSetupBody => '使用餐厅的商家登录信息将本设备设为自助点餐机。该登录仅用于授权设置，不会保存在本设备上。';
+
+  @override
+  String get kioskSetupEmail => '商家邮箱';
+
+  @override
+  String get kioskSetupPassword => '商家密码';
+
+  @override
+  String get kioskSetupNumber => '自助机编号';
+
+  @override
+  String get kioskSetupNumberHint => '显示在该自助机的订单上，例如：自助机 3';
+
+  @override
+  String get kioskSetupStart => '设置自助点餐机';
+
+  @override
+  String get kioskSetupNoStore => '请先打开一家餐厅，再设置自助点餐机。';
+
+  @override
+  String kioskSetupSignInFailed(String error) {
+    return '登录失败：$error';
+  }
+
+  @override
   String get profileTitle => '我的信息';
 
   @override
