@@ -12,6 +12,7 @@ import 'features/admin/presentation/admin_screen.dart';
 import 'features/admin/presentation/role_indicator.dart';
 import 'features/help/presentation/help_screen.dart';
 import 'core/settings/providers.dart';
+import 'core/settings/settings_repository.dart' show BrandLogoSlot;
 import 'l10n/app_localizations.dart';
 import 'features/menu/presentation/menu_screen.dart';
 import 'features/online_orders/presentation/inbox_screen.dart';
@@ -233,7 +234,9 @@ class _HomeShell extends ConsumerWidget {
             leading: Padding(
               padding: const EdgeInsets.only(top: 12, bottom: 8),
               child: BrandMark(
-                logoPath: ref.watch(brandLogosProvider).light,
+                logoPath: ref
+                    .watch(brandLogosProvider)
+                    .resolve(BrandLogoSlot.appNav),
                 size: 40,
                 fallbackColor: Theme.of(context).colorScheme.primary,
               ),

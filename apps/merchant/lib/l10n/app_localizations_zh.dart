@@ -809,28 +809,34 @@ class AppLocalizationsZh extends AppLocalizations {
   String get setBranding => '品牌与标识';
 
   @override
-  String get setBrandingHint => '设置店铺标识。只需设置浅色标识即可，其余会回退到它。';
+  String get setBrandingHint => '为整个应用设置一个默认标识。下方任意位置都可单独使用自己的标识。';
 
   @override
-  String get setBrandLogoLight => '标识 — 浅色背景';
+  String get setBrandGlobal => '默认标识';
 
   @override
-  String get setBrandLogoLightHint => '导航栏和欢迎屏';
+  String get setBrandGlobalHint => '用于所有未单独设置标识的位置';
 
   @override
-  String get setBrandLogoDark => '标识 — 深色背景';
+  String get setBrandNav => '应用导航栏';
 
   @override
-  String get setBrandLogoDarkHint => '彩色标题栏和照片（回退到浅色标识）';
+  String get setBrandWelcome => '顾客显示屏 — 欢迎屏';
 
   @override
-  String get setBrandLogoWordmark => '文字标识';
+  String get setBrandOrderHeader => '顾客显示屏 — 订单标题栏';
 
   @override
-  String get setBrandLogoWordmarkHint => '用于下单确认屏的独立标识';
+  String get setBrandKioskHeader => '自助点餐 — 标题栏';
 
   @override
-  String get setBrandLogoSet => '已设置 — 显示在应用各处';
+  String get setBrandKioskConfirm => '自助点餐 — 确认屏';
+
+  @override
+  String get setBrandUsingDefault => '使用默认标识';
+
+  @override
+  String get setBrandLogoSet => '已设置 — 使用自己的标识';
 
   @override
   String get setOpenCustomerDisplay => '打开顾客显示屏';

@@ -108,23 +108,23 @@ final displayPromoImagesProvider =
       DisplayPromoImagesNotifier.new,
     );
 
-/// The shop's brand logos, one optional image per appearance [BrandLogoSlot].
-/// [resolve] falls back to the light logo so callers only need one set.
+/// The shop's brand logos: an optional image per [BrandLogoSlot]. [resolve]
+/// falls back to the [BrandLogoSlot.global] default, so callers only need one
+/// set (and any individual placement can still override it).
 class BrandLogos {
-  final String? light;
-  final String? dark;
-  final String? wordmark;
+  final Map<BrandLogoSlot, String?> paths;
 
-  const BrandLogos({this.light, this.dark, this.wordmark});
+  const BrandLogos(this.paths);
 
-  String? forSlot(BrandLogoSlot slot) => switch (slot) {
-    BrandLogoSlot.light => light,
-    BrandLogoSlot.dark => dark,
-    BrandLogoSlot.wordmark => wordmark,
-  };
+  /// The image explicitly set for [slot] (no fallback), or null.
+  String? forSlot(BrandLogoSlot slot) => paths[slot];
 
-  /// The logo to use for [slot], falling back to the light logo (then null).
-  String? resolve(BrandLogoSlot slot) => forSlot(slot) ?? light;
+  /// The logo to use for [slot]: its own, else the global default, else null.
+  String? resolve(BrandLogoSlot slot) =>
+      paths[slot] ?? paths[BrandLogoSlot.global];
+
+  /// The global default logo (used for the merchant app icon spots).
+  String? get global => paths[BrandLogoSlot.global];
 }
 
 /// The shop's brand logos (per slot). Set in Settings → Branding; shown on the
@@ -133,11 +133,9 @@ class BrandLogosNotifier extends Notifier<BrandLogos> {
   @override
   BrandLogos build() {
     final r = ref.watch(settingsRepositoryProvider);
-    return BrandLogos(
-      light: r.brandLogoPath(BrandLogoSlot.light),
-      dark: r.brandLogoPath(BrandLogoSlot.dark),
-      wordmark: r.brandLogoPath(BrandLogoSlot.wordmark),
-    );
+    return BrandLogos({
+      for (final slot in BrandLogoSlot.values) slot: r.brandLogoPath(slot),
+    });
   }
 
   Future<void> set(BrandLogoSlot slot, String? path) async {

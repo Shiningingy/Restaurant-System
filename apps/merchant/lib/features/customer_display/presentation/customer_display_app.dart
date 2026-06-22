@@ -32,9 +32,10 @@ class CustomerDisplayApp extends StatelessWidget {
       home: CustomerDisplayScreen(
         businessName: args['businessName'] as String? ?? '',
         brand: DisplayBrand(
-          light: args['brandLight'] as String?,
-          dark: args['brandDark'] as String?,
-          wordmark: args['brandWordmark'] as String?,
+          welcome: args['brandWelcome'] as String?,
+          orderHeader: args['brandOrderHeader'] as String?,
+          kioskHeader: args['brandKioskHeader'] as String?,
+          kioskConfirm: args['brandKioskConfirm'] as String?,
         ),
         promoLines:
             (args['promo'] as List?)?.map((e) => e.toString()).toList() ??
@@ -59,11 +60,17 @@ class CustomerDisplayApp extends StatelessWidget {
 /// the light logo as the fallback). Plain data — the sub-window owns no
 /// providers.
 class DisplayBrand {
-  final String? light;
-  final String? dark;
-  final String? wordmark;
+  final String? welcome;
+  final String? orderHeader;
+  final String? kioskHeader;
+  final String? kioskConfirm;
 
-  const DisplayBrand({this.light, this.dark, this.wordmark});
+  const DisplayBrand({
+    this.welcome,
+    this.orderHeader,
+    this.kioskHeader,
+    this.kioskConfirm,
+  });
 }
 
 class CustomerDisplayScreen extends StatefulWidget {
@@ -256,8 +263,8 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
     if (_interactive) {
       return KioskSurface(
         businessName: _businessName,
-        brandHeader: widget.brand.dark,
-        brandConfirm: widget.brand.wordmark,
+        brandHeader: widget.brand.kioskHeader,
+        brandConfirm: widget.brand.kioskConfirm,
         menu: _menu,
         onSubmit: _submit,
         onRefreshMenu: _requestMenu,
@@ -274,7 +281,7 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
       return Scaffold(
         body: _OrderMirror(
           businessName: _businessName,
-          brandLogo: widget.brand.dark,
+          brandLogo: widget.brand.orderHeader,
           lines: lines.cast<Map<String, dynamic>>(),
           order: order!,
         ),
@@ -283,7 +290,7 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
     return Scaffold(
       body: _IdlePromo(
         businessName: _businessName,
-        brandLogo: widget.brand.light,
+        brandLogo: widget.brand.welcome,
         promo: _promoLines.isEmpty
             ? null
             : _promoLines[_promoIndex % _promoLines.length],

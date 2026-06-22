@@ -13,12 +13,29 @@ enum PrinterRole { kitchen, receipt }
 ///   cashier's order while one is active (one screen serving both purposes).
 enum CustomerDisplayMode { passive, kiosk, hybrid }
 
-/// The brand-logo appearance slots. One image each, all optional:
-/// - [light]: the everyday mark on light surfaces (nav rail, branded idle).
-///   Also the fallback for the others.
-/// - [dark]: a reversed/mono mark for coloured headers and dark photos.
-/// - [wordmark]: a standalone lockup for the order-confirmation screen.
-enum BrandLogoSlot { light, dark, wordmark }
+/// The brand-logo slots: a [global] default plus one per place a logo appears.
+/// Each is an optional image; a placement with none falls back to [global]
+/// (and [global] itself falls back to the generic glyph). So a shop can set a
+/// single default and be done, or give any individual spot its own logo.
+enum BrandLogoSlot {
+  /// The default logo, used wherever a placement has none of its own.
+  global,
+
+  /// Merchant app navigation rail.
+  appNav,
+
+  /// Customer display — the idle/welcome screen.
+  displayWelcome,
+
+  /// Customer display — the live order header (terracotta).
+  displayOrderHeader,
+
+  /// Kiosk — the header (terracotta).
+  kioskHeader,
+
+  /// Kiosk — the order-confirmation screen.
+  kioskConfirm,
+}
 
 /// Configuration for one printer. Transport is either a network printer
 /// (`network`, host:port over TCP 9100) or a Windows-installed printer
@@ -125,10 +142,13 @@ class SettingsRepository {
   static const _displayPromoKey = 'displayPromoLines';
   static const _displayPromoImagesKey = 'displayPromoImages';
   static const _brandLogoKeys = <BrandLogoSlot, String>{
-    // The light slot keeps the original key so an already-set logo carries over.
-    BrandLogoSlot.light: 'brandLogoPath',
-    BrandLogoSlot.dark: 'brandLogoPathDark',
-    BrandLogoSlot.wordmark: 'brandLogoWordmark',
+    // global keeps the original key so an already-set logo becomes the default.
+    BrandLogoSlot.global: 'brandLogoPath',
+    BrandLogoSlot.appNav: 'brandLogoAppNav',
+    BrandLogoSlot.displayWelcome: 'brandLogoWelcome',
+    BrandLogoSlot.displayOrderHeader: 'brandLogoOrderHeader',
+    BrandLogoSlot.kioskHeader: 'brandLogoKioskHeader',
+    BrandLogoSlot.kioskConfirm: 'brandLogoKioskConfirm',
   };
   static const _displayModeKey = 'customerDisplayMode';
   static const _kioskSeqKey = 'kioskOrderSeq';

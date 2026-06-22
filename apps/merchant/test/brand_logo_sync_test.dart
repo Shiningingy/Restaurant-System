@@ -33,12 +33,12 @@ void main() {
     FakeObjectStore cloud,
   ) {
     final dir = Directory('${tmp.path}/$name')..createSync();
-    final store = BrandLogoStore(slot: 'light', baseDir: dir);
+    final store = BrandLogoStore(slot: 'global', baseDir: dir);
     final path = <String?>[null];
     final sync = BrandLogoSyncService(
       store: cloud,
       logo: store,
-      slot: 'light',
+      slot: 'global',
       readPath: () => path[0],
       writePath: (p) async => path[0] = p,
     );
@@ -93,7 +93,7 @@ void main() {
     final a = device('a', cloud);
     a.path[0] = await a.store.import(await source('old.png', [1]));
     await a.sync.publish();
-    final oldKey = 'brand/light/${a.store.refOf(a.path[0]!)!.sha}.png';
+    final oldKey = 'brand/global/${a.store.refOf(a.path[0]!)!.sha}.png';
     expect(cloud.objects.containsKey(oldKey), isTrue);
 
     a.path[0] = await a.store.import(await source('new.png', [2]));

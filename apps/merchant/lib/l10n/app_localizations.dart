@@ -1499,49 +1499,61 @@ abstract class AppLocalizations {
   /// No description provided for @setBrandingHint.
   ///
   /// In en, this message translates to:
-  /// **'Set your shop\'s logo. Only the light logo is needed — the others fall back to it.'**
+  /// **'Set a default logo for the whole app. Any spot below can use its own instead.'**
   String get setBrandingHint;
 
-  /// No description provided for @setBrandLogoLight.
+  /// No description provided for @setBrandGlobal.
   ///
   /// In en, this message translates to:
-  /// **'Logo — light background'**
-  String get setBrandLogoLight;
+  /// **'Default logo'**
+  String get setBrandGlobal;
 
-  /// No description provided for @setBrandLogoLightHint.
+  /// No description provided for @setBrandGlobalHint.
   ///
   /// In en, this message translates to:
-  /// **'Nav rail and the welcome screen'**
-  String get setBrandLogoLightHint;
+  /// **'Used wherever a spot has no logo of its own'**
+  String get setBrandGlobalHint;
 
-  /// No description provided for @setBrandLogoDark.
+  /// No description provided for @setBrandNav.
   ///
   /// In en, this message translates to:
-  /// **'Logo — dark background'**
-  String get setBrandLogoDark;
+  /// **'App navigation bar'**
+  String get setBrandNav;
 
-  /// No description provided for @setBrandLogoDarkHint.
+  /// No description provided for @setBrandWelcome.
   ///
   /// In en, this message translates to:
-  /// **'Coloured headers and photos (falls back to the light logo)'**
-  String get setBrandLogoDarkHint;
+  /// **'Customer display — welcome'**
+  String get setBrandWelcome;
 
-  /// No description provided for @setBrandLogoWordmark.
+  /// No description provided for @setBrandOrderHeader.
   ///
   /// In en, this message translates to:
-  /// **'Wordmark'**
-  String get setBrandLogoWordmark;
+  /// **'Customer display — order header'**
+  String get setBrandOrderHeader;
 
-  /// No description provided for @setBrandLogoWordmarkHint.
+  /// No description provided for @setBrandKioskHeader.
   ///
   /// In en, this message translates to:
-  /// **'Standalone mark for the order-confirmation screen'**
-  String get setBrandLogoWordmarkHint;
+  /// **'Kiosk — header'**
+  String get setBrandKioskHeader;
+
+  /// No description provided for @setBrandKioskConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Kiosk — confirmation'**
+  String get setBrandKioskConfirm;
+
+  /// No description provided for @setBrandUsingDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Using the default logo'**
+  String get setBrandUsingDefault;
 
   /// No description provided for @setBrandLogoSet.
   ///
   /// In en, this message translates to:
-  /// **'Set — shown across the app'**
+  /// **'Set — its own logo'**
   String get setBrandLogoSet;
 
   /// No description provided for @setOpenCustomerDisplay.

@@ -827,30 +827,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setBrandingHint =>
-      'Set your shop\'s logo. Only the light logo is needed — the others fall back to it.';
+      'Set a default logo for the whole app. Any spot below can use its own instead.';
 
   @override
-  String get setBrandLogoLight => 'Logo — light background';
+  String get setBrandGlobal => 'Default logo';
 
   @override
-  String get setBrandLogoLightHint => 'Nav rail and the welcome screen';
+  String get setBrandGlobalHint =>
+      'Used wherever a spot has no logo of its own';
 
   @override
-  String get setBrandLogoDark => 'Logo — dark background';
+  String get setBrandNav => 'App navigation bar';
 
   @override
-  String get setBrandLogoDarkHint =>
-      'Coloured headers and photos (falls back to the light logo)';
+  String get setBrandWelcome => 'Customer display — welcome';
 
   @override
-  String get setBrandLogoWordmark => 'Wordmark';
+  String get setBrandOrderHeader => 'Customer display — order header';
 
   @override
-  String get setBrandLogoWordmarkHint =>
-      'Standalone mark for the order-confirmation screen';
+  String get setBrandKioskHeader => 'Kiosk — header';
 
   @override
-  String get setBrandLogoSet => 'Set — shown across the app';
+  String get setBrandKioskConfirm => 'Kiosk — confirmation';
+
+  @override
+  String get setBrandUsingDefault => 'Using the default logo';
+
+  @override
+  String get setBrandLogoSet => 'Set — its own logo';
 
   @override
   String get setOpenCustomerDisplay => 'Open customer display';

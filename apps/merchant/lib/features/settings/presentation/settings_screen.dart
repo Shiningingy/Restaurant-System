@@ -284,14 +284,17 @@ class SettingsScreen extends ConsumerWidget {
               mode: ref.read(customerDisplayModeProvider),
               promoLines: ref.read(displayPromoProvider),
               promoImages: ref.read(displayPromoImagesProvider),
-              brandLight: ref.read(brandLogosProvider).resolve(
-                BrandLogoSlot.light,
+              brandWelcome: ref.read(brandLogosProvider).resolve(
+                BrandLogoSlot.displayWelcome,
               ),
-              brandDark: ref.read(brandLogosProvider).resolve(
-                BrandLogoSlot.dark,
+              brandOrderHeader: ref.read(brandLogosProvider).resolve(
+                BrandLogoSlot.displayOrderHeader,
               ),
-              brandWordmark: ref.read(brandLogosProvider).resolve(
-                BrandLogoSlot.wordmark,
+              brandKioskHeader: ref.read(brandLogosProvider).resolve(
+                BrandLogoSlot.kioskHeader,
+              ),
+              brandKioskConfirm: ref.read(brandLogosProvider).resolve(
+                BrandLogoSlot.kioskConfirm,
               ),
             );
           }
@@ -641,60 +644,50 @@ class SettingsScreen extends ConsumerWidget {
     await ref.read(customerDisplayProvider).pushCurrentPromo();
   }
 
-  /// The Branding page: one logo per appearance slot. Each is optional and
-  /// falls back to the light logo, so a shop can set just one.
+  /// The Branding page: a global default logo plus an override per placement.
+  /// Each placement with none falls back to the default.
   List<Widget> _brandingBody(BuildContext context, WidgetRef ref) {
     final logos = ref.watch(brandLogosProvider);
+    final l10n = context.l10n;
+    // (slot, title, dark-background?) — the global default first.
+    final rows = <(BrandLogoSlot, String, bool)>[
+      (BrandLogoSlot.global, l10n.setBrandGlobal, false),
+      (BrandLogoSlot.appNav, l10n.setBrandNav, false),
+      (BrandLogoSlot.displayWelcome, l10n.setBrandWelcome, false),
+      (BrandLogoSlot.displayOrderHeader, l10n.setBrandOrderHeader, true),
+      (BrandLogoSlot.kioskHeader, l10n.setBrandKioskHeader, true),
+      (BrandLogoSlot.kioskConfirm, l10n.setBrandKioskConfirm, false),
+    ];
     return [
       Padding(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
         child: Text(
-          context.l10n.setBrandingHint,
+          l10n.setBrandingHint,
           style: Theme.of(context).textTheme.bodySmall,
         ),
       ),
-      _brandLogoTile(
-        context,
-        ref,
-        BrandLogoSlot.light,
-        logos.light,
-        title: context.l10n.setBrandLogoLight,
-        hint: context.l10n.setBrandLogoLightHint,
-        dark: false,
-      ),
-      _brandLogoTile(
-        context,
-        ref,
-        BrandLogoSlot.dark,
-        logos.dark,
-        title: context.l10n.setBrandLogoDark,
-        hint: context.l10n.setBrandLogoDarkHint,
-        dark: true,
-      ),
-      _brandLogoTile(
-        context,
-        ref,
-        BrandLogoSlot.wordmark,
-        logos.wordmark,
-        title: context.l10n.setBrandLogoWordmark,
-        hint: context.l10n.setBrandLogoWordmarkHint,
-        dark: false,
-      ),
+      for (final (slot, title, dark) in rows) ...[
+        _brandLogoTile(context, ref, logos, slot, title: title, dark: dark),
+        // A divider under the global default separates it from the overrides.
+        if (slot == BrandLogoSlot.global) const Divider(height: 1),
+      ],
     ];
   }
 
-  /// A single logo slot: a live preview on its representative background, plus
-  /// pick / clear.
+  /// A single logo slot: a live preview of the *resolved* logo (its own, else
+  /// the default) on its representative background, plus pick / clear.
   Widget _brandLogoTile(
     BuildContext context,
     WidgetRef ref,
-    BrandLogoSlot slot,
-    String? path, {
+    BrandLogos logos,
+    BrandLogoSlot slot, {
     required String title,
-    required String hint,
     required bool dark,
   }) {
     final cs = Theme.of(context).colorScheme;
+    final explicit = logos.forSlot(slot); // set for this slot specifically?
+    final preview = logos.resolve(slot); // what actually shows (with fallback)
+    final isGlobal = slot == BrandLogoSlot.global;
     return ListTile(
       leading: Container(
         width: 52,
@@ -705,14 +698,20 @@ class SettingsScreen extends ConsumerWidget {
           borderRadius: BorderRadius.circular(10),
         ),
         child: BrandMark(
-          logoPath: path,
+          logoPath: preview,
           size: 36,
           fallbackColor: dark ? cs.onPrimary : cs.primary,
         ),
       ),
       title: Text(title),
-      subtitle: Text(path == null ? hint : context.l10n.setBrandLogoSet),
-      trailing: path == null
+      subtitle: Text(
+        explicit != null
+            ? context.l10n.setBrandLogoSet
+            : isGlobal
+            ? context.l10n.setBrandGlobalHint
+            : context.l10n.setBrandUsingDefault,
+      ),
+      trailing: explicit == null
           ? const Icon(Icons.add_photo_alternate_outlined)
           : IconButton(
               icon: const Icon(Icons.delete_outline),
