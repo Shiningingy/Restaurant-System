@@ -98,6 +98,9 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
 
   late CustomerDisplayMode _mode = widget.mode;
   late String _businessName = widget.businessName;
+  // Brand is mutable so the POS can update the logos live (owner edits in
+  // Settings, or a cloud pull) without the customer reopening the window.
+  late DisplayBrand _brand = widget.brand;
   // Promo is mutable so the POS can update it live (owner edits in Settings)
   // without the customer having to reopen the display window.
   late List<String> _promoLines = widget.promoLines;
@@ -191,7 +194,8 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
         final m = CustomerDisplayMode.values.asNameMap()[call.arguments];
         if (m != null && mounted) setState(() => _mode = m);
       case 'promo':
-        final data = jsonDecode(call.arguments as String) as Map<String, dynamic>;
+        final data =
+            jsonDecode(call.arguments as String) as Map<String, dynamic>;
         final lines =
             (data['promo'] as List?)?.map((e) => e.toString()).toList() ??
             const <String>[];
@@ -206,6 +210,19 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
             _photoIndex = 0;
           });
           _restartPromoTimer();
+        }
+      case 'brand':
+        final data =
+            jsonDecode(call.arguments as String) as Map<String, dynamic>;
+        if (mounted) {
+          setState(() {
+            _brand = DisplayBrand(
+              welcome: data['welcome'] as String?,
+              orderHeader: data['orderHeader'] as String?,
+              kioskHeader: data['kioskHeader'] as String?,
+              kioskConfirm: data['kioskConfirm'] as String?,
+            );
+          });
         }
     }
     return null;
@@ -260,8 +277,8 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
     if (_ordering) {
       return KioskSurface(
         businessName: _businessName,
-        brandHeader: widget.brand.kioskHeader,
-        brandConfirm: widget.brand.kioskConfirm,
+        brandHeader: _brand.kioskHeader,
+        brandConfirm: _brand.kioskConfirm,
         menu: _menu,
         onSubmit: _submit,
         onRefreshMenu: _requestMenu,
@@ -276,7 +293,7 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
       return Scaffold(
         body: _OrderMirror(
           businessName: _businessName,
-          brandLogo: widget.brand.orderHeader,
+          brandLogo: _brand.orderHeader,
           lines: lines.cast<Map<String, dynamic>>(),
           order: order!,
         ),
@@ -290,16 +307,14 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
     return Scaffold(
       body: _IdlePromo(
         businessName: _businessName,
-        brandLogo: widget.brand.welcome,
+        brandLogo: _brand.welcome,
         promo: _promoLines.isEmpty
             ? null
             : _promoLines[_promoIndex % _promoLines.length],
         photo: _promoImages.isEmpty
             ? null
             : _promoImages[_photoIndex % _promoImages.length],
-        onTapToOrder: canOrder
-            ? () => setState(() => _ordering = true)
-            : null,
+        onTapToOrder: canOrder ? () => setState(() => _ordering = true) : null,
       ),
     );
   }

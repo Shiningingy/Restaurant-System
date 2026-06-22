@@ -534,6 +534,7 @@ class SettingsScreen extends ConsumerWidget {
           .where((s) => s.isNotEmpty)
           .toList();
       await ref.read(displayPromoProvider.notifier).set(lines);
+      await _publishPromo(ref);
       await ref.read(customerDisplayProvider).pushCurrentPromo();
     }
   }
@@ -759,6 +760,9 @@ class SettingsScreen extends ConsumerWidget {
   /// Uploads a logo slot to the shop's Storage bucket so other devices pick it
   /// up on sync. Best-effort: no-op when the cloud isn't set up.
   Future<void> _publishBrandLogo(WidgetRef ref, BrandLogoSlot slot) async {
+    // Reflect the new logo on an already-open display right away — independent
+    // of the cloud (a local-only shop should still see it update live).
+    await ref.read(customerDisplayProvider).pushCurrentBrand();
     if (!ref.read(syncSettingsProvider).config.isConfigured) return;
     try {
       await ref.read(brandLogoSyncProvider(slot)).publish();

@@ -34,14 +34,18 @@ void main() {
   setUp(() => tmp = Directory.systemTemp.createTempSync('promo_sync_test'));
   tearDown(() => tmp.deleteSync(recursive: true));
 
-  // A device: its own cache dir + a mutable promo-path list.
-  ({PromoImageStore store, List<String> paths, PromoSyncService sync}) device(
-    String name,
-    FakeObjectStore cloud,
-  ) {
+  // A device: its own cache dir + mutable promo path & text lists.
+  ({
+    PromoImageStore store,
+    List<String> paths,
+    List<String> lines,
+    PromoSyncService sync,
+  })
+  device(String name, FakeObjectStore cloud) {
     final dir = Directory('${tmp.path}/$name')..createSync();
     final images = PromoImageStore(baseDir: dir);
     final paths = <String>[];
+    final lines = <String>[];
     final sync = PromoSyncService(
       store: cloud,
       images: images,
@@ -51,8 +55,14 @@ void main() {
           ..clear()
           ..addAll(p);
       },
+      readLines: () => lines,
+      writeLines: (l) async {
+        lines
+          ..clear()
+          ..addAll(l);
+      },
     );
-    return (store: images, paths: paths, sync: sync);
+    return (store: images, paths: paths, lines: lines, sync: sync);
   }
 
   Future<String> sourceFile(String name, List<int> bytes) async {
@@ -93,6 +103,29 @@ void main() {
       b.paths.map((p) => p.split(Platform.pathSeparator).last),
       [p1, p2].map((p) => p.split(Platform.pathSeparator).last),
     );
+  });
+
+  test('promo text lines publish on A and reach B on pull', () async {
+    final cloud = FakeObjectStore();
+
+    // Device A publishes a photo *and* two promo text lines.
+    final a = device('a', cloud);
+    a.paths.add(await a.store.import(await sourceFile('1.jpg', [1, 2, 3])));
+    a.lines
+      ..add('Fresh sushi daily')
+      ..add('Ask about our specials');
+    await a.sync.publish();
+
+    // Device B starts empty and pulls — it gets the same text, in order.
+    final b = device('b', cloud);
+    await b.sync.pull();
+    expect(b.lines, ['Fresh sushi daily', 'Ask about our specials']);
+
+    // Clearing the text on A and republishing empties B's text on next pull.
+    a.lines.clear();
+    await a.sync.publish();
+    await b.sync.pull();
+    expect(b.lines, isEmpty);
   });
 
   test('pull returns null when nothing was ever published', () async {

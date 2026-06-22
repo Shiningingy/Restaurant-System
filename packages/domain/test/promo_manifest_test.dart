@@ -33,6 +33,22 @@ void main() {
       expect(parsed!.images, manifest.images);
     });
 
+    test('encode -> tryParse round-trips the promo text lines', () {
+      final withText = PromoManifest(
+        manifest.images,
+        lines: const ['Line one', 'Line two'],
+      );
+      final parsed = PromoManifest.tryParse(withText.encode());
+      expect(parsed!.lines, ['Line one', 'Line two']);
+    });
+
+    test('a manifest written before text-sync (no lines key) parses empty', () {
+      final bytes = '{"version":1,"images":[]}'.codeUnits;
+      final parsed = PromoManifest.tryParse(bytes);
+      expect(parsed, isNotNull);
+      expect(parsed!.lines, isEmpty);
+    });
+
     test('tryParse rejects a newer version', () {
       final bytes = '{"version":999,"images":[]}'.codeUnits;
       expect(PromoManifest.tryParse(bytes), isNull);

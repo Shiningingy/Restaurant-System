@@ -81,6 +81,9 @@ final promoSyncProvider = Provider<PromoSyncService>((ref) {
     readPaths: () => ref.read(settingsRepositoryProvider).displayPromoImages,
     writePaths: (paths) =>
         ref.read(displayPromoImagesProvider.notifier).applyFromCloud(paths),
+    readLines: () => ref.read(settingsRepositoryProvider).displayPromoLines,
+    writeLines: (lines) =>
+        ref.read(displayPromoProvider.notifier).applyFromCloud(lines),
   );
 });
 
@@ -122,8 +125,14 @@ final syncServiceProvider = Provider<SyncService>((ref) {
       if (applied != null) {
         await ref.read(customerDisplayProvider).pushCurrentPromo();
       }
+      var brandChanged = false;
       for (final slot in BrandLogoSlot.values) {
-        await ref.read(brandLogoSyncProvider(slot)).pull();
+        if (await ref.read(brandLogoSyncProvider(slot)).pull()) {
+          brandChanged = true;
+        }
+      }
+      if (brandChanged) {
+        await ref.read(customerDisplayProvider).pushCurrentBrand();
       }
     },
   );

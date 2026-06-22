@@ -77,6 +77,13 @@ class DisplayPromoNotifier extends Notifier<List<String>> {
     await ref.read(settingsRepositoryProvider).setDisplayPromoLines(lines);
     ref.invalidateSelf();
   }
+
+  /// Applies promo lines pulled from the cloud. Same as [set] but does NOT
+  /// re-publish (they came *from* the cloud), avoiding an upload ping-pong.
+  Future<void> applyFromCloud(List<String> lines) async {
+    await ref.read(settingsRepositoryProvider).setDisplayPromoLines(lines);
+    ref.invalidateSelf();
+  }
 }
 
 final displayPromoProvider =
