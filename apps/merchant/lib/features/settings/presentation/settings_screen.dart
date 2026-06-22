@@ -30,311 +30,352 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final taxRateBp = ref.watch(taxRateBpProvider);
-    final tables = ref.watch(tablesProvider).value ?? const [];
-    final printers = ref.watch(printersProvider);
-    final receiptConfig = ref.watch(receiptConfigProvider);
-    final printJobs = ref.watch(printJobsProvider).value ?? const [];
-    final localePref = ref.watch(localePreferenceProvider);
-    final nameDisplay = ref.watch(nameDisplayProvider);
-
+    final l10n = context.l10n;
+    // A clean hub: each tile opens a focused sub-page with just that group's
+    // settings, instead of one long scrolling page.
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.navSettings)),
+      appBar: AppBar(title: Text(l10n.navSettings)),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         children: [
-          Text(
-            context.l10n.setLanguage,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          ListTile(
-            leading: const Icon(Icons.translate_outlined),
-            title: Text(context.l10n.setLanguage),
-            subtitle: Text(_languageLabel(context, localePref)),
-            onTap: () => _editLanguage(context, ref, localePref),
-          ),
-          ListTile(
-            leading: const Icon(Icons.menu_book_outlined),
-            title: Text(context.l10n.setHelp),
-            subtitle: Text(context.l10n.setHelpSubtitle),
-            onTap: () => openHelp(context),
-          ),
-          const Divider(height: 32),
-          Text(
-            context.l10n.setSecondNameSection,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: 4, bottom: 4),
-            child: Text(
-              context.l10n.setSecondNameHint,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ),
-          SwitchListTile(
-            title: Text(context.l10n.setSecondNameOrderScreen),
-            value: nameDisplay.orderScreen,
-            onChanged: (v) => ref
-                .read(nameDisplayProvider.notifier)
-                .save(nameDisplay.copyWith(orderScreen: v)),
-          ),
-          SwitchListTile(
-            title: Text(context.l10n.setSecondNameKitchen),
-            value: nameDisplay.kitchenTicket,
-            onChanged: (v) => ref
-                .read(nameDisplayProvider.notifier)
-                .save(nameDisplay.copyWith(kitchenTicket: v)),
-          ),
-          SwitchListTile(
-            title: Text(context.l10n.setSecondNameReceipt),
-            value: nameDisplay.receipt,
-            onChanged: (v) => ref
-                .read(nameDisplayProvider.notifier)
-                .save(nameDisplay.copyWith(receipt: v)),
-          ),
-          ListTile(
-            leading: const Icon(Icons.translate_outlined),
-            title: Text(context.l10n.setSecondNameLanguage),
-            subtitle: Text(context.l10n.setSecondNameLanguageHint),
-            trailing: Text(
-              _secondNameLangLabel(
-                context,
-                ref.watch(secondNameLanguageProvider),
-              ),
-            ),
-            onTap: () => _editSecondNameLanguage(
-              context,
-              ref,
-              ref.read(secondNameLanguageProvider),
-            ),
-          ),
-          const Divider(height: 32),
-          Text(
-            context.l10n.setTax,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          ListTile(
-            title: Text(context.l10n.setSalesTaxRate),
-            subtitle: Text(context.l10n.setSalesTaxRateSubtitle),
-            trailing: Text(
-              '${(taxRateBp / 100).toStringAsFixed(2)}%',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            onTap: () => _editTaxRate(context, ref, taxRateBp),
-          ),
-          const Divider(height: 32),
-          _CheckoutPricingSection(pricing: ref.watch(checkoutPricingProvider)),
-          const Divider(height: 32),
-          _OnlineOrderingSection(
-            settings: ref.watch(onlineOrderSettingsProvider),
-          ),
-          const Divider(height: 32),
-          Text(
-            context.l10n.setPayments,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          ListTile(
-            leading: const Icon(Icons.point_of_sale_outlined),
-            title: Text(context.l10n.setCardTerminalManual),
-            subtitle: Text(context.l10n.setCardTerminalManualSubtitle),
-          ),
-          const Divider(height: 32),
-          Text(
-            context.l10n.setPrinting,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          for (final role in PrinterRole.values)
-            ListTile(
-              leading: Icon(
-                role == PrinterRole.kitchen
-                    ? Icons.soup_kitchen_outlined
-                    : Icons.receipt_long_outlined,
-              ),
-              title: Text(
-                role == PrinterRole.kitchen
-                    ? context.l10n.setPrinterKitchen
-                    : context.l10n.setPrinterReceipt,
-              ),
-              subtitle: Text(_printerSummary(context, printers[role]!)),
-              trailing: printers[role]!.isConfigured
-                  ? IconButton(
-                      icon: const Icon(Icons.print_outlined),
-                      tooltip: context.l10n.setTestPrint,
-                      onPressed: () => _testPrint(
-                        context,
-                        ref,
-                        role == PrinterRole.kitchen
-                            ? domain.PrintJobKind.kitchenTicket
-                            : domain.PrintJobKind.testPage,
-                      ),
-                    )
-                  : null,
-              onTap: () =>
-                  _editPrinterConfig(context, ref, role, printers[role]!),
-            ),
-          ListTile(
-            leading: const Icon(Icons.storefront_outlined),
-            title: Text(context.l10n.setBusinessNameOnReceipts),
-            subtitle: Text(receiptConfig.businessName),
-            onTap: () async {
-              final name = await _editText(
-                context,
-                title: context.l10n.setBusinessName,
-                current: receiptConfig.businessName,
-              );
-              if (name != null && name.isNotEmpty) {
-                await ref
-                    .read(receiptConfigProvider.notifier)
-                    .setBusinessName(name);
-              }
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.notes_outlined),
-            title: Text(context.l10n.setReceiptFooter),
-            subtitle: Text(receiptConfig.footer),
-            onTap: () async {
-              final footer = await _editText(
-                context,
-                title: context.l10n.setReceiptFooter,
-                current: receiptConfig.footer,
-              );
-              if (footer != null) {
-                await ref
-                    .read(receiptConfigProvider.notifier)
-                    .setFooter(footer);
-              }
-            },
-          ),
-          const Divider(height: 32),
-          Text(
-            context.l10n.setCustomerDisplay,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          ListTile(
-            leading: const Icon(Icons.view_carousel_outlined),
-            title: Text(context.l10n.setDisplayMode),
-            subtitle: Text(
-              _displayModeLabel(
-                context,
-                ref.watch(customerDisplayModeProvider),
-              ),
-            ),
-            onTap: () => _editDisplayMode(context, ref),
-          ),
-          ListTile(
-            leading: const Icon(Icons.tv_outlined),
-            title: Text(context.l10n.setOpenCustomerDisplay),
-            subtitle: Text(context.l10n.setCustomerDisplayHint),
-            onTap: () {
-              final display = ref.read(customerDisplayProvider);
-              // "Open" doubles as "show again" after the display was hidden.
-              if (display.isOpen) {
-                display.restore();
-              } else {
-                display.open(
-                  businessName: receiptConfig.businessName,
-                  mode: ref.read(customerDisplayModeProvider),
-                  promoLines: ref.read(displayPromoProvider),
-                  promoImages: ref.read(displayPromoImagesProvider),
-                );
-              }
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.tv_off_outlined),
-            title: Text(context.l10n.setDisplayHide),
-            subtitle: Text(context.l10n.setDisplayHideHint),
-            trailing: TextButton(
-              onPressed: () => ref.read(customerDisplayProvider).close(),
-              child: Text(context.l10n.setDisplayClose),
-            ),
-            onTap: () => ref.read(customerDisplayProvider).minimize(),
-          ),
-          SwitchListTile(
-            secondary: const Icon(Icons.fullscreen),
-            title: Text(context.l10n.setMainFullscreen),
-            subtitle: Text(context.l10n.setMainFullscreenHint),
-            value: ref.watch(mainFullscreenProvider),
-            onChanged: (v) async {
-              final state = await ref
-                  .read(windowControlProvider)
-                  .setMainFullscreen(v);
-              ref.read(mainFullscreenProvider.notifier).set(state);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.campaign_outlined),
-            title: Text(context.l10n.setDisplayPromo),
-            subtitle: Text(
-              ref.watch(displayPromoProvider).isEmpty
-                  ? context.l10n.setDisplayPromoNone
-                  : ref.watch(displayPromoProvider).join(' · '),
-            ),
-            onTap: () => _editPromo(context, ref),
-          ),
-          ListTile(
-            leading: const Icon(Icons.photo_library_outlined),
-            title: Text(context.l10n.setDisplayPromoPhotos),
-            subtitle: Text(
-              ref.watch(displayPromoImagesProvider).isEmpty
-                  ? context.l10n.setDisplayPromoPhotosNone
-                  : context.l10n.setDisplayPromoPhotosCount(
-                      ref.watch(displayPromoImagesProvider).length,
-                    ),
-            ),
-            onTap: () => _editPromoPhotos(context, ref),
-          ),
-          SwitchListTile(
-            secondary: const Icon(Icons.point_of_sale_outlined),
-            title: Text(context.l10n.setKioskPayHere),
-            subtitle: Text(context.l10n.setKioskPayHereHint),
-            value: ref.watch(kioskPayHereProvider),
-            onChanged: (v) => ref.read(kioskPayHereProvider.notifier).set(v),
-          ),
-          if (printJobs.isNotEmpty) ...[
-            Padding(
-              padding: const EdgeInsets.only(left: 16, top: 8),
-              child: Text(
-                context.l10n.setPrintQueue,
-                style: Theme.of(context).textTheme.labelLarge,
-              ),
-            ),
-            for (final job in printJobs) _PrintJobTile(job: job),
-          ],
-          const Divider(height: 32),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                context.l10n.setTables,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              TextButton.icon(
-                onPressed: () => _editTable(context, ref, null),
-                icon: const Icon(Icons.add),
-                label: Text(context.l10n.setTableButton),
-              ),
-            ],
-          ),
-          if (tables.isEmpty)
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(context.l10n.setAddTablesHint),
-            ),
-          for (final t in tables)
-            ListTile(
-              leading: const Icon(Icons.table_restaurant_outlined),
-              title: Text(context.l10n.orderTableLabel(t.label)),
-              subtitle: t.isActive ? null : Text(context.l10n.setInactive),
-              onTap: () => _editTable(context, ref, t),
-            ),
-          const Divider(height: 32),
-          const _CloudSyncSection(),
+          _hubTile(context, Icons.translate_outlined, l10n.setLanguage,
+              _languageBody),
+          _hubTile(context, Icons.percent_outlined, l10n.setTax, _taxBody),
+          _hubTile(context, Icons.language_outlined, l10n.setOnlineOrdering,
+              _onlineBody),
+          _hubTile(context, Icons.point_of_sale_outlined, l10n.setPayments,
+              _paymentsBody),
+          _hubTile(context, Icons.print_outlined, l10n.setPrinting,
+              _printingBody),
+          _hubTile(context, Icons.tv_outlined, l10n.setCustomerDisplay,
+              _displayBody),
+          _hubTile(context, Icons.table_restaurant_outlined, l10n.setTables,
+              _tablesBody),
+          _hubTile(context, Icons.cloud_outlined, l10n.setCloudSync,
+              _cloudBody),
         ],
       ),
     );
   }
+
+  /// One hub entry → pushes a focused sub-page that renders [body].
+  Widget _hubTile(
+    BuildContext context,
+    IconData icon,
+    String title,
+    List<Widget> Function(BuildContext, WidgetRef) body,
+  ) => Card(
+    margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+    child: ListTile(
+      leading: Icon(icon),
+      title: Text(title),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => _SettingsDetailPage(title: title, body: body),
+        ),
+      ),
+    ),
+  );
+
+  // ── Sub-page bodies: each returns just one group's controls. ──
+
+  List<Widget> _languageBody(BuildContext context, WidgetRef ref) {
+    final localePref = ref.watch(localePreferenceProvider);
+    final nameDisplay = ref.watch(nameDisplayProvider);
+    return [
+      ListTile(
+        leading: const Icon(Icons.translate_outlined),
+        title: Text(context.l10n.setLanguage),
+        subtitle: Text(_languageLabel(context, localePref)),
+        onTap: () => _editLanguage(context, ref, localePref),
+      ),
+      ListTile(
+        leading: const Icon(Icons.menu_book_outlined),
+        title: Text(context.l10n.setHelp),
+        subtitle: Text(context.l10n.setHelpSubtitle),
+        onTap: () => openHelp(context),
+      ),
+      const Divider(height: 32),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+        child: Text(
+          context.l10n.setSecondNameSection,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+      ),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+        child: Text(
+          context.l10n.setSecondNameHint,
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ),
+      SwitchListTile(
+        title: Text(context.l10n.setSecondNameOrderScreen),
+        value: nameDisplay.orderScreen,
+        onChanged: (v) => ref
+            .read(nameDisplayProvider.notifier)
+            .save(nameDisplay.copyWith(orderScreen: v)),
+      ),
+      SwitchListTile(
+        title: Text(context.l10n.setSecondNameKitchen),
+        value: nameDisplay.kitchenTicket,
+        onChanged: (v) => ref
+            .read(nameDisplayProvider.notifier)
+            .save(nameDisplay.copyWith(kitchenTicket: v)),
+      ),
+      SwitchListTile(
+        title: Text(context.l10n.setSecondNameReceipt),
+        value: nameDisplay.receipt,
+        onChanged: (v) => ref
+            .read(nameDisplayProvider.notifier)
+            .save(nameDisplay.copyWith(receipt: v)),
+      ),
+      ListTile(
+        leading: const Icon(Icons.translate_outlined),
+        title: Text(context.l10n.setSecondNameLanguage),
+        subtitle: Text(context.l10n.setSecondNameLanguageHint),
+        trailing: Text(
+          _secondNameLangLabel(context, ref.watch(secondNameLanguageProvider)),
+        ),
+        onTap: () => _editSecondNameLanguage(
+          context,
+          ref,
+          ref.read(secondNameLanguageProvider),
+        ),
+      ),
+    ];
+  }
+
+  List<Widget> _taxBody(BuildContext context, WidgetRef ref) {
+    final taxRateBp = ref.watch(taxRateBpProvider);
+    return [
+      ListTile(
+        title: Text(context.l10n.setSalesTaxRate),
+        subtitle: Text(context.l10n.setSalesTaxRateSubtitle),
+        trailing: Text(
+          '${(taxRateBp / 100).toStringAsFixed(2)}%',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        onTap: () => _editTaxRate(context, ref, taxRateBp),
+      ),
+      const Divider(height: 32),
+      _CheckoutPricingSection(pricing: ref.watch(checkoutPricingProvider)),
+    ];
+  }
+
+  List<Widget> _onlineBody(BuildContext context, WidgetRef ref) => [
+    _OnlineOrderingSection(settings: ref.watch(onlineOrderSettingsProvider)),
+  ];
+
+  List<Widget> _paymentsBody(BuildContext context, WidgetRef ref) => [
+    ListTile(
+      leading: const Icon(Icons.point_of_sale_outlined),
+      title: Text(context.l10n.setCardTerminalManual),
+      subtitle: Text(context.l10n.setCardTerminalManualSubtitle),
+    ),
+  ];
+
+  List<Widget> _printingBody(BuildContext context, WidgetRef ref) {
+    final printers = ref.watch(printersProvider);
+    final receiptConfig = ref.watch(receiptConfigProvider);
+    final printJobs = ref.watch(printJobsProvider).value ?? const [];
+    return [
+      for (final role in PrinterRole.values)
+        ListTile(
+          leading: Icon(
+            role == PrinterRole.kitchen
+                ? Icons.soup_kitchen_outlined
+                : Icons.receipt_long_outlined,
+          ),
+          title: Text(
+            role == PrinterRole.kitchen
+                ? context.l10n.setPrinterKitchen
+                : context.l10n.setPrinterReceipt,
+          ),
+          subtitle: Text(_printerSummary(context, printers[role]!)),
+          trailing: printers[role]!.isConfigured
+              ? IconButton(
+                  icon: const Icon(Icons.print_outlined),
+                  tooltip: context.l10n.setTestPrint,
+                  onPressed: () => _testPrint(
+                    context,
+                    ref,
+                    role == PrinterRole.kitchen
+                        ? domain.PrintJobKind.kitchenTicket
+                        : domain.PrintJobKind.testPage,
+                  ),
+                )
+              : null,
+          onTap: () => _editPrinterConfig(context, ref, role, printers[role]!),
+        ),
+      ListTile(
+        leading: const Icon(Icons.storefront_outlined),
+        title: Text(context.l10n.setBusinessNameOnReceipts),
+        subtitle: Text(receiptConfig.businessName),
+        onTap: () async {
+          final name = await _editText(
+            context,
+            title: context.l10n.setBusinessName,
+            current: receiptConfig.businessName,
+          );
+          if (name != null && name.isNotEmpty) {
+            await ref.read(receiptConfigProvider.notifier).setBusinessName(name);
+          }
+        },
+      ),
+      ListTile(
+        leading: const Icon(Icons.notes_outlined),
+        title: Text(context.l10n.setReceiptFooter),
+        subtitle: Text(receiptConfig.footer),
+        onTap: () async {
+          final footer = await _editText(
+            context,
+            title: context.l10n.setReceiptFooter,
+            current: receiptConfig.footer,
+          );
+          if (footer != null) {
+            await ref.read(receiptConfigProvider.notifier).setFooter(footer);
+          }
+        },
+      ),
+      if (printJobs.isNotEmpty) ...[
+        const Divider(height: 32),
+        Padding(
+          padding: const EdgeInsets.only(left: 16, top: 8),
+          child: Text(
+            context.l10n.setPrintQueue,
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
+        ),
+        for (final job in printJobs) _PrintJobTile(job: job),
+      ],
+    ];
+  }
+
+  List<Widget> _displayBody(BuildContext context, WidgetRef ref) {
+    final receiptConfig = ref.watch(receiptConfigProvider);
+    return [
+      ListTile(
+        leading: const Icon(Icons.view_carousel_outlined),
+        title: Text(context.l10n.setDisplayMode),
+        subtitle: Text(
+          _displayModeLabel(context, ref.watch(customerDisplayModeProvider)),
+        ),
+        onTap: () => _editDisplayMode(context, ref),
+      ),
+      ListTile(
+        leading: const Icon(Icons.tv_outlined),
+        title: Text(context.l10n.setOpenCustomerDisplay),
+        subtitle: Text(context.l10n.setCustomerDisplayHint),
+        onTap: () {
+          final display = ref.read(customerDisplayProvider);
+          // "Open" doubles as "show again" after the display was hidden.
+          if (display.isOpen) {
+            display.restore();
+          } else {
+            display.open(
+              businessName: receiptConfig.businessName,
+              mode: ref.read(customerDisplayModeProvider),
+              promoLines: ref.read(displayPromoProvider),
+              promoImages: ref.read(displayPromoImagesProvider),
+            );
+          }
+        },
+      ),
+      ListTile(
+        leading: const Icon(Icons.tv_off_outlined),
+        title: Text(context.l10n.setDisplayHide),
+        subtitle: Text(context.l10n.setDisplayHideHint),
+        trailing: TextButton(
+          onPressed: () => ref.read(customerDisplayProvider).close(),
+          child: Text(context.l10n.setDisplayClose),
+        ),
+        onTap: () => ref.read(customerDisplayProvider).minimize(),
+      ),
+      SwitchListTile(
+        secondary: const Icon(Icons.fullscreen),
+        title: Text(context.l10n.setMainFullscreen),
+        subtitle: Text(context.l10n.setMainFullscreenHint),
+        value: ref.watch(mainFullscreenProvider),
+        onChanged: (v) async {
+          final state = await ref
+              .read(windowControlProvider)
+              .setMainFullscreen(v);
+          ref.read(mainFullscreenProvider.notifier).set(state);
+        },
+      ),
+      ListTile(
+        leading: const Icon(Icons.campaign_outlined),
+        title: Text(context.l10n.setDisplayPromo),
+        subtitle: Text(
+          ref.watch(displayPromoProvider).isEmpty
+              ? context.l10n.setDisplayPromoNone
+              : ref.watch(displayPromoProvider).join(' · '),
+        ),
+        onTap: () => _editPromo(context, ref),
+      ),
+      ListTile(
+        leading: const Icon(Icons.photo_library_outlined),
+        title: Text(context.l10n.setDisplayPromoPhotos),
+        subtitle: Text(
+          ref.watch(displayPromoImagesProvider).isEmpty
+              ? context.l10n.setDisplayPromoPhotosNone
+              : context.l10n.setDisplayPromoPhotosCount(
+                  ref.watch(displayPromoImagesProvider).length,
+                ),
+        ),
+        onTap: () => _editPromoPhotos(context, ref),
+      ),
+      SwitchListTile(
+        secondary: const Icon(Icons.point_of_sale_outlined),
+        title: Text(context.l10n.setKioskPayHere),
+        subtitle: Text(context.l10n.setKioskPayHereHint),
+        value: ref.watch(kioskPayHereProvider),
+        onChanged: (v) => ref.read(kioskPayHereProvider.notifier).set(v),
+      ),
+    ];
+  }
+
+  List<Widget> _tablesBody(BuildContext context, WidgetRef ref) {
+    final tables = ref.watch(tablesProvider).value ?? const [];
+    return [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 8, 0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              context.l10n.setTables,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            TextButton.icon(
+              onPressed: () => _editTable(context, ref, null),
+              icon: const Icon(Icons.add),
+              label: Text(context.l10n.setTableButton),
+            ),
+          ],
+        ),
+      ),
+      if (tables.isEmpty)
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(context.l10n.setAddTablesHint),
+        ),
+      for (final t in tables)
+        ListTile(
+          leading: const Icon(Icons.table_restaurant_outlined),
+          title: Text(context.l10n.orderTableLabel(t.label)),
+          subtitle: t.isActive ? null : Text(context.l10n.setInactive),
+          onTap: () => _editTable(context, ref, t),
+        ),
+    ];
+  }
+
+  List<Widget> _cloudBody(BuildContext context, WidgetRef ref) => const [
+    _CloudSyncSection(),
+  ];
 
   String _languageLabel(BuildContext context, Locale? locale) =>
       switch (locale?.languageCode) {
@@ -730,6 +771,27 @@ class SettingsScreen extends ConsumerWidget {
             ),
           );
     }
+  }
+}
+
+/// A focused settings sub-page opened from the hub. Renders one group's
+/// controls ([body]) under its own app bar, so the settings landing stays a
+/// short, clean list of categories.
+class _SettingsDetailPage extends ConsumerWidget {
+  final String title;
+  final List<Widget> Function(BuildContext, WidgetRef) body;
+
+  const _SettingsDetailPage({required this.title, required this.body});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: ListView(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        children: body(context, ref),
+      ),
+    );
   }
 }
 
