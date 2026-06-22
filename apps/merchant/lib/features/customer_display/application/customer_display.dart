@@ -115,6 +115,35 @@ class CustomerDisplayController {
     );
   }
 
+  /// Updates the brand logos on an open display live, so an owner's logo edit
+  /// (or a cloud pull) shows immediately without reopening the window.
+  Future<void> pushBrand({
+    required String? welcome,
+    required String? orderHeader,
+    required String? kioskHeader,
+    required String? kioskConfirm,
+  }) => _invoke(
+    'brand',
+    jsonEncode({
+      'welcome': welcome,
+      'orderHeader': orderHeader,
+      'kioskHeader': kioskHeader,
+      'kioskConfirm': kioskConfirm,
+    }),
+  );
+
+  /// Pushes the shop's currently-resolved brand logos to the display. No-ops
+  /// when the display window isn't open.
+  Future<void> pushCurrentBrand() {
+    final logos = _ref.read(brandLogosProvider);
+    return pushBrand(
+      welcome: logos.resolve(BrandLogoSlot.displayWelcome),
+      orderHeader: logos.resolve(BrandLogoSlot.displayOrderHeader),
+      kioskHeader: logos.resolve(BrandLogoSlot.kioskHeader),
+      kioskConfirm: logos.resolve(BrandLogoSlot.kioskConfirm),
+    );
+  }
+
   Future<void> _invoke(String method, dynamic args) async {
     final channel = _channel;
     if (channel == null) return;

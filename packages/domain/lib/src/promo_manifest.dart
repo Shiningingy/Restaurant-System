@@ -49,18 +49,29 @@ class PromoManifest {
 
   final List<PromoImageRef> images;
 
-  const PromoManifest(this.images);
+  /// The idle-screen promo text lines, synced alongside the photos so an
+  /// owner's wording reaches every device (not just this one).
+  final List<String> lines;
+
+  const PromoManifest(this.images, {this.lines = const []});
 
   static const empty = PromoManifest([]);
 
   /// Parses a manifest from raw JSON bytes, or null if it's malformed or a
-  /// newer version this build doesn't understand.
+  /// newer version this build doesn't understand. `lines` is optional so a
+  /// manifest written before text-sync existed still parses (no lines).
   static PromoManifest? tryParse(List<int> bytes) {
     try {
       final json = jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
       if (json['version'] != version) return null;
       final list = (json['images'] as List).cast<Map<String, dynamic>>();
-      return PromoManifest([for (final m in list) PromoImageRef.fromJson(m)]);
+      final lines =
+          (json['lines'] as List?)?.map((e) => e.toString()).toList() ??
+          const <String>[];
+      return PromoManifest(
+        [for (final m in list) PromoImageRef.fromJson(m)],
+        lines: lines,
+      );
     } on Object {
       return null;
     }
@@ -70,6 +81,7 @@ class PromoManifest {
     jsonEncode({
       'version': version,
       'images': [for (final r in images) r.toJson()],
+      'lines': lines,
     }),
   );
 

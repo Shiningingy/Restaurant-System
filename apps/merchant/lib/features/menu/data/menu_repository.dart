@@ -39,6 +39,22 @@ class MenuRepository {
     });
   }
 
+  /// Persists a new category order: each category's position in [ordered]
+  /// becomes its `sortOrder`. Runs in one transaction and journals only the
+  /// rows that actually moved, so the new order syncs to other devices.
+  Future<void> reorderCategories(List<domain.Category> ordered) {
+    return db.transaction(() async {
+      for (var i = 0; i < ordered.length; i++) {
+        final c = ordered[i];
+        if (c.sortOrder == i) continue; // already in place — nothing to write
+        await (db.update(db.categories)..where((t) => t.id.equals(c.id))).write(
+          CategoriesCompanion(sortOrder: Value(i)),
+        );
+        await journal.recordUpsert(SyncEntities.category, c.id);
+      }
+    });
+  }
+
   /// Deletes a category and all of its items (cascade). Hard delete is safe:
   /// order lines snapshot the item name/price, so order history is untouched.
   Future<void> deleteCategory(String id) {

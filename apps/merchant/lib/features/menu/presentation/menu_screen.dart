@@ -83,24 +83,15 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
           child: Column(
             children: [
               Expanded(
-                child: ListView(
+                // Drag the handle to reorder; the order is the order categories
+                // appear on the order screen. Tap selects, long-press edits.
+                child: ReorderableListView(
+                  buildDefaultDragHandles: false,
+                  onReorderItem: (oldIndex, newIndex) =>
+                      _reorderCategories(oldIndex, newIndex, categories),
                   children: [
-                    for (final c in categories)
-                      ListTile(
-                        title: Text(c.name),
-                        selected: c.id == selectedId,
-                        trailing: c.isActive
-                            ? null
-                            : Tooltip(
-                                message: context.l10n.menuHiddenFromOrderScreen,
-                                child: const Icon(
-                                  Icons.visibility_off_outlined,
-                                  size: 18,
-                                ),
-                              ),
-                        onTap: () => setState(() => _selectedCategoryId = c.id),
-                        onLongPress: () => _editCategory(context, c),
-                      ),
+                    for (var i = 0; i < categories.length; i++)
+                      _categoryTile(context, categories[i], i, selectedId),
                   ],
                 ),
               ),
@@ -123,6 +114,47 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
         ),
       ],
     );
+  }
+
+  /// One category row, with a drag handle for reordering. Keyed by id so the
+  /// reorderable list tracks it across moves.
+  Widget _categoryTile(
+    BuildContext context,
+    domain.Category c,
+    int index,
+    String? selectedId,
+  ) {
+    return ListTile(
+      key: ValueKey(c.id),
+      leading: ReorderableDragStartListener(
+        index: index,
+        child: const Icon(Icons.drag_indicator),
+      ),
+      title: Text(c.name),
+      selected: c.id == selectedId,
+      trailing: c.isActive
+          ? null
+          : Tooltip(
+              message: context.l10n.menuHiddenFromOrderScreen,
+              child: const Icon(Icons.visibility_off_outlined, size: 18),
+            ),
+      onTap: () => setState(() => _selectedCategoryId = c.id),
+      onLongPress: () => _editCategory(context, c),
+    );
+  }
+
+  /// Commits a drag-reorder: moves the category and persists the new order
+  /// (which also syncs to other devices). [newIndex] is already adjusted for
+  /// the removed item (onReorderItem contract).
+  Future<void> _reorderCategories(
+    int oldIndex,
+    int newIndex,
+    List<domain.Category> categories,
+  ) async {
+    final reordered = [...categories];
+    final moved = reordered.removeAt(oldIndex);
+    reordered.insert(newIndex, moved);
+    await ref.read(menuRepositoryProvider).reorderCategories(reordered);
   }
 
   /// Loads the Yee Sushi sample menu — a realistic bilingual menu for trying

@@ -21,11 +21,19 @@ class PromoSyncService {
   /// Replaces the device's promo photo paths (without re-publishing).
   final Future<void> Function(List<String>) writePaths;
 
+  /// The device's current promo text lines.
+  final List<String> Function() readLines;
+
+  /// Replaces the device's promo text lines (without re-publishing).
+  final Future<void> Function(List<String>) writeLines;
+
   PromoSyncService({
     required this.store,
     required this.images,
     required this.readPaths,
     required this.writePaths,
+    required this.readLines,
+    required this.writeLines,
   });
 
   /// Uploads this device's promo photos and rewrites the manifest, making this
@@ -37,7 +45,8 @@ class PromoSyncService {
   Future<void> publish() async {
     // Snapshot the previously-published set before we overwrite the manifest,
     // so we can clean up what's no longer referenced.
-    final previous = domain.PromoManifest.tryParse(
+    final previous =
+        domain.PromoManifest.tryParse(
           await store.getObject(domain.PromoManifest.storageKey) ?? const [],
         ) ??
         domain.PromoManifest.empty;
@@ -55,7 +64,7 @@ class PromoSyncService {
     }
     await store.putObject(
       domain.PromoManifest.storageKey,
-      domain.PromoManifest(refs).encode(),
+      domain.PromoManifest(refs, lines: readLines()).encode(),
       contentType: 'application/json',
     );
 
@@ -95,6 +104,8 @@ class PromoSyncService {
       if (cached.contains(ref.sha)) paths.add(await images.pathFor(ref));
     }
     await writePaths(paths);
+    // The promo text rides along in the same manifest.
+    await writeLines(manifest.lines);
     return paths;
   }
 
