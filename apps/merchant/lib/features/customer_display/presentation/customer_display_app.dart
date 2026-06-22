@@ -93,14 +93,7 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
   @override
   void initState() {
     super.initState();
-    // Register our handler, THEN pull the menu — the bidirectional channel only
-    // pairs once both sides have a handler, so awaiting registration avoids a
-    // first-call miss (which would leave the menu — and the hybrid "tap to
-    // order" button — unavailable).
-    () async {
-      await _channel.setMethodCallHandler(_handleFromPos);
-      await _requestMenu();
-    }();
+    _connect();
     // Rotate the promo (text and/or photos) while idle.
     if (widget.promoLines.length > 1 || widget.promoImages.length > 1) {
       _promoTimer = Timer.periodic(const Duration(seconds: 5), (_) {
@@ -123,6 +116,27 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
     _promoTimer?.cancel();
     _channel.setMethodCallHandler(null);
     super.dispose();
+  }
+
+  /// Connects the window channel, retrying until the sub-window's native
+  /// plugins are up.
+  ///
+  /// This engine's `main()` starts *before* the desktop_multi_window plugin (and
+  /// its window-channel plugin) is registered for this window — that happens in
+  /// the native window-created callback a moment later. So the very first
+  /// `setMethodCallHandler` can throw `MissingPluginException`. We retry until it
+  /// sticks, then pull the menu. Without this the handler never registers and the
+  /// screen stays static (no order mirror, no menu, no "tap to order").
+  Future<void> _connect() async {
+    for (var attempt = 0; attempt < 40 && mounted; attempt++) {
+      try {
+        await _channel.setMethodCallHandler(_handleFromPos);
+        await _requestMenu();
+        return;
+      } catch (_) {
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+      }
+    }
   }
 
   Future<dynamic> _handleFromPos(MethodCall call) async {
