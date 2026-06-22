@@ -284,6 +284,7 @@ class SettingsScreen extends ConsumerWidget {
                 onPressed: () async {
                   await BrandLogoStore().clear();
                   await ref.read(brandLogoProvider.notifier).set(null);
+                  await _publishBrandLogo(ref);
                 },
               ),
         onTap: () => _editBrandLogo(context, ref),
@@ -670,6 +671,18 @@ class SettingsScreen extends ConsumerWidget {
     if (file == null) return;
     final path = await BrandLogoStore().import(file.path);
     await ref.read(brandLogoProvider.notifier).set(path);
+    await _publishBrandLogo(ref);
+  }
+
+  /// Uploads the brand logo to the shop's Storage bucket so other devices pick
+  /// it up on sync. Best-effort: no-op when the cloud isn't set up.
+  Future<void> _publishBrandLogo(WidgetRef ref) async {
+    if (!ref.read(syncSettingsProvider).config.isConfigured) return;
+    try {
+      await ref.read(brandLogoSyncProvider).publish();
+    } on Object {
+      // The logo still works locally; it'll publish on the next change/sync.
+    }
   }
 
   /// Uploads the current promo set to the shop's Storage bucket so other

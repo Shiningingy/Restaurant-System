@@ -118,6 +118,9 @@ class BrandLogoNotifier extends Notifier<String?> {
     await ref.read(settingsRepositoryProvider).setBrandLogoPath(path);
     ref.invalidateSelf();
   }
+
+  /// Applies a logo pulled from the cloud (no re-publish — it came *from* there).
+  Future<void> applyFromCloud(String? path) => set(path);
 }
 
 final brandLogoProvider = NotifierProvider<BrandLogoNotifier, String?>(

@@ -16,6 +16,7 @@ export 'ports/online_order_channel.dart';
 export 'ports/payment_terminal.dart';
 export 'ports/printer_driver.dart';
 export 'ports/sync_backend.dart';
+export 'src/brand_logo_manifest.dart';
 export 'src/escpos.dart';
 export 'src/escpos_diagnostic.dart';
 export 'src/ids.dart';

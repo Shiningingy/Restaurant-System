@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../../core/providers.dart';
+import '../../../core/settings/brand_logo_store.dart';
+import '../../../core/settings/brand_logo_sync.dart';
 import '../../../core/settings/providers.dart';
 import '../../../core/supabase_auth.dart';
 import '../../../core/sync/providers.dart';
@@ -81,6 +83,17 @@ final promoSyncProvider = Provider<PromoSyncService>((ref) {
   );
 });
 
+/// Syncs the shop's brand logo via Storage — same mechanism, one image.
+final brandLogoSyncProvider = Provider<BrandLogoSyncService>((ref) {
+  return BrandLogoSyncService(
+    store: ref.watch(objectStoreProvider),
+    logo: BrandLogoStore(),
+    readPath: () => ref.read(settingsRepositoryProvider).brandLogoPath,
+    writePath: (path) =>
+        ref.read(brandLogoProvider.notifier).applyFromCloud(path),
+  );
+});
+
 final syncServiceProvider = Provider<SyncService>((ref) {
   final settings = ref.watch(syncSettingsProvider);
   return SyncService(
@@ -98,13 +111,14 @@ final syncServiceProvider = Provider<SyncService>((ref) {
         accessToken: _bearer(ref.read(supabaseAuthProvider)),
       );
     },
-    // Best-effort: download any promo photos published by another device, and
-    // (if the set changed) refresh an open display live.
+    // Best-effort: download promo photos + the brand logo published by another
+    // device, and (if the set changed) refresh an open display live.
     reconcileAssets: () async {
       final applied = await ref.read(promoSyncProvider).pull();
       if (applied != null) {
         await ref.read(customerDisplayProvider).pushCurrentPromo();
       }
+      await ref.read(brandLogoSyncProvider).pull();
     },
   );
 });
