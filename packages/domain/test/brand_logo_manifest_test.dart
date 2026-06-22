@@ -21,7 +21,8 @@ void main() {
     });
 
     test('encode -> tryParse round-trips a cleared logo', () {
-      final parsed = BrandLogoManifest.tryParse(BrandLogoManifest.none.encode());
+      final parsed =
+          BrandLogoManifest.tryParse(BrandLogoManifest.none.encode());
       expect(parsed, isNotNull);
       expect(parsed!.hasLogo, isFalse);
     });

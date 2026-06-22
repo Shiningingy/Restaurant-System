@@ -68,7 +68,9 @@ ThemeData buildPosTheme({
     ),
     bottomSheetTheme: const BottomSheetThemeData(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(_kRadiusSheet)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(_kRadiusSheet),
+        ),
       ),
     ),
   );

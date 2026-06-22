@@ -334,7 +334,9 @@ class _ItemsList extends ConsumerWidget {
                       : Text(context.l10n.menuHiddenFromOrderScreen),
                   trailing: Text(
                     item.price.format(),
-                    style: moneyTextStyle(Theme.of(context).textTheme.titleMedium),
+                    style: moneyTextStyle(
+                      Theme.of(context).textTheme.titleMedium,
+                    ),
                   ),
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(

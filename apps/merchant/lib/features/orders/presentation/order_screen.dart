@@ -557,7 +557,9 @@ class _Ticket extends ConsumerWidget {
                                     line.modifiers
                                         .map((m) => m.nameSnapshot)
                                         .join(', '),
-                                    style: Theme.of(context).textTheme.bodySmall,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
                                   ),
                               ],
                             ),

@@ -439,7 +439,8 @@ class _KioskSurfaceState extends State<KioskSurface> {
     return Column(
       children: [
         row(_l.subtotal, t.subtotal),
-        if (!t.serviceFee.isZero) row(_l.service(_pct(serviceFeeBp)), t.serviceFee),
+        if (!t.serviceFee.isZero)
+          row(_l.service(_pct(serviceFeeBp)), t.serviceFee),
         row(_l.tax(_pct(taxBp)), t.tax),
         const Divider(height: 16),
         row(_l.total, t.total, bold: true),

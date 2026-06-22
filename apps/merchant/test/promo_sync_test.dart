@@ -71,39 +71,45 @@ void main() {
     return f.path;
   }
 
-  test('publish on one device, pull carries photos + order to another', () async {
-    final cloud = FakeObjectStore();
+  test(
+    'publish on one device, pull carries photos + order to another',
+    () async {
+      final cloud = FakeObjectStore();
 
-    // Device A: owner adds two promo photos and publishes.
-    final a = device('a', cloud);
-    final p1 = await a.store.import(await sourceFile('1.jpg', [1, 2, 3, 4]));
-    final p2 = await a.store.import(await sourceFile('2.png', [9, 8, 7]));
-    a.paths
-      ..add(p1)
-      ..add(p2);
-    await a.sync.publish();
+      // Device A: owner adds two promo photos and publishes.
+      final a = device('a', cloud);
+      final p1 = await a.store.import(await sourceFile('1.jpg', [1, 2, 3, 4]));
+      final p2 = await a.store.import(await sourceFile('2.png', [9, 8, 7]));
+      a.paths
+        ..add(p1)
+        ..add(p2);
+      await a.sync.publish();
 
-    // Cloud now holds the manifest + both images.
-    expect(cloud.objects.containsKey(domain.PromoManifest.storageKey), isTrue);
-    expect(cloud.objects.length, 3);
+      // Cloud now holds the manifest + both images.
+      expect(
+        cloud.objects.containsKey(domain.PromoManifest.storageKey),
+        isTrue,
+      );
+      expect(cloud.objects.length, 3);
 
-    // Device B: starts empty, pulls.
-    final b = device('b', cloud);
-    expect(b.paths, isEmpty);
-    final pulled = await b.sync.pull();
+      // Device B: starts empty, pulls.
+      final b = device('b', cloud);
+      expect(b.paths, isEmpty);
+      final pulled = await b.sync.pull();
 
-    // B now has both photos cached locally, in manifest order, with the same
-    // bytes — and the order (1.jpg before 2.png) is preserved.
-    expect(pulled, isNotNull);
-    expect(b.paths.length, 2);
-    expect(await b.store.bytesOf(b.paths[0]), [1, 2, 3, 4]);
-    expect(await b.store.bytesOf(b.paths[1]), [9, 8, 7]);
-    // Content-addressed: same file names on both devices.
-    expect(
-      b.paths.map((p) => p.split(Platform.pathSeparator).last),
-      [p1, p2].map((p) => p.split(Platform.pathSeparator).last),
-    );
-  });
+      // B now has both photos cached locally, in manifest order, with the same
+      // bytes — and the order (1.jpg before 2.png) is preserved.
+      expect(pulled, isNotNull);
+      expect(b.paths.length, 2);
+      expect(await b.store.bytesOf(b.paths[0]), [1, 2, 3, 4]);
+      expect(await b.store.bytesOf(b.paths[1]), [9, 8, 7]);
+      // Content-addressed: same file names on both devices.
+      expect(
+        b.paths.map((p) => p.split(Platform.pathSeparator).last),
+        [p1, p2].map((p) => p.split(Platform.pathSeparator).last),
+      );
+    },
+  );
 
   test('promo text lines publish on A and reach B on pull', () async {
     final cloud = FakeObjectStore();
@@ -155,27 +161,40 @@ void main() {
     expect(b.paths, isEmpty);
   });
 
-  test('removing a photo deletes its orphaned object from the bucket', () async {
-    final cloud = FakeObjectStore();
-    final a = device('a', cloud);
-    final keep = await a.store.import(await sourceFile('keep.jpg', [1, 1, 1]));
-    final drop = await a.store.import(await sourceFile('drop.jpg', [2, 2, 2]));
-    final dropKey = a.store.refOf(drop)!.storageKey;
-    a.paths
-      ..add(keep)
-      ..add(drop);
-    await a.sync.publish();
-    expect(cloud.objects.containsKey(dropKey), isTrue);
+  test(
+    'removing a photo deletes its orphaned object from the bucket',
+    () async {
+      final cloud = FakeObjectStore();
+      final a = device('a', cloud);
+      final keep = await a.store.import(
+        await sourceFile('keep.jpg', [1, 1, 1]),
+      );
+      final drop = await a.store.import(
+        await sourceFile('drop.jpg', [2, 2, 2]),
+      );
+      final dropKey = a.store.refOf(drop)!.storageKey;
+      a.paths
+        ..add(keep)
+        ..add(drop);
+      await a.sync.publish();
+      expect(cloud.objects.containsKey(dropKey), isTrue);
 
-    // Owner removes the second photo and republishes.
-    a.paths.remove(drop);
-    await a.sync.publish();
+      // Owner removes the second photo and republishes.
+      a.paths.remove(drop);
+      await a.sync.publish();
 
-    // The dropped photo's bytes are gone; the kept one and manifest remain.
-    expect(cloud.objects.containsKey(dropKey), isFalse);
-    expect(cloud.objects.containsKey(a.store.refOf(keep)!.storageKey), isTrue);
-    expect(cloud.objects.containsKey(domain.PromoManifest.storageKey), isTrue);
-  });
+      // The dropped photo's bytes are gone; the kept one and manifest remain.
+      expect(cloud.objects.containsKey(dropKey), isFalse);
+      expect(
+        cloud.objects.containsKey(a.store.refOf(keep)!.storageKey),
+        isTrue,
+      );
+      expect(
+        cloud.objects.containsKey(domain.PromoManifest.storageKey),
+        isTrue,
+      );
+    },
+  );
 
   test('re-publishing the same set leaves no duplicates', () async {
     final cloud = FakeObjectStore();

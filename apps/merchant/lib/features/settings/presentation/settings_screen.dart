@@ -41,23 +41,55 @@ class SettingsScreen extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(vertical: 8),
         children: [
           // Store identity first — the shop name + logos.
-          _hubTile(context, Icons.storefront_outlined, l10n.setBranding,
-              _brandingBody),
-          _hubTile(context, Icons.translate_outlined, l10n.setLanguage,
-              _languageBody),
+          _hubTile(
+            context,
+            Icons.storefront_outlined,
+            l10n.setBranding,
+            _brandingBody,
+          ),
+          _hubTile(
+            context,
+            Icons.translate_outlined,
+            l10n.setLanguage,
+            _languageBody,
+          ),
           _hubTile(context, Icons.percent_outlined, l10n.setTax, _taxBody),
-          _hubTile(context, Icons.language_outlined, l10n.setOnlineOrdering,
-              _onlineBody),
-          _hubTile(context, Icons.point_of_sale_outlined, l10n.setPayments,
-              _paymentsBody),
-          _hubTile(context, Icons.print_outlined, l10n.setPrinting,
-              _printingBody),
-          _hubTile(context, Icons.tv_outlined, l10n.setCustomerDisplay,
-              _displayBody),
-          _hubTile(context, Icons.table_restaurant_outlined, l10n.setTables,
-              _tablesBody),
-          _hubTile(context, Icons.cloud_outlined, l10n.setCloudSync,
-              _cloudBody),
+          _hubTile(
+            context,
+            Icons.language_outlined,
+            l10n.setOnlineOrdering,
+            _onlineBody,
+          ),
+          _hubTile(
+            context,
+            Icons.point_of_sale_outlined,
+            l10n.setPayments,
+            _paymentsBody,
+          ),
+          _hubTile(
+            context,
+            Icons.print_outlined,
+            l10n.setPrinting,
+            _printingBody,
+          ),
+          _hubTile(
+            context,
+            Icons.tv_outlined,
+            l10n.setCustomerDisplay,
+            _displayBody,
+          ),
+          _hubTile(
+            context,
+            Icons.table_restaurant_outlined,
+            l10n.setTables,
+            _tablesBody,
+          ),
+          _hubTile(
+            context,
+            Icons.cloud_outlined,
+            l10n.setCloudSync,
+            _cloudBody,
+          ),
           // The user guide, opened directly (not a sub-page).
           Card(
             margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -275,18 +307,18 @@ class SettingsScreen extends ConsumerWidget {
               mode: ref.read(customerDisplayModeProvider),
               promoLines: ref.read(displayPromoProvider),
               promoImages: ref.read(displayPromoImagesProvider),
-              brandWelcome: ref.read(brandLogosProvider).resolve(
-                BrandLogoSlot.displayWelcome,
-              ),
-              brandOrderHeader: ref.read(brandLogosProvider).resolve(
-                BrandLogoSlot.displayOrderHeader,
-              ),
-              brandKioskHeader: ref.read(brandLogosProvider).resolve(
-                BrandLogoSlot.kioskHeader,
-              ),
-              brandKioskConfirm: ref.read(brandLogosProvider).resolve(
-                BrandLogoSlot.kioskConfirm,
-              ),
+              brandWelcome: ref
+                  .read(brandLogosProvider)
+                  .resolve(BrandLogoSlot.displayWelcome),
+              brandOrderHeader: ref
+                  .read(brandLogosProvider)
+                  .resolve(BrandLogoSlot.displayOrderHeader),
+              brandKioskHeader: ref
+                  .read(brandLogosProvider)
+                  .resolve(BrandLogoSlot.kioskHeader),
+              brandKioskConfirm: ref
+                  .read(brandLogosProvider)
+                  .resolve(BrandLogoSlot.kioskConfirm),
             );
           }
         },
@@ -668,7 +700,9 @@ class SettingsScreen extends ConsumerWidget {
             current: receiptConfig.businessName,
           );
           if (name != null && name.isNotEmpty) {
-            await ref.read(receiptConfigProvider.notifier).setBusinessName(name);
+            await ref
+                .read(receiptConfigProvider.notifier)
+                .setBusinessName(name);
           }
         },
       ),

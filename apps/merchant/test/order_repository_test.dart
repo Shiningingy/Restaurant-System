@@ -173,9 +173,11 @@ void main() {
       type: OrderType.takeout,
       taxRateBp: 1300,
     );
-    await orders.addLine(orderId: orderId, item: burger, selectedModifiers: [
-      sizeLarge,
-    ]);
+    await orders.addLine(
+      orderId: orderId,
+      item: burger,
+      selectedModifiers: [sizeLarge],
+    );
     await orders.addLine(orderId: orderId, item: fries);
     final order = (await orders.watchOrder(orderId).first)!;
     await payments.recordApproved(
@@ -189,9 +191,9 @@ void main() {
     expect(await orders.watchOrder(orderId).first, isNull);
     expect(await orders.watchLines(orderId).first, isEmpty);
     expect(
-      await (db.select(db.payments)
-            ..where((t) => t.orderId.equals(orderId)))
-          .get(),
+      await (db.select(
+        db.payments,
+      )..where((t) => t.orderId.equals(orderId))).get(),
       isEmpty,
     );
   });
