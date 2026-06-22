@@ -330,20 +330,15 @@ class _IdlePromo extends StatelessWidget {
         ? _slideshow(context)
         : _branded(context);
     if (onTapToOrder == null) return content;
-    // Attract/cover: the whole screen is tappable, with a clear "Tap to order"
-    // call to action near the bottom so it's never missed.
+    // Attract/cover (per the mockup): the whole screen is tappable, with the
+    // "Tap to order" button in the bottom-right (opposite the logo lockup).
     return GestureDetector(
       onTap: onTapToOrder,
       behavior: HitTestBehavior.opaque,
       child: Stack(
         children: [
           Positioned.fill(child: content),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 48,
-            child: Center(child: _tapToOrderButton(context)),
-          ),
+          Positioned(right: 40, bottom: 40, child: _tapToOrderButton(context)),
         ],
       ),
     );
@@ -379,29 +374,44 @@ class _IdlePromo extends StatelessWidget {
           alignment: Alignment.bottomLeft,
           child: Padding(
             padding: const EdgeInsets.all(40),
-            child: Column(
+            // Logo lockup: the white mark beside the name + rotating promo.
+            child: Row(
               mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                if (businessName.isNotEmpty)
-                  Text(
-                    businessName,
-                    style: theme.textTheme.displaySmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
+                BrandMark(
+                  logoPath: brandLogo,
+                  size: 104,
+                  fallbackColor: Colors.white,
+                ),
+                const SizedBox(width: 20),
+                Flexible(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (businessName.isNotEmpty)
+                        Text(
+                          businessName,
+                          style: theme.textTheme.displaySmall?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      if (promo != null && promo!.isNotEmpty)
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 400),
+                          child: Text(
+                            promo!,
+                            key: ValueKey(promo),
+                            style: theme.textTheme.headlineSmall?.copyWith(
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
-                if (promo != null && promo!.isNotEmpty)
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 400),
-                    child: Text(
-                      promo!,
-                      key: ValueKey(promo),
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        color: Colors.white70,
-                      ),
-                    ),
-                  ),
+                ),
               ],
             ),
           ),
@@ -456,16 +466,16 @@ class _IdlePromo extends StatelessWidget {
     );
   }
 
-  /// The ordering CTA — centered near the bottom of the cover. Clearly visible
-  /// but calm; the whole screen is also tappable.
+  /// The ordering CTA — a standard xl button in the bottom-right (per the
+  /// mockup). The whole screen is also tappable.
   Widget _tapToOrderButton(BuildContext context) => FilledButton.icon(
     onPressed: onTapToOrder,
     style: FilledButton.styleFrom(
-      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
-      textStyle: Theme.of(context).textTheme.headlineSmall,
-      shape: const StadiumBorder(),
+      minimumSize: const Size(0, 64),
+      padding: const EdgeInsets.symmetric(horizontal: 28),
+      textStyle: Theme.of(context).textTheme.titleLarge,
     ),
-    icon: const Icon(Icons.touch_app, size: 28),
+    icon: const Icon(Icons.touch_app),
     label: const Text('Tap to order'),
   );
 }
