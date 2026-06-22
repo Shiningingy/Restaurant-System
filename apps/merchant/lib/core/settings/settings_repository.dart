@@ -42,7 +42,9 @@ class PrinterConfig {
     this.port = SettingsRepository.defaultPrinterPort,
     this.windowsPrinterName,
     this.paperWidthChars = domain.EscPos.width80mm,
-    this.charset = domain.TicketCharset.western,
+    // Auto by default: the app sends Chinese (GBK) only when a ticket contains
+    // CJK, so the owner never has to pick an encoder.
+    this.charset = domain.TicketCharset.auto,
     this.openDrawer = false,
   });
 
@@ -170,7 +172,7 @@ class SettingsRepository {
           domain.TicketCharset.values.asNameMap()[prefs.getString(
             '$p.charset',
           )] ??
-          domain.TicketCharset.western,
+          domain.TicketCharset.auto,
       openDrawer: prefs.getBool('$p.drawer') ?? false,
     );
   }

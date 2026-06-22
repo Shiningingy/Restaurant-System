@@ -28,22 +28,28 @@ class EscPos {
     required int widthChars,
     TicketCharset charset = TicketCharset.western,
   }) {
+    // Resolve `auto` from the content: Chinese mode only when the ticket
+    // actually contains CJK, so pure-Latin tickets stay byte-identical to
+    // Western (no stray `FS &`).
+    final effective = charset == TicketCharset.auto
+        ? (_docHasCjk(doc) ? TicketCharset.chinese : TicketCharset.western)
+        : charset;
     final out = <int>[_esc, 0x40]; // ESC @ — initialize
-    if (charset == TicketCharset.chinese) {
+    if (effective == TicketCharset.chinese) {
       out.addAll([_fs, 0x26]); // FS & — enter Chinese (multi-byte) mode
     }
     for (final op in doc.ops) {
       switch (op) {
         case TicketText(:final text, :final style):
           for (final line in _wrap(text, _effectiveWidth(widthChars, style))) {
-            _writeLine(out, line, style, charset);
+            _writeLine(out, line, style, effective);
           }
         case TicketRow():
           for (final line in _layoutRow(op, widthChars)) {
-            _writeLine(out, line, op.style, charset);
+            _writeLine(out, line, op.style, effective);
           }
         case TicketDivider():
-          _writeLine(out, '-' * widthChars, TicketStyle.plain, charset);
+          _writeLine(out, '-' * widthChars, TicketStyle.plain, effective);
         case TicketFeed(:final lines):
           out.addAll([_esc, 0x64, lines]); // ESC d n — feed n lines
         case TicketCut():
@@ -101,35 +107,58 @@ class EscPos {
   static List<int> _bytes(String line, TicketCharset charset) {
     switch (charset) {
       // Thermal printers default to code page 437, so anything beyond ASCII
-      // prints as '?'.
+      // prints as '?'. `auto` is resolved before this point, so treat any
+      // residual `auto` as Western defensively.
       case TicketCharset.western:
+      case TicketCharset.auto:
         return ascii.encode(line.replaceAll(RegExp(r'[^\x00-\x7F]'), '?'));
-      // GBK (a superset of ASCII) for mixed Latin + Chinese in one pass. The
-      // gbk_codec returns a multi-byte glyph as one combined int (e.g. 中 ->
-      // 0xD6D0), so split those into high/low bytes; unmappable chars fall back
-      // to '?' rather than throwing.
       case TicketCharset.chinese:
-        final out = <int>[];
-        for (final rune in line.runes) {
-          if (rune < 0x80) {
-            out.add(rune);
-            continue;
-          }
-          try {
-            for (final code in gbk.encode(String.fromCharCode(rune))) {
-              if (code > 0xFF) {
-                out.add((code >> 8) & 0xFF);
-                out.add(code & 0xFF);
-              } else {
-                out.add(code);
-              }
-            }
-          } catch (_) {
-            out.add(0x3F); // '?'
+        return gbkEncode(line);
+    }
+  }
+
+  /// Encodes [s] as GBK bytes for a printer in Chinese mode: ASCII passes
+  /// through as single bytes; CJK is GBK. `gbk_codec` returns a multi-byte
+  /// glyph as one combined int (e.g. 中 -> 0xD6D0), so split those into
+  /// high/low bytes; unmappable characters fall back to '?'. Public so the
+  /// Chinese diagnostic can reuse exactly the same encoding.
+  static List<int> gbkEncode(String s) {
+    final out = <int>[];
+    for (final rune in s.runes) {
+      if (rune < 0x80) {
+        out.add(rune);
+        continue;
+      }
+      try {
+        for (final code in gbk.encode(String.fromCharCode(rune))) {
+          if (code > 0xFF) {
+            out.add((code >> 8) & 0xFF);
+            out.add(code & 0xFF);
+          } else {
+            out.add(code);
           }
         }
-        return out;
+      } catch (_) {
+        out.add(0x3F); // '?'
+      }
     }
+    return out;
+  }
+
+  /// Whether [doc]'s text contains any CJK / fullwidth character — drives
+  /// `TicketCharset.auto`.
+  static bool _docHasCjk(TicketDoc doc) {
+    for (final op in doc.ops) {
+      final text = switch (op) {
+        TicketText(:final text) => text,
+        TicketRow() => '${op.left}${op.right}',
+        _ => '',
+      };
+      for (final r in text.runes) {
+        if (_isWide(r)) return true;
+      }
+    }
+    return false;
   }
 
   static List<String> _layoutRow(TicketRow row, int widthChars) {

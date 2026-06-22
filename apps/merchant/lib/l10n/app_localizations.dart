@@ -1418,6 +1418,12 @@ abstract class AppLocalizations {
   /// **'Text encoding'**
   String get setCharset;
 
+  /// No description provided for @setCharsetAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto'**
+  String get setCharsetAuto;
+
   /// No description provided for @setCharsetWestern.
   ///
   /// In en, this message translates to:
@@ -1429,6 +1435,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Chinese'**
   String get setCharsetChinese;
+
+  /// No description provided for @setPrinterChineseDiagnostic.
+  ///
+  /// In en, this message translates to:
+  /// **'Print Chinese diagnostic'**
+  String get setPrinterChineseDiagnostic;
 
   /// No description provided for @setOpenDrawer.
   ///

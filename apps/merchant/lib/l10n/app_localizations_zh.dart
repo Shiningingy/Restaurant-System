@@ -770,10 +770,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get setCharset => '文字编码';
 
   @override
+  String get setCharsetAuto => '自动';
+
+  @override
   String get setCharsetWestern => '西文';
 
   @override
   String get setCharsetChinese => '中文';
+
+  @override
+  String get setPrinterChineseDiagnostic => '打印中文诊断页';
 
   @override
   String get setOpenDrawer => '打印收据时打开钱箱';
