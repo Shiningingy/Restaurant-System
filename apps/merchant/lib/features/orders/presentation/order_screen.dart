@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
+import 'package:restaurant_ui/restaurant_ui.dart';
 
 import '../../../core/l10n_ext.dart';
 import '../../../core/labels.dart';
@@ -100,22 +101,14 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
         leading: BackButton(onPressed: () => context.go('/orders')),
         title: Text(_title(context, order)),
         actions: [
-          if (order != null && isOpen) ...[
-            TextButton.icon(
-              onPressed: () => _editDiscount(context, order),
-              icon: const Icon(Icons.local_offer_outlined),
-              label: Text(
-                order.discount.isZero
-                    ? context.l10n.ordAddDiscount
-                    : context.l10n.ordEditDiscount,
-              ),
-            ),
+          // Discount moved inline (above the Tax row in the ticket); the app bar
+          // keeps only the order-level void.
+          if (order != null && isOpen)
             TextButton.icon(
               onPressed: () => _voidOrder(context),
               icon: const Icon(Icons.delete_outline),
               label: Text(context.l10n.ordVoidOrder),
             ),
-          ],
         ],
       ),
       body: order == null
@@ -135,7 +128,12 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
                 const VerticalDivider(width: 1),
                 Expanded(
                   flex: 2,
-                  child: _Ticket(order: order, lines: lines, isOpen: isOpen),
+                  child: _Ticket(
+                    order: order,
+                    lines: lines,
+                    isOpen: isOpen,
+                    onEditDiscount: () => _editDiscount(context, order),
+                  ),
                 ),
               ],
             ),
@@ -262,7 +260,7 @@ class _MenuPicker extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SizedBox(
-            width: 148,
+            width: 168,
             child: Column(
               children: [
                 Align(
@@ -276,11 +274,7 @@ class _MenuPicker extends ConsumerWidget {
                       for (final c in categories)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 8),
-                          child: _CategoryButton(
-                            label: c.name,
-                            selected: c.id == activeCategoryId,
-                            onTap: () => onCategorySelected(c.id),
-                          ),
+                          child: _categoryTile(ref, c, activeCategoryId),
                         ),
                     ],
                   ),
@@ -297,39 +291,51 @@ class _MenuPicker extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: SizedBox(
-                height: 56,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 4, 4),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Wrapping tiles — no horizontal scroll; falls onto more rows.
+              Expanded(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 148),
+                  child: SingleChildScrollView(
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        for (final c in categories)
+                          SizedBox(
+                            width: 168,
+                            child: _categoryTile(ref, c, activeCategoryId),
+                          ),
+                      ],
+                    ),
                   ),
-                  children: [
-                    for (final c in categories)
-                      Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: ChoiceChip(
-                          label: Text(c.name),
-                          selected: c.id == activeCategoryId,
-                          onSelected: (_) => onCategorySelected(c.id),
-                        ),
-                      ),
-                  ],
                 ),
               ),
-            ),
-            _layoutToggle(context, ref, vertical),
-            const SizedBox(width: 4),
-          ],
+              _layoutToggle(context, ref, vertical),
+            ],
+          ),
         ),
+        const Divider(height: 1),
         Expanded(child: grid),
       ],
     );
   }
+
+  /// A category tile with the optional shared-code prefix box.
+  Widget _categoryTile(
+    WidgetRef ref,
+    domain.Category c,
+    String activeCategoryId,
+  ) => _CategoryTile(
+    label: c.name,
+    letter: ref.watch(categoryCodeLetterProvider(c.id)),
+    selected: c.id == activeCategoryId,
+    onTap: () => onCategorySelected(c.id),
+  );
 
   Widget _layoutToggle(BuildContext context, WidgetRef ref, bool vertical) =>
       IconButton(
@@ -407,31 +413,77 @@ class _MenuPicker extends ConsumerWidget {
   );
 }
 
-/// A full-width category button for the vertical category column.
-class _CategoryButton extends StatelessWidget {
+/// A category tile: an optional full-height **prefix box** (the shared item-code
+/// letter, e.g. "P") beside the category name. Selected = filled primary (no
+/// check mark). Used in both the horizontal wrap and the vertical column.
+class _CategoryTile extends StatelessWidget {
   final String label;
+  final String? letter;
   final bool selected;
   final VoidCallback onTap;
 
-  const _CategoryButton({
+  const _CategoryTile({
     required this.label,
+    required this.letter,
     required this.selected,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final child = Align(
-      alignment: Alignment.centerLeft,
-      child: Text(label, maxLines: 2, overflow: TextOverflow.ellipsis),
+    final cs = Theme.of(context).colorScheme;
+    final fg = selected ? cs.onPrimary : cs.onSurface;
+    return Material(
+      color: selected ? cs.primary : cs.surfaceContainerHighest,
+      borderRadius: BorderRadius.circular(12),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 48),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (letter != null)
+                  Container(
+                    width: 40,
+                    alignment: Alignment.center,
+                    color: selected ? Colors.white24 : cs.primaryContainer,
+                    child: Text(
+                      letter!,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: selected ? cs.onPrimary : cs.onPrimaryContainer,
+                      ),
+                    ),
+                  ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        label,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: fg,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
-    final style = ButtonStyle(
-      minimumSize: WidgetStateProperty.all(const Size.fromHeight(48)),
-      alignment: Alignment.centerLeft,
-    );
-    return selected
-        ? FilledButton(onPressed: onTap, style: style, child: child)
-        : OutlinedButton(onPressed: onTap, style: style, child: child);
   }
 }
 
@@ -439,11 +491,13 @@ class _Ticket extends ConsumerWidget {
   final domain.Order order;
   final List<domain.OrderLine> lines;
   final bool isOpen;
+  final VoidCallback onEditDiscount;
 
   const _Ticket({
     required this.order,
     required this.lines,
     required this.isOpen,
+    required this.onEditDiscount,
   });
 
   @override
@@ -466,7 +520,18 @@ class _Ticket extends ConsumerWidget {
                   itemCount: visibleLines.length,
                   itemBuilder: (context, i) {
                     final line = visibleLines[i];
+                    final cs = Theme.of(context).colorScheme;
                     return ListTile(
+                      contentPadding: const EdgeInsets.only(left: 4, right: 8),
+                      // Far-left trash removes the whole line in one tap.
+                      leading: isOpen
+                          ? IconButton(
+                              icon: const Icon(Icons.delete_outline),
+                              tooltip: context.l10n.ordVoidLine,
+                              color: cs.error,
+                              onPressed: () => repo.voidLine(line.id),
+                            )
+                          : null,
                       title: ItemNameLines(
                         code: line.codeSnapshot,
                         name: line.nameSnapshot,
@@ -480,21 +545,23 @@ class _Ticket extends ConsumerWidget {
                                   .map((m) => m.nameSnapshot)
                                   .join(', '),
                             ),
-                      leading: isOpen
-                          ? IconButton(
-                              icon: const Icon(Icons.remove_circle_outline),
-                              tooltip: line.qty == 1
-                                  ? context.l10n.ordVoidLine
-                                  : context.l10n.ordDecrease,
-                              onPressed: () => line.qty == 1
-                                  ? repo.voidLine(line.id)
-                                  : repo.setLineQty(line.id, line.qty - 1),
-                            )
-                          : null,
+                      // [−] qty [+] · price. Minus only steps down to 1 (the
+                      // trash removes the line), so it disables at a qty of 1.
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(context.l10n.ordQtyMultiplier(line.qty)),
+                          if (isOpen)
+                            IconButton(
+                              icon: const Icon(Icons.remove_circle_outline),
+                              tooltip: context.l10n.ordDecrease,
+                              onPressed: line.qty > 1
+                                  ? () => repo.setLineQty(line.id, line.qty - 1)
+                                  : null,
+                            ),
+                          Text(
+                            '${line.qty}',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
                           if (isOpen)
                             IconButton(
                               icon: const Icon(Icons.add_circle_outline),
@@ -502,10 +569,11 @@ class _Ticket extends ConsumerWidget {
                                   repo.setLineQty(line.id, line.qty + 1),
                             ),
                           SizedBox(
-                            width: 70,
+                            width: 72,
                             child: Text(
                               line.lineTotal.format(),
                               textAlign: TextAlign.right,
+                              style: Theme.of(context).textTheme.bodyLarge,
                             ),
                           ),
                         ],
@@ -520,12 +588,9 @@ class _Ticket extends ConsumerWidget {
           child: Column(
             children: [
               _totalRow(context, context.l10n.ordSubtotal, order.subtotal),
-              if (!order.discount.isZero)
-                _totalRow(
-                  context,
-                  context.l10n.ordDiscount,
-                  domain.Money.zero - order.discount,
-                ),
+              // Discount lives inline now: an "Add discount" button when none,
+              // or the applied discount (green) with a one-tap remove.
+              if (isOpen) _discountControl(context, ref),
               if (!order.serviceFee.isZero)
                 _totalRow(
                   context,
@@ -569,32 +634,43 @@ class _Ticket extends ConsumerWidget {
                 ),
               ],
               const SizedBox(height: 12),
-              OutlinedButton.icon(
-                onPressed: isOpen && visibleLines.isNotEmpty
-                    ? () => _sendToKitchen(context, ref)
-                    : null,
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(52),
-                ),
-                icon: const Icon(Icons.print_outlined),
-                label: Text(
-                  order.status == domain.OrderStatus.sent
-                      ? context.l10n.ordReprintKitchenTicket
-                      : context.l10n.ordSendToKitchen,
-                ),
-              ),
-              if (isOpen && visibleLines.length >= 2) ...[
-                const SizedBox(height: 8),
-                OutlinedButton.icon(
-                  onPressed: () => _splitByItem(context, ref),
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(52),
+              // Secondary actions side by side; Pay separated below by a rule.
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: isOpen && visibleLines.isNotEmpty
+                          ? () => _sendToKitchen(context, ref)
+                          : null,
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(52),
+                      ),
+                      icon: const Icon(Icons.print_outlined),
+                      label: Text(
+                        order.status == domain.OrderStatus.sent
+                            ? context.l10n.ordReprintKitchenTicket
+                            : context.l10n.ordSendToKitchen,
+                      ),
+                    ),
                   ),
-                  icon: const Icon(Icons.call_split),
-                  label: Text(context.l10n.ordSplitByItem),
-                ),
-              ],
-              const SizedBox(height: 8),
+                  if (isOpen && visibleLines.length >= 2) ...[
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => _splitByItem(context, ref),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size.fromHeight(52),
+                        ),
+                        icon: const Icon(Icons.call_split),
+                        label: Text(context.l10n.ordSplitByItem),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 12),
+              const Divider(height: 1),
+              const SizedBox(height: 12),
               FilledButton(
                 onPressed: isOpen && visibleLines.isNotEmpty
                     ? () => _pay(context, ref, balance)
@@ -611,6 +687,58 @@ class _Ticket extends ConsumerWidget {
               ),
             ],
           ),
+        ),
+      ],
+    );
+  }
+
+  /// Inline discount: an "Add discount" button when there's none, otherwise the
+  /// applied discount shown in success-green — tap the label to change it, the ×
+  /// to remove it.
+  Widget _discountControl(BuildContext context, WidgetRef ref) {
+    final repo = ref.read(orderRepositoryProvider);
+    if (order.discount.isZero) {
+      return Align(
+        alignment: Alignment.centerLeft,
+        child: TextButton.icon(
+          onPressed: onEditDiscount,
+          icon: const Icon(Icons.local_offer_outlined, size: 20),
+          label: Text(context.l10n.ordAddDiscount),
+        ),
+      );
+    }
+    final green = context.posStatus.success;
+    final pct = order.subtotal.isZero
+        ? 0
+        : (order.discount.cents * 10000 / order.subtotal.cents).round() / 100;
+    final pctText = pct == pct.roundToDouble()
+        ? pct.toStringAsFixed(0)
+        : pct.toStringAsFixed(2);
+    return Row(
+      children: [
+        Expanded(
+          child: InkWell(
+            onTap: onEditDiscount,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Text(
+                '${context.l10n.ordDiscount} ($pctText%)',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: green),
+              ),
+            ),
+          ),
+        ),
+        Text(
+          (domain.Money.zero - order.discount).format(),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: green),
+        ),
+        IconButton(
+          icon: const Icon(Icons.close, size: 18),
+          tooltip: context.l10n.ordRemoveDiscount,
+          visualDensity: VisualDensity.compact,
+          onPressed: () => repo.setDiscount(order.id, domain.Money.zero),
         ),
       ],
     );
