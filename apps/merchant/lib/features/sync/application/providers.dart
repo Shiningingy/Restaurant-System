@@ -5,6 +5,7 @@ import '../../../core/providers.dart';
 import '../../../core/settings/providers.dart';
 import '../../../core/supabase_auth.dart';
 import '../../../core/sync/providers.dart';
+import '../../customer_display/application/customer_display.dart';
 import '../../customer_display/application/promo_sync.dart';
 import '../../customer_display/data/promo_image_store.dart';
 import '../data/sync_settings.dart';
@@ -97,8 +98,14 @@ final syncServiceProvider = Provider<SyncService>((ref) {
         accessToken: _bearer(ref.read(supabaseAuthProvider)),
       );
     },
-    // Best-effort: download any promo photos published by another device.
-    reconcileAssets: () => ref.read(promoSyncProvider).pull(),
+    // Best-effort: download any promo photos published by another device, and
+    // (if the set changed) refresh an open display live.
+    reconcileAssets: () async {
+      final applied = await ref.read(promoSyncProvider).pull();
+      if (applied != null) {
+        await ref.read(customerDisplayProvider).pushCurrentPromo();
+      }
+    },
   );
 });
 

@@ -86,6 +86,27 @@ class CustomerDisplayController {
   /// Changes the display mode live without reopening the window.
   Future<void> pushMode(CustomerDisplayMode mode) => _invoke('mode', mode.name);
 
+  /// Updates the idle promo (text lines + photo slideshow) live, so an owner's
+  /// edit in Settings shows immediately without reopening the display window.
+  Future<void> pushPromo({
+    required List<String> promoLines,
+    required List<String> promoImages,
+  }) => _invoke(
+    'promo',
+    jsonEncode({'promo': promoLines, 'promoImages': promoImages}),
+  );
+
+  /// Pushes the currently-configured promo (lines + photos) to the display.
+  /// Call after any change — a local edit or a cloud pull. No-ops when the
+  /// display window isn't open.
+  Future<void> pushCurrentPromo() {
+    final settings = _ref.read(settingsRepositoryProvider);
+    return pushPromo(
+      promoLines: settings.displayPromoLines,
+      promoImages: settings.displayPromoImages,
+    );
+  }
+
   Future<void> _invoke(String method, dynamic args) async {
     final channel = _channel;
     if (channel == null) return;

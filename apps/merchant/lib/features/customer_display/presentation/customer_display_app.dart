@@ -73,6 +73,10 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
 
   late CustomerDisplayMode _mode = widget.mode;
   late String _businessName = widget.businessName;
+  // Promo is mutable so the POS can update it live (owner edits in Settings)
+  // without the customer having to reopen the display window.
+  late List<String> _promoLines = widget.promoLines;
+  late List<String> _promoImages = widget.promoImages;
   Map<String, dynamic>? _order;
   KioskMenu? _menu;
 
@@ -92,16 +96,24 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
   void initState() {
     super.initState();
     _connect();
-    // Rotate the promo (text and/or photos) while idle.
-    if (widget.promoLines.length > 1 || widget.promoImages.length > 1) {
+    _restartPromoTimer();
+  }
+
+  /// (Re)starts the idle rotation for the current promo set. Cancels any
+  /// existing timer first, so a live promo update swaps cleanly.
+  void _restartPromoTimer() {
+    _promoTimer?.cancel();
+    _promoTimer = null;
+    // Only rotate if there's more than one thing to cycle through.
+    if (_promoLines.length > 1 || _promoImages.length > 1) {
       _promoTimer = Timer.periodic(const Duration(seconds: 5), (_) {
         if (mounted && !_interactive) {
           setState(() {
-            if (widget.promoLines.isNotEmpty) {
-              _promoIndex = (_promoIndex + 1) % widget.promoLines.length;
+            if (_promoLines.isNotEmpty) {
+              _promoIndex = (_promoIndex + 1) % _promoLines.length;
             }
-            if (widget.promoImages.isNotEmpty) {
-              _photoIndex = (_photoIndex + 1) % widget.promoImages.length;
+            if (_promoImages.isNotEmpty) {
+              _photoIndex = (_photoIndex + 1) % _promoImages.length;
             }
           });
         }
@@ -156,6 +168,23 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
       case 'mode':
         final m = CustomerDisplayMode.values.asNameMap()[call.arguments];
         if (m != null && mounted) setState(() => _mode = m);
+      case 'promo':
+        final data = jsonDecode(call.arguments as String) as Map<String, dynamic>;
+        final lines =
+            (data['promo'] as List?)?.map((e) => e.toString()).toList() ??
+            const <String>[];
+        final imgs =
+            (data['promoImages'] as List?)?.map((e) => e.toString()).toList() ??
+            const <String>[];
+        if (mounted) {
+          setState(() {
+            _promoLines = lines;
+            _promoImages = imgs;
+            _promoIndex = 0;
+            _photoIndex = 0;
+          });
+          _restartPromoTimer();
+        }
     }
     return null;
   }
@@ -233,12 +262,12 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
     return Scaffold(
       body: _IdlePromo(
         businessName: _businessName,
-        promo: widget.promoLines.isEmpty
+        promo: _promoLines.isEmpty
             ? null
-            : widget.promoLines[_promoIndex % widget.promoLines.length],
-        photo: widget.promoImages.isEmpty
+            : _promoLines[_promoIndex % _promoLines.length],
+        photo: _promoImages.isEmpty
             ? null
-            : widget.promoImages[_photoIndex % widget.promoImages.length],
+            : _promoImages[_photoIndex % _promoImages.length],
         // Hybrid invites the customer to order; passive is view-only. Kept
         // gated on a loaded menu on purpose: if the menu failed to load the
         // missing button is a visible signal that something's wrong (the menu

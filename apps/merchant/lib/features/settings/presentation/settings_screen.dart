@@ -486,6 +486,7 @@ class SettingsScreen extends ConsumerWidget {
           .where((s) => s.isNotEmpty)
           .toList();
       await ref.read(displayPromoProvider.notifier).set(lines);
+      await ref.read(customerDisplayProvider).pushCurrentPromo();
     }
   }
 
@@ -566,6 +567,7 @@ class SettingsScreen extends ConsumerWidget {
       }
       await ref.read(displayPromoImagesProvider.notifier).set(const []);
       await _publishPromo(ref);
+      await ref.read(customerDisplayProvider).pushCurrentPromo();
       return;
     }
     if (action != 'add') return;
@@ -582,6 +584,7 @@ class SettingsScreen extends ConsumerWidget {
       ...added,
     ]);
     await _publishPromo(ref);
+    await ref.read(customerDisplayProvider).pushCurrentPromo();
   }
 
   /// Uploads the current promo set to the shop's Storage bucket so other
