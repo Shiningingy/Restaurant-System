@@ -41,15 +41,13 @@ BOOL CALLBACK MonitorEnumProc(HMONITOR monitor, HDC, LPRECT, LPARAM lparam) {
   return TRUE;
 }
 
-// Full bounds of the monitor the customer display should fill: the secondary
-// one if there is one (the usual two-screen POS), otherwise the primary.
-RECT DisplayMonitorRect() {
+MonitorSearch FindMonitors() {
   MonitorSearch search = {};
   search.primary = {0, 0, GetSystemMetrics(SM_CXSCREEN),
                     GetSystemMetrics(SM_CYSCREEN)};
   EnumDisplayMonitors(nullptr, nullptr, MonitorEnumProc,
                       reinterpret_cast<LPARAM>(&search));
-  return search.has_secondary ? search.secondary : search.primary;
+  return search;
 }
 
 // Strips the title bar / borders (so there's no close button) and fills `r`.
@@ -101,7 +99,22 @@ void WindowControlSetupDisplayWindow(HWND display_window) {
     return;
   }
   g_display_window = display_window;
-  MakeBorderlessFullscreen(display_window, DisplayMonitorRect());
+  MonitorSearch monitors = FindMonitors();
+  if (monitors.has_secondary) {
+    // Real two-screen POS: frameless fullscreen on the customer monitor.
+    MakeBorderlessFullscreen(display_window, monitors.secondary);
+  } else {
+    // Single screen (e.g. a dev machine): keep a normal, movable window with a
+    // title bar so it doesn't cover the POS and can be closed/dragged. Centre a
+    // reasonably sized window on the primary monitor.
+    const RECT& p = monitors.primary;
+    const int sw = p.right - p.left;
+    const int sh = p.bottom - p.top;
+    const int w = sw * 2 / 3;
+    const int h = sh * 2 / 3;
+    SetWindowPos(display_window, HWND_TOP, p.left + (sw - w) / 2,
+                 p.top + (sh - h) / 2, w, h, SWP_NOZORDER | SWP_SHOWWINDOW);
+  }
 }
 
 void RegisterWindowControlChannel(flutter::FlutterEngine* engine,
