@@ -16,6 +16,7 @@ export 'ports/payment_terminal.dart';
 export 'ports/printer_driver.dart';
 export 'ports/sync_backend.dart';
 export 'src/escpos.dart';
+export 'src/escpos_diagnostic.dart';
 export 'src/ids.dart';
 export 'src/money.dart';
 export 'src/online_order.dart';

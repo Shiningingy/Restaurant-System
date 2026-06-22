@@ -90,6 +90,29 @@ class PrintService {
     );
   }
 
+  /// Prints the Chinese diagnostic page to the [kind] printer (bypasses the
+  /// queue, like the test page). The page renders a known sample several ways
+  /// so staff can read which one their printer decodes correctly.
+  Future<domain.Result<void, domain.PrintError>> printChineseDiagnostic({
+    domain.PrintJobKind kind = domain.PrintJobKind.kitchenTicket,
+  }) async {
+    final driver = buildDriver(kind);
+    if (driver == null) {
+      return const domain.Err(
+        domain.PrintError('No printer configured', isRetryable: false),
+      );
+    }
+    return driver.printJob(
+      domain.PrintJobData(
+        id: domain.newId(),
+        kind: domain.PrintJobKind.testPage,
+        payload: domain.chineseDiagnosticBytes(
+          widthChars: settings.printerFor(kind).paperWidthChars,
+        ),
+      ),
+    );
+  }
+
   /// Retries a failed job and restarts the drain loop.
   Future<void> retryJob(String jobId) async {
     await jobs.retry(jobId);

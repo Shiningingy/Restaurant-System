@@ -786,17 +786,18 @@ class _PrintJobTile extends ConsumerWidget {
 /// or a Windows-installed printer), paper width, text encoding, and — for the
 /// receipt printer — whether to kick the cash drawer. Returns the chosen
 /// [PrinterConfig] on save, or null if cancelled.
-class _PrinterConfigDialog extends StatefulWidget {
+class _PrinterConfigDialog extends ConsumerStatefulWidget {
   final PrinterRole role;
   final PrinterConfig current;
 
   const _PrinterConfigDialog({required this.role, required this.current});
 
   @override
-  State<_PrinterConfigDialog> createState() => _PrinterConfigDialogState();
+  ConsumerState<_PrinterConfigDialog> createState() =>
+      _PrinterConfigDialogState();
 }
 
-class _PrinterConfigDialogState extends State<_PrinterConfigDialog> {
+class _PrinterConfigDialogState extends ConsumerState<_PrinterConfigDialog> {
   late domain.PrinterTransport _transport;
   late final TextEditingController _host;
   late final TextEditingController _port;
@@ -894,6 +895,29 @@ class _PrinterConfigDialogState extends State<_PrinterConfigDialog> {
     );
   }
 
+  /// Prints the Chinese diagnostic to this role's printer (uses the saved
+  /// connection, so Save first if you just changed it).
+  Future<void> _printChineseDiagnostic() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    final kind = widget.role == PrinterRole.kitchen
+        ? domain.PrintJobKind.kitchenTicket
+        : domain.PrintJobKind.customerReceipt;
+    final result = await ref
+        .read(printServiceProvider)
+        .printChineseDiagnostic(kind: kind);
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          result.when(
+            ok: (_) => l10n.setTestPageSent,
+            err: (e) => l10n.setTestPrintFailed(e.message),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -968,6 +992,10 @@ class _PrinterConfigDialogState extends State<_PrinterConfigDialog> {
               SegmentedButton<domain.TicketCharset>(
                 segments: [
                   ButtonSegment(
+                    value: domain.TicketCharset.auto,
+                    label: Text(l10n.setCharsetAuto),
+                  ),
+                  ButtonSegment(
                     value: domain.TicketCharset.western,
                     label: Text(l10n.setCharsetWestern),
                   ),
@@ -978,6 +1006,15 @@ class _PrinterConfigDialogState extends State<_PrinterConfigDialog> {
                 ],
                 selected: {_charset},
                 onSelectionChanged: (s) => setState(() => _charset = s.first),
+              ),
+              const SizedBox(height: 4),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: _printChineseDiagnostic,
+                  icon: const Icon(Icons.translate_outlined),
+                  label: Text(l10n.setPrinterChineseDiagnostic),
+                ),
               ),
               if (widget.role == PrinterRole.receipt)
                 SwitchListTile(

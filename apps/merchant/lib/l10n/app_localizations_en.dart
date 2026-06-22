@@ -787,10 +787,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setCharset => 'Text encoding';
 
   @override
+  String get setCharsetAuto => 'Auto';
+
+  @override
   String get setCharsetWestern => 'Western';
 
   @override
   String get setCharsetChinese => 'Chinese';
+
+  @override
+  String get setPrinterChineseDiagnostic => 'Print Chinese diagnostic';
 
   @override
   String get setOpenDrawer => 'Open cash drawer on receipt';

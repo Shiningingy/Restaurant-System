@@ -13,9 +13,11 @@ enum TicketAlign { left, center, right }
 ///  - [western]: ASCII; non-ASCII characters print as `?` (the historical
 ///    behaviour — fine for Latin menus).
 ///  - [chinese]: enables the printer's Chinese mode (`FS &`) and encodes text
-///    as GBK, so Chinese (and other CJK) names print correctly. Chosen
-///    per-printer in settings.
-enum TicketCharset { western, chinese }
+///    as GBK, so Chinese (and other CJK) names print correctly.
+///  - [auto]: decides per ticket — Chinese mode when the text actually contains
+///    CJK characters, otherwise Western. Lets the app pick the encoder so the
+///    user never has to choose. The default.
+enum TicketCharset { western, chinese, auto }
 
 class TicketStyle {
   final bool bold;

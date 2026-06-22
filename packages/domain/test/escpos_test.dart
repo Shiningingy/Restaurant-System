@@ -72,6 +72,57 @@ void main() {
       );
       expect(bytes, containsAllInOrder([0x1B, 0x70, 0x00, 0x19, 0xFA]));
     });
+
+    test('auto charset uses Chinese mode + GBK when the ticket has CJK', () {
+      final bytes = EscPos.encode(
+        const TicketDoc([TicketText('中A')]),
+        widthChars: 32,
+        charset: TicketCharset.auto,
+      );
+      expect(bytes, containsAllInOrder([0x1C, 0x26])); // FS & — Chinese mode
+      expect(bytes, containsAllInOrder([0xD6, 0xD0])); // 中 in GBK
+      expect(bytes, isNot(contains(0x3F)));
+    });
+
+    test('auto charset with pure ASCII matches Western (no FS &)', () {
+      const doc = TicketDoc([TicketText('Burger 12')]);
+      final auto =
+          EscPos.encode(doc, widthChars: 32, charset: TicketCharset.auto);
+      final western = EscPos.encode(doc, widthChars: 32);
+      expect(auto, equals(western));
+      expect(auto, isNot(containsAllInOrder([0x1C, 0x26])));
+    });
+
+    test('auto detects CJK inside a row, not just plain text', () {
+      final bytes = EscPos.encode(
+        const TicketDoc([TicketRow('包子', r'$2.00')]),
+        widthChars: 32,
+        charset: TicketCharset.auto,
+      );
+      expect(bytes, containsAllInOrder([0x1C, 0x26]));
+    });
+
+    test('gbkEncode passes ASCII through and encodes CJK', () {
+      expect(EscPos.gbkEncode('A中'), [0x41, 0xD6, 0xD0]);
+    });
+  });
+
+  group('chineseDiagnosticBytes', () {
+    final bytes = chineseDiagnosticBytes(widthChars: 32);
+
+    test('includes the FS & block, GBK and UTF-8 of 中, and a cut', () {
+      expect(bytes.sublist(0, 2), [0x1B, 0x40]); // ESC @
+      expect(bytes, containsAllInOrder([0x1C, 0x26])); // FS & (block A/D)
+      expect(bytes, containsAllInOrder([0xD6, 0xD0])); // 中 in GBK
+      expect(bytes, containsAllInOrder([0xE4, 0xB8, 0xAD])); // 中 in UTF-8
+      expect(bytes, containsAllInOrder([0x1C, 0x43, 0x01])); // FS C 1 (block D)
+      expect(bytes, containsAllInOrder([0x1D, 0x56, 0x42, 0x00])); // GS V cut
+    });
+
+    test('labels each block in plain ASCII', () {
+      expect(bytes, containsAllInOrder('A) FS& + GBK'.codeUnits));
+      expect(bytes, containsAllInOrder('C) UTF-8'.codeUnits));
+    });
   });
 
   group('EscPos.renderPlainText', () {
