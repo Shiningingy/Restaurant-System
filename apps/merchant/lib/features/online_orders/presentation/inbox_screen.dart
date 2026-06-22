@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
+import 'package:restaurant_ui/restaurant_ui.dart';
+
 import '../../../core/l10n_ext.dart';
 import '../../../core/settings/providers.dart';
 import '../application/providers.dart';
@@ -80,6 +82,8 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
               children: [
                 _Section(
                   title: context.l10n.inboxNewPreorders,
+                  icon: Icons.inbox,
+                  accent: context.posStatus.info,
                   status: domain.OnlineOrderStatus.submitted,
                   emptyLabel: context.l10n.inboxNoNewPreorders,
                   builder: (order) => _NewOrderCard(order: order),
@@ -87,6 +91,8 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
                 const SizedBox(height: 24),
                 _Section(
                   title: context.l10n.inboxAwaitingApproval,
+                  icon: Icons.hourglass_top,
+                  accent: context.posStatus.warning,
                   status: domain.OnlineOrderStatus.timeProposed,
                   emptyLabel: context.l10n.inboxNoneAwaiting,
                   builder: (order) => _AwaitingCard(order: order),
@@ -94,6 +100,8 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
                 const SizedBox(height: 24),
                 _Section(
                   title: context.l10n.inboxPreparing,
+                  icon: Icons.soup_kitchen,
+                  accent: context.posStatus.warning,
                   status: domain.OnlineOrderStatus.accepted,
                   emptyLabel: context.l10n.inboxNothingInProgress,
                   builder: (order) => _PreparingCard(order: order),
@@ -101,6 +109,8 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
                 const SizedBox(height: 24),
                 _Section(
                   title: context.l10n.inboxReady,
+                  icon: Icons.check_circle,
+                  accent: context.posStatus.success,
                   status: domain.OnlineOrderStatus.ready,
                   emptyLabel: context.l10n.inboxNoneReady,
                   builder: (order) => _ReadyCard(order: order),
@@ -126,12 +136,16 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
 
 class _Section extends ConsumerWidget {
   final String title;
+  final IconData icon;
+  final Color accent;
   final domain.OnlineOrderStatus status;
   final String emptyLabel;
   final Widget Function(domain.IncomingOnlineOrder) builder;
 
   const _Section({
     required this.title,
+    required this.icon,
+    required this.accent,
     required this.status,
     required this.emptyLabel,
     required this.builder,
@@ -143,7 +157,13 @@ class _Section extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: Theme.of(context).textTheme.titleMedium),
+        Row(
+          children: [
+            Icon(icon, size: 20, color: accent),
+            const SizedBox(width: 8),
+            Text(title, style: Theme.of(context).textTheme.titleMedium),
+          ],
+        ),
         const SizedBox(height: 8),
         ...switch (orders) {
           AsyncData(:final value) when value.isEmpty => [Text(emptyLabel)],

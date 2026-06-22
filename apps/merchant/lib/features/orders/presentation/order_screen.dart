@@ -521,35 +521,49 @@ class _Ticket extends ConsumerWidget {
                   itemBuilder: (context, i) {
                     final line = visibleLines[i];
                     final cs = Theme.of(context).colorScheme;
-                    return ListTile(
-                      contentPadding: const EdgeInsets.only(left: 4, right: 8),
-                      // Far-left trash removes the whole line in one tap.
-                      leading: isOpen
-                          ? IconButton(
+                    // A full-width row: trash · name(+modifiers) · [−] qty [+]
+                    // · price. Built directly (not a ListTile) so the controls
+                    // never overflow the trailing slot on a narrow ticket.
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 2,
+                      ),
+                      child: Row(
+                        children: [
+                          // Far-left trash removes the whole line in one tap.
+                          if (isOpen)
+                            IconButton(
                               icon: const Icon(Icons.delete_outline),
                               tooltip: context.l10n.ordVoidLine,
                               color: cs.error,
                               onPressed: () => repo.voidLine(line.id),
                             )
-                          : null,
-                      title: ItemNameLines(
-                        code: line.codeSnapshot,
-                        name: line.nameSnapshot,
-                        nameSecondary: line.nameSecondarySnapshot,
-                        showSecondary: showSecondary,
-                      ),
-                      subtitle: line.modifiers.isEmpty
-                          ? null
-                          : Text(
-                              line.modifiers
-                                  .map((m) => m.nameSnapshot)
-                                  .join(', '),
+                          else
+                            const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                ItemNameLines(
+                                  code: line.codeSnapshot,
+                                  name: line.nameSnapshot,
+                                  nameSecondary: line.nameSecondarySnapshot,
+                                  showSecondary: showSecondary,
+                                ),
+                                if (line.modifiers.isNotEmpty)
+                                  Text(
+                                    line.modifiers
+                                        .map((m) => m.nameSnapshot)
+                                        .join(', '),
+                                    style: Theme.of(context).textTheme.bodySmall,
+                                  ),
+                              ],
                             ),
-                      // [−] qty [+] · price. Minus only steps down to 1 (the
-                      // trash removes the line), so it disables at a qty of 1.
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
+                          ),
+                          // Minus steps down to 1 (trash removes the line), so
+                          // it disables at a qty of 1.
                           if (isOpen)
                             IconButton(
                               icon: const Icon(Icons.remove_circle_outline),
@@ -569,7 +583,7 @@ class _Ticket extends ConsumerWidget {
                                   repo.setLineQty(line.id, line.qty + 1),
                             ),
                           SizedBox(
-                            width: 72,
+                            width: 64,
                             child: Text(
                               line.lineTotal.format(),
                               textAlign: TextAlign.right,

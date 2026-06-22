@@ -219,10 +219,17 @@ class OrdersScreen extends ConsumerWidget {
                     order.total.format(),
                     style: moneyTextStyle(theme.textTheme.titleLarge),
                   ),
-                  const Spacer(),
-                  Text(
-                    TimeOfDay.fromDateTime(order.createdAt).format(context),
-                    style: theme.textTheme.bodySmall,
+                  const SizedBox(width: 8),
+                  // Expanded so the time shrinks/ellipsizes rather than pushing
+                  // the row past a narrow card.
+                  Expanded(
+                    child: Text(
+                      TimeOfDay.fromDateTime(order.createdAt).format(context),
+                      textAlign: TextAlign.right,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall,
+                    ),
                   ),
                 ],
               ),
