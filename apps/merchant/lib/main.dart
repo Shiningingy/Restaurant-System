@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,20 +14,20 @@ import 'features/sync/application/providers.dart';
 
 Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
-  // The customer-display sub-window carries non-empty arguments; the main POS
-  // window has none. It owns no database/cloud — it just renders what the POS
-  // window pushes it. fromCurrentEngine can fail on the main window on some
-  // setups, so treat any failure as "main window".
-  WindowController? windowController;
-  try {
-    windowController = await WindowController.fromCurrentEngine();
-  } catch (_) {
-    windowController = null;
-  }
-  final argStr = windowController?.arguments ?? '';
-  if (windowController != null && argStr.isNotEmpty) {
+  // desktop_multi_window starts a sub-window with the Dart entrypoint arguments
+  // ["multi_window", windowId, argumentJson]. That's the deterministic signal
+  // that this engine is the customer display (more reliable than
+  // fromCurrentEngine, which can race during window creation). The display owns
+  // no database/cloud — it just renders what the POS window pushes it over the
+  // customer-display channel.
+  if (args.isNotEmpty && args.first == 'multi_window') {
+    final argStr = args.length > 2 ? args[2] : '';
     runApp(
-      CustomerDisplayApp(args: jsonDecode(argStr) as Map<String, dynamic>),
+      CustomerDisplayApp(
+        args: argStr.isEmpty
+            ? const <String, dynamic>{}
+            : jsonDecode(argStr) as Map<String, dynamic>,
+      ),
     );
     return;
   }

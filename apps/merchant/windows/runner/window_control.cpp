@@ -95,6 +95,11 @@ void SetMainFullscreen(bool on) {
 }  // namespace
 
 void WindowControlSetupDisplayWindow(HWND display_window) {
+  // Never restyle the main POS window (defensive: the created callback should
+  // only ever pass a sub-window here).
+  if (!display_window || display_window == g_main_window) {
+    return;
+  }
   g_display_window = display_window;
   MakeBorderlessFullscreen(display_window, DisplayMonitorRect());
 }

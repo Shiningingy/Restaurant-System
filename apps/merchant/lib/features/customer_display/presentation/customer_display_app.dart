@@ -93,8 +93,14 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
   @override
   void initState() {
     super.initState();
-    _channel.setMethodCallHandler(_handleFromPos);
-    _requestMenu();
+    // Register our handler, THEN pull the menu — the bidirectional channel only
+    // pairs once both sides have a handler, so awaiting registration avoids a
+    // first-call miss (which would leave the menu — and the hybrid "tap to
+    // order" button — unavailable).
+    () async {
+      await _channel.setMethodCallHandler(_handleFromPos);
+      await _requestMenu();
+    }();
     // Rotate the promo (text and/or photos) while idle.
     if (widget.promoLines.length > 1 || widget.promoImages.length > 1) {
       _promoTimer = Timer.periodic(const Duration(seconds: 5), (_) {
@@ -143,11 +149,19 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
   }
 
   Future<void> _requestMenu() async {
-    try {
-      final json = await _channel.invokeMethod<String>('requestMenu');
-      _applyMenu(json);
-    } catch (_) {
-      // POS not ready yet — the menu also arrives via a 'menu' push.
+    // Retry a few times: right after launch the POS handler may not be paired
+    // on the channel yet, and the menu can also be empty until the POS is ready.
+    for (var attempt = 0; attempt < 8 && mounted && _menu == null; attempt++) {
+      try {
+        final json = await _channel.invokeMethod<String>('requestMenu');
+        if (json != null && json.isNotEmpty) {
+          _applyMenu(json);
+          return;
+        }
+      } catch (_) {
+        // Not paired/ready yet — fall through to a short wait and retry.
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 400));
     }
   }
 
@@ -213,7 +227,11 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
         photo: widget.promoImages.isEmpty
             ? null
             : widget.promoImages[_photoIndex % widget.promoImages.length],
-        // Hybrid invites the customer to order; passive is view-only.
+        // Hybrid invites the customer to order; passive is view-only. Kept
+        // gated on a loaded menu on purpose: if the menu failed to load the
+        // missing button is a visible signal that something's wrong (the menu
+        // load itself now awaits channel pairing + retries, so this should only
+        // stay hidden on a real fault).
         onTapToOrder: _mode == CustomerDisplayMode.hybrid && _menu != null
             ? () => setState(() => _hybridKiosk = true)
             : null,
