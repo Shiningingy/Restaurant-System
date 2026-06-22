@@ -5,6 +5,9 @@ build/
 release/
 pubspec.lock.bak
 
+# Presentation / pitch material — not part of the app, never upload
+presentation/
+
 # Flutter
 **/ios/Pods/
 **/ios/.symlinks/

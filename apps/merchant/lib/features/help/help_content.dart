@@ -24,7 +24,7 @@ const _en = <HelpSection>[
   ]),
   HelpSection('First-time setup (Settings)', [
     '- Tax: set your Sales tax rate.',
-    '- Printing: add your Network printer (IP + port 9100, 58mm or 80mm paper), then Test print.',
+    '- Printing: set up your Kitchen and Receipt printers — each by network (IP + port 9100) or a USB / Windows printer. Pick paper width (58/80mm), turn on Chinese if your printer needs it for second names, and switch on the cash drawer for the receipt printer. Test print each.',
     '- Checkout: set a Service fee and Discount presets if you use them.',
     '- Tables: add your tables for dine-in.',
     '- Business name & receipt footer for printed receipts.',
@@ -54,6 +54,15 @@ const _en = <HelpSection>[
     '- Load sample menu adds a demo menu to try ordering and printing.',
     '- Import from photo (Windows/Android) reads items from a menu photo.',
   ]),
+  HelpSection('Customer screen & self-order kiosk', [
+    'If you have a second screen, the POS can drive it. Set it up in Settings → Customer display.',
+    '- Display mode: Order display (mirrors the bill, with rotating promo when idle), Self-order kiosk (customers order themselves), or Hybrid (promo + “Tap to order” when idle, mirror while you ring up).',
+    '- Open customer display puts it on the second screen — frameless with no close button so a customer can’t misclick it. You Hide or Close it from Settings; the POS itself can go Full screen (or press F11).',
+    '- Promo: add Promo messages and Promo photos that rotate on the idle screen.',
+    '# Self-order',
+    'A customer builds their order on the kiosk and taps Place order. It lands on your Orders board in a Self-order section with a pickup number (K0, K1, K2…) shown on the card, so you can match the order to the customer.',
+    'They pay at the counter (the kiosk total already includes tax). Pay-at-kiosk is an option you can switch on for later, when card payment is available.',
+  ]),
   HelpSection('Online orders (Inbox)', [
     'Needs cloud setup and a published menu. Tap Publish menu to send your current menu out.',
     '- New preorders: Accept, Reject, or Propose time.',
@@ -78,7 +87,7 @@ const _zh = <HelpSection>[
   ]),
   HelpSection('首次设置（设置）', [
     '- 税务：设置您的销售税率。',
-    '- 打印：添加网络打印机（IP + 端口 9100，58 毫米或 80 毫米纸），然后测试打印。',
+    '- 打印：分别设置厨房打印机和小票打印机——每台可用网络（IP + 端口 9100）或 USB / Windows 打印机。选择纸宽（58/80 毫米），如打印机需要可开启中文（用于第二名称），并为小票打印机开启钱箱。逐台测试打印。',
     '- 结账：如需要，设置服务费和折扣预设。',
     '- 餐桌：添加堂食用的餐桌。',
     '- 商家名称与小票页脚：用于打印的小票。',
@@ -107,6 +116,15 @@ const _zh = <HelpSection>[
     '- 先建分类，再添加菜品（名称 + 价格；可选编号、第二名称、描述、照片、选项）。',
     '- 加载示例菜单会添加一个演示菜单以试用点单和打印。',
     '- 从照片导入（Windows/安卓）可从菜单照片识别菜品。',
+  ]),
+  HelpSection('顾客屏幕与自助点餐', [
+    '如果您有第二块屏幕，收银系统可以驱动它。在设置 → 顾客屏幕中设置。',
+    '- 显示模式：订单显示（同步显示账单，空闲时轮播促销）、自助点餐机（顾客自行点餐）或混合（空闲时显示促销与“点击点餐”，您结账时同步显示账单）。',
+    '- 打开顾客屏幕会将其放到第二块屏幕——无边框、无关闭按钮，顾客不会误点。可在设置中隐藏或关闭；收银主窗口也可全屏（或按 F11）。',
+    '- 促销：添加在空闲屏幕轮播的促销信息和促销图片。',
+    '# 自助点餐',
+    '顾客在点餐机上下单并点下单。订单会出现在您的订单板的“自助点餐”区域，卡片上带有取餐号（K0、K1、K2…），方便您对应到顾客。',
+    '顾客在柜台付款（点餐机显示的金额已含税）。“在点餐机付款”是一个可开启的选项，待刷卡付款上线后使用。',
   ]),
   HelpSection('在线订单（收件箱）', [
     '需要云设置和已发布的菜单。点发布菜单发送当前菜单。',
