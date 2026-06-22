@@ -303,10 +303,15 @@ class _IdlePromo extends StatelessWidget {
     final content = (photo != null && photo!.isNotEmpty)
         ? _slideshow(context)
         : _branded(context);
-    // The whole idle screen is tappable in hybrid, so anywhere starts an order.
-    return onTapToOrder == null
-        ? content
-        : GestureDetector(onTap: onTapToOrder, child: content);
+    if (onTapToOrder == null) return content;
+    // A small "Tap to order" pill in the bottom-right corner — the promo stays
+    // the focus; ordering is a discreet call to action (matches the mockup).
+    return Stack(
+      children: [
+        Positioned.fill(child: content),
+        Positioned(right: 24, bottom: 24, child: _tapToOrderButton(context)),
+      ],
+    );
   }
 
   /// Photo slideshow: the current image fills the screen (cross-fading on
@@ -366,14 +371,6 @@ class _IdlePromo extends StatelessWidget {
             ),
           ),
         ),
-        if (onTapToOrder != null)
-          Align(
-            alignment: Alignment.bottomRight,
-            child: Padding(
-              padding: const EdgeInsets.all(40),
-              child: _tapToOrderButton(context),
-            ),
-          ),
       ],
     );
   }
@@ -412,22 +409,20 @@ class _IdlePromo extends StatelessWidget {
               ),
             ),
           ],
-          if (onTapToOrder != null) ...[
-            const SizedBox(height: 48),
-            _tapToOrderButton(context),
-          ],
         ],
       ),
     );
   }
 
+  /// A compact ordering CTA — sits in the bottom-right corner over the promo,
+  /// not a full-screen target.
   Widget _tapToOrderButton(BuildContext context) => FilledButton.icon(
     onPressed: onTapToOrder,
     style: FilledButton.styleFrom(
-      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 24),
-      textStyle: Theme.of(context).textTheme.headlineSmall,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      textStyle: Theme.of(context).textTheme.titleMedium,
     ),
-    icon: const Icon(Icons.touch_app, size: 32),
+    icon: const Icon(Icons.touch_app, size: 20),
     label: const Text('Tap to order'),
   );
 }
