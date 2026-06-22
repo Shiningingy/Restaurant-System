@@ -68,6 +68,24 @@ class SupabaseAuth {
     return _session = _parse(resp);
   }
 
+  /// Signs in with the restaurant's email + password. Used only to authorize a
+  /// staff action on the device (turning it into a kiosk) — the customer app
+  /// otherwise runs anonymously, so the session isn't persisted. Throws on bad
+  /// credentials (non-2xx).
+  Future<SupabaseSession> signInWithPassword({
+    required String email,
+    required String password,
+  }) async {
+    final resp = await _client
+        .post(
+          _auth('token', {'grant_type': 'password'}),
+          headers: _headers,
+          body: jsonEncode({'email': email, 'password': password}),
+        )
+        .timeout(timeout);
+    return _session = _parse(resp);
+  }
+
   void restore(SupabaseSession session) => _session = session;
 
   Future<String?> accessToken() async {

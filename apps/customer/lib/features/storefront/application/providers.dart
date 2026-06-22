@@ -131,10 +131,10 @@ class KioskController extends Notifier<bool> {
   @override
   bool build() => ref.watch(storefrontConfigRepositoryProvider).kioskMode;
 
-  Future<void> enable(String storefrontId) async {
+  Future<void> enable(String storefrontId, {int? number}) async {
     await ref
         .read(storefrontConfigRepositoryProvider)
-        .setKiosk(enabled: true, storefrontId: storefrontId);
+        .setKiosk(enabled: true, storefrontId: storefrontId, number: number);
     await ref.read(walletProvider.notifier).open(storefrontId);
     state = true;
   }

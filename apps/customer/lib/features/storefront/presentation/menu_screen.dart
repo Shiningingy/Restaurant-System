@@ -8,6 +8,7 @@ import '../../../core/language_menu.dart';
 import '../../../core/widgets/item_name.dart';
 import '../../cart/cart.dart';
 import '../../cart/presentation/cart_screen.dart';
+import '../../kiosk/presentation/kiosk_setup_screen.dart';
 import '../../orders/presentation/orders_screen.dart';
 import '../application/providers.dart';
 import 'item_sheet.dart';
@@ -58,11 +59,15 @@ class MenuScreen extends ConsumerWidget {
           const LanguageMenu(),
           if (!kiosk)
             PopupMenuButton<String>(
-              onSelected: (_) => _enterKiosk(context, ref),
+              onSelected: (_) => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const KioskSetupScreen(),
+                ),
+              ),
               itemBuilder: (context) => [
                 PopupMenuItem<String>(
                   value: 'kiosk',
-                  child: Text(context.l10n.kioskEnter),
+                  child: Text(context.l10n.kioskSetup),
                 ),
               ],
             ),
@@ -177,32 +182,6 @@ class MenuScreen extends ConsumerWidget {
           ),
       ],
     );
-  }
-
-  /// Locks this device into kiosk mode for the connected restaurant.
-  Future<void> _enterKiosk(BuildContext context, WidgetRef ref) async {
-    final active = ref.read(walletProvider).active;
-    if (active == null) return;
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.l10n.kioskEnterTitle),
-        content: Text(context.l10n.kioskEnterBody(active.label)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(context.l10n.commonCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(context.l10n.kioskEnter),
-          ),
-        ],
-      ),
-    );
-    if (ok == true) {
-      await ref.read(kioskModeProvider.notifier).enable(active.id);
-    }
   }
 
   Future<void> _addItem(
