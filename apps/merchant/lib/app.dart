@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 import 'package:restaurant_ui/restaurant_ui.dart';
 
 import 'core/l10n_ext.dart';
@@ -15,6 +16,7 @@ import 'core/settings/providers.dart';
 import 'core/settings/settings_repository.dart' show BrandLogoSlot;
 import 'l10n/app_localizations.dart';
 import 'features/menu/presentation/menu_screen.dart';
+import 'features/online_orders/application/providers.dart';
 import 'features/online_orders/presentation/inbox_screen.dart';
 import 'features/orders/presentation/order_screen.dart';
 import 'features/orders/presentation/orders_screen.dart';
@@ -163,10 +165,32 @@ class _HomeShell extends ConsumerWidget {
 
   static final _orderDetail = RegExp(r'^/orders/[^/]+');
 
+  /// A rail icon, wrapped in a count badge when [badge] > 0 (e.g. waiting
+  /// online preorders on the Inbox icon).
+  static Widget _navIcon(IconData icon, {required int badge}) {
+    final child = Icon(icon);
+    if (badge <= 0) return child;
+    return Badge.count(count: badge, child: child);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final role = ref.watch(currentRoleProvider);
     final hideRail = _orderDetail.hasMatch(location);
+    // New (un-actioned) online preorders waiting in the inbox — shown as a
+    // badge on the Inbox rail icon so staff notice from any screen, not just
+    // when the inbox is open. Only polls when online ordering is set up.
+    final newPreorders = ref.watch(onlineOrderingEnabledProvider)
+        ? (ref
+                  .watch(
+                    onlineOrdersByStatusProvider(
+                      domain.OnlineOrderStatus.submitted,
+                    ),
+                  )
+                  .value
+                  ?.length ??
+              0)
+        : 0;
     final items = <_NavItem>[
       _NavItem(
         Icons.receipt_long_outlined,
@@ -253,8 +277,18 @@ class _HomeShell extends ConsumerWidget {
             destinations: [
               for (final i in visible)
                 NavigationRailDestination(
-                  icon: Icon(items[i].icon),
-                  selectedIcon: Icon(items[i].selectedIcon),
+                  icon: _navIcon(
+                    items[i].icon,
+                    badge: items[i].icon == Icons.inbox_outlined
+                        ? newPreorders
+                        : 0,
+                  ),
+                  selectedIcon: _navIcon(
+                    items[i].selectedIcon,
+                    badge: items[i].icon == Icons.inbox_outlined
+                        ? newPreorders
+                        : 0,
+                  ),
                   label: Text(items[i].label),
                 ),
             ],
