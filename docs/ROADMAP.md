@@ -118,8 +118,24 @@ terminal) behind the existing payment abstraction. We never handle card data.
   keys never ship in the customer or merchant app.
 - Depends on the cloud-security gate above (RLS + auth) being done first.
 
+**Self-order kiosks tie in here.** A kiosk that takes **prepayment** can
+**auto-accept** — straight to the kitchen with a pickup number, since the
+customer is in-store (no no-show risk); staff keep a one-tap **reject → refund**
+for when the kitchen can't fulfil. A **pay-at-counter** kiosk order stays an
+Inbox order (staff accept + take payment), as today. Gated by a per-shop
+"auto-accept paid kiosk orders" setting; needs a processor that supports refunds.
+The kiosk UI already shows a disabled "Pay here (soon)" button, and tablet
+kiosks already stamp orders with a **kiosk number** to build on.
+
 ## Later / explicitly out of MVP
 - Android UX polish, Windows desktop target
 - Multi-device (two tablets, one source-of-truth)
 - Kitchen display screen (KDS)
-- Staff accounts / permissions
+- **Tier-2 "online business" pack (paid, optional):** the offline core stays
+  free on local role-based auth; a shop that has gone online and grown can add
+  **per-staff cloud accounts** (real identity across the POS and tablet kiosks),
+  **tip attribution** (who gets the tip — built with online payment above; the
+  tablet kiosk number is the seed), and **multi-store** (one owner, several
+  stores, each with its own staff and menu, scoped by a store id). Needs a small
+  backend (a Supabase Edge Function) — the deliberate "you've gone online and
+  grown" line, layered on top of the free offline core, never gating it.

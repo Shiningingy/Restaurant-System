@@ -62,6 +62,8 @@ const _en = <HelpSection>[
     '# Self-order',
     'A customer builds their order on the kiosk and taps Place order. It lands on your Orders board in a Self-order section with a pickup number (K0, K1, K2…) shown on the card, so you can match the order to the customer.',
     'They pay at the counter (the kiosk total already includes tax). Pay-at-kiosk is an option you can switch on for later, when card payment is available.',
+    '# Tablet kiosks',
+    'You can also put out tablets as extra self-order stations — they run the customer app in kiosk mode and look the same. Connect a tablet to your restaurant, then on its menu open ⋮ → Set up kiosk, sign in with your store login and give it a number. Only your store login can enable it (customers can’t); exit with a long-press on the top-left corner. Tablet-kiosk orders come into your Inbox labelled “Kiosk N” (they need cloud setup).',
   ]),
   HelpSection('Online orders (Inbox)', [
     'Needs cloud setup and a published menu. Tap Publish menu to send your current menu out.',
@@ -125,6 +127,8 @@ const _zh = <HelpSection>[
     '# 自助点餐',
     '顾客在点餐机上下单并点下单。订单会出现在您的订单板的“自助点餐”区域，卡片上带有取餐号（K0、K1、K2…），方便您对应到顾客。',
     '顾客在柜台付款（点餐机显示的金额已含税）。“在点餐机付款”是一个可开启的选项，待刷卡付款上线后使用。',
+    '# 平板自助点餐机',
+    '您还可以摆放平板作为额外的自助点餐站——它们运行顾客端 app 的点餐机模式，外观一致。先把平板连接到您的餐厅，然后在其菜单页打开 ⋮ → 设置自助点餐机，使用您的商家登录信息登录并指定一个编号。只有掌握商家登录信息的人才能开启（顾客无法开启）；长按左上角即可退出。平板点餐机的订单会进入您的收件箱，并标记为“自助机 N”（需要云端设置）。',
   ]),
   HelpSection('在线订单（收件箱）', [
     '需要云设置和已发布的菜单。点发布菜单发送当前菜单。',
