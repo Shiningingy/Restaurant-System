@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:restaurant_ui/restaurant_ui.dart';
 
 import '../../../core/l10n_ext.dart';
 import '../cart.dart';
@@ -47,7 +48,9 @@ class CartScreen extends ConsumerWidget {
                         ),
                         Text(
                           cart.total.format(),
-                          style: Theme.of(context).textTheme.titleMedium,
+                          style: moneyTextStyle(
+                            Theme.of(context).textTheme.titleLarge,
+                          ),
                         ),
                       ],
                     ),
@@ -105,7 +108,11 @@ class _CartLineTile extends StatelessWidget {
           ),
           SizedBox(
             width: 72,
-            child: Text(line.lineTotal.format(), textAlign: TextAlign.right),
+            child: Text(
+              line.lineTotal.format(),
+              textAlign: TextAlign.right,
+              style: moneyTextStyle(Theme.of(context).textTheme.bodyMedium),
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.delete_outline),

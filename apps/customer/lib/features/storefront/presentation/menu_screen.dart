@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
+import 'package:restaurant_ui/restaurant_ui.dart';
 
 import '../../../core/l10n_ext.dart';
 import '../../../core/language_menu.dart';
@@ -101,7 +102,12 @@ class MenuScreen extends ConsumerWidget {
                           item.description!.isNotEmpty,
                       title: _itemName(context, menu, item),
                       subtitle: _itemSubtitle(context, item),
-                      trailing: Text(item.price.format()),
+                      trailing: Text(
+                        item.price.format(),
+                        style: moneyTextStyle(
+                          Theme.of(context).textTheme.bodyLarge,
+                        ),
+                      ),
                       onTap: () => _addItem(context, ref, item),
                     ),
                 ],

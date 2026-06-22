@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
+import 'package:restaurant_ui/restaurant_ui.dart';
 
 import '../../../core/l10n_ext.dart';
 import '../application/providers.dart';
@@ -80,8 +81,8 @@ class StatusScreen extends ConsumerWidget {
 
   Color? _color(BuildContext context, domain.OnlineOrderStatus? s) =>
       switch (s) {
-        domain.OnlineOrderStatus.ready => Colors.green,
-        domain.OnlineOrderStatus.timeProposed => Colors.orange,
+        domain.OnlineOrderStatus.ready => context.posStatus.success,
+        domain.OnlineOrderStatus.timeProposed => context.posStatus.warning,
         domain.OnlineOrderStatus.rejected => Theme.of(
           context,
         ).colorScheme.error,
