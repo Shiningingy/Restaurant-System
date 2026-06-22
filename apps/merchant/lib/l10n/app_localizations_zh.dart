@@ -658,6 +658,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get repReprintReceipt => '重新打印小票';
 
   @override
+  String get repDeleteOrder => '删除';
+
+  @override
+  String get repDeleteConfirmTitle => '删除此订单？';
+
+  @override
+  String get repDeleteConfirmBody => '这将从历史和报表中永久删除该订单及其付款，无法撤销。';
+
+  @override
   String get setLanguage => '语言';
 
   @override

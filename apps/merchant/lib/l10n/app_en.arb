@@ -318,6 +318,9 @@
   },
   "repReceiptQueued": "Receipt queued.",
   "repReprintReceipt": "Reprint receipt",
+  "repDeleteOrder": "Delete",
+  "repDeleteConfirmTitle": "Delete this order?",
+  "repDeleteConfirmBody": "This permanently removes the order and its payments from history and reports. It can't be undone.",
 
   "setLanguage": "Language",
   "setLanguageSystem": "System default",

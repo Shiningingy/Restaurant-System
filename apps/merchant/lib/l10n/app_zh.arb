@@ -219,6 +219,9 @@
   "repTipValue": "小费 {amount}",
   "repReceiptQueued": "小票已排队打印。",
   "repReprintReceipt": "重新打印小票",
+  "repDeleteOrder": "删除",
+  "repDeleteConfirmTitle": "删除此订单？",
+  "repDeleteConfirmBody": "这将从历史和报表中永久删除该订单及其付款，无法撤销。",
 
   "setLanguage": "语言",
   "setLanguageSystem": "跟随系统",

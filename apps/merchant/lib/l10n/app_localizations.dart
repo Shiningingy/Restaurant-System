@@ -1220,6 +1220,24 @@ abstract class AppLocalizations {
   /// **'Reprint receipt'**
   String get repReprintReceipt;
 
+  /// No description provided for @repDeleteOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get repDeleteOrder;
+
+  /// No description provided for @repDeleteConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this order?'**
+  String get repDeleteConfirmTitle;
+
+  /// No description provided for @repDeleteConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This permanently removes the order and its payments from history and reports. It can\'t be undone.'**
+  String get repDeleteConfirmBody;
+
   /// No description provided for @setLanguage.
   ///
   /// In en, this message translates to:

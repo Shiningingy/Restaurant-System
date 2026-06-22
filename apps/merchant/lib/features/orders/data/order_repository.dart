@@ -302,6 +302,28 @@ class OrderRepository {
     });
   }
 
+  /// Permanently removes a closed order and everything under it (lines,
+  /// modifiers, payments) — owner-only, for clearing test/mistaken history.
+  /// Journals a delete so other devices drop it too.
+  Future<void> deleteOrder(String orderId) {
+    return db.transaction(() async {
+      final lineIds = (await (db.select(
+        db.orderLines,
+      )..where((t) => t.orderId.equals(orderId))).get()).map((l) => l.id);
+      await (db.delete(
+        db.orderLineModifiers,
+      )..where((t) => t.lineId.isIn(lineIds))).go();
+      await (db.delete(
+        db.orderLines,
+      )..where((t) => t.orderId.equals(orderId))).go();
+      await (db.delete(
+        db.payments,
+      )..where((t) => t.orderId.equals(orderId))).go();
+      await (db.delete(db.orders)..where((t) => t.id.equals(orderId))).go();
+      await journal.recordDelete(SyncEntities.order, orderId);
+    });
+  }
+
   // --- Internals ---
 
   Future<void> _recomputeTotals(String orderId) async {

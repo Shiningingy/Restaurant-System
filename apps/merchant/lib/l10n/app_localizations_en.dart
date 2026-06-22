@@ -670,6 +670,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get repReprintReceipt => 'Reprint receipt';
 
   @override
+  String get repDeleteOrder => 'Delete';
+
+  @override
+  String get repDeleteConfirmTitle => 'Delete this order?';
+
+  @override
+  String get repDeleteConfirmBody =>
+      'This permanently removes the order and its payments from history and reports. It can\'t be undone.';
+
+  @override
   String get setLanguage => 'Language';
 
   @override
