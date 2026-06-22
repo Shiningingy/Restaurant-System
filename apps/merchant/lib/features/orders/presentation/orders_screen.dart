@@ -92,7 +92,11 @@ class OrdersScreen extends ConsumerWidget {
   );
 
   /// The board card's status: an icon + label + colours. Never colour alone.
-  StatusPill _statusPill(BuildContext context, domain.Order order, String? code) {
+  StatusPill _statusPill(
+    BuildContext context,
+    domain.Order order,
+    String? code,
+  ) {
     final cs = Theme.of(context).colorScheme;
     final st = context.posStatus;
     if (code != null) {

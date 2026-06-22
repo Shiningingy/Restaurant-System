@@ -55,14 +55,20 @@ void main() {
   });
 
   test('promotes the second name when the app language matches', () {
-    final k = publishedToKioskMenu(menu(secondLang: 'zh'), appLanguageCode: 'zh');
+    final k = publishedToKioskMenu(
+      menu(secondLang: 'zh'),
+      appLanguageCode: 'zh',
+    );
     final item = k.categories.single.items.single;
     expect(item.name, '三文鱼卷');
     expect(item.nameSecondary, 'Salmon Roll');
   });
 
   test('keeps the primary name when languages differ', () {
-    final k = publishedToKioskMenu(menu(secondLang: 'zh'), appLanguageCode: 'en');
+    final k = publishedToKioskMenu(
+      menu(secondLang: 'zh'),
+      appLanguageCode: 'en',
+    );
     final item = k.categories.single.items.single;
     expect(item.name, 'Salmon Roll');
     expect(item.nameSecondary, '三文鱼卷');

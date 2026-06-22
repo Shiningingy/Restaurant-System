@@ -51,10 +51,9 @@ class BrandLogoStore {
   Future<bool> hasSha(String sha) async {
     final dir = await _dir();
     if (!await dir.exists()) return false;
-    return dir
-        .listSync()
-        .whereType<File>()
-        .any((f) => p.basenameWithoutExtension(f.path) == sha);
+    return dir.listSync().whereType<File>().any(
+      (f) => p.basenameWithoutExtension(f.path) == sha,
+    );
   }
 
   Future<List<int>> bytesOf(String path) => File(path).readAsBytes();

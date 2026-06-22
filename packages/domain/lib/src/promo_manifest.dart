@@ -21,9 +21,9 @@ class PromoImageRef {
   String get fileName => '$sha$ext';
 
   factory PromoImageRef.fromJson(Map<String, dynamic> json) => PromoImageRef(
-    sha: json['sha'] as String,
-    ext: json['ext'] as String,
-  );
+        sha: json['sha'] as String,
+        ext: json['ext'] as String,
+      );
 
   Map<String, dynamic> toJson() => {'sha': sha, 'ext': ext};
 
@@ -67,7 +67,7 @@ class PromoManifest {
       final list = (json['images'] as List).cast<Map<String, dynamic>>();
       final lines =
           (json['lines'] as List?)?.map((e) => e.toString()).toList() ??
-          const <String>[];
+              const <String>[];
       return PromoManifest(
         [for (final m in list) PromoImageRef.fromJson(m)],
         lines: lines,
@@ -78,15 +78,17 @@ class PromoManifest {
   }
 
   List<int> encode() => utf8.encode(
-    jsonEncode({
-      'version': version,
-      'images': [for (final r in images) r.toJson()],
-      'lines': lines,
-    }),
-  );
+        jsonEncode({
+          'version': version,
+          'images': [for (final r in images) r.toJson()],
+          'lines': lines,
+        }),
+      );
 
   /// The refs in this manifest that aren't present in [localShas] — i.e. the
   /// photos a device must download from Storage before it can show them.
-  List<PromoImageRef> missingFrom(Set<String> localShas) =>
-      [for (final r in images) if (!localShas.contains(r.sha)) r];
+  List<PromoImageRef> missingFrom(Set<String> localShas) => [
+        for (final r in images)
+          if (!localShas.contains(r.sha)) r
+      ];
 }

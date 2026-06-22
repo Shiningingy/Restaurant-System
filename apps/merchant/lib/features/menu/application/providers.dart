@@ -44,7 +44,8 @@ final categoryCodeLetterProvider = Provider.family<String?, String>((
   ref,
   categoryId,
 ) {
-  final items = ref.watch(itemsInCategoryProvider(categoryId)).value ?? const [];
+  final items =
+      ref.watch(itemsInCategoryProvider(categoryId)).value ?? const [];
   final letters = <String>{};
   for (final i in items) {
     final code = i.code;

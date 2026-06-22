@@ -28,10 +28,8 @@ void main() {
   setUp(() => tmp = Directory.systemTemp.createTempSync('brand_logo_test'));
   tearDown(() => tmp.deleteSync(recursive: true));
 
-  ({BrandLogoStore store, List<String?> path, BrandLogoSyncService sync}) device(
-    String name,
-    FakeObjectStore cloud,
-  ) {
+  ({BrandLogoStore store, List<String?> path, BrandLogoSyncService sync})
+  device(String name, FakeObjectStore cloud) {
     final dir = Directory('${tmp.path}/$name')..createSync();
     final store = BrandLogoStore(slot: 'global', baseDir: dir);
     final path = <String?>[null];

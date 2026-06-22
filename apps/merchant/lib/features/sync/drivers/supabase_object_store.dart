@@ -33,8 +33,7 @@ class SupabaseObjectStore implements domain.ObjectStore {
   }) : baseUrl = Uri.parse(url.endsWith('/') ? url : '$url/'),
        _client = client ?? http.Client();
 
-  Uri _object(String key) =>
-      baseUrl.resolve('storage/v1/object/$bucket/$key');
+  Uri _object(String key) => baseUrl.resolve('storage/v1/object/$bucket/$key');
 
   Future<Map<String, String>> _authHeaders() async {
     final token = await accessToken?.call() ?? anonKey;
