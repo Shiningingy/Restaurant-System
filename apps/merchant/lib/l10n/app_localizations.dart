@@ -1574,6 +1574,36 @@ abstract class AppLocalizations {
   /// **'Off: all kiosk orders are paid at the counter. On: shows a “pay here” option (card payment coming soon).'**
   String get setKioskPayHereHint;
 
+  /// No description provided for @setDisplayHide.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide customer display'**
+  String get setDisplayHide;
+
+  /// No description provided for @setDisplayHideHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to hide it off-screen; “Open” shows it again. The second screen has no close button so customers can\'t misclick.'**
+  String get setDisplayHideHint;
+
+  /// No description provided for @setDisplayClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get setDisplayClose;
+
+  /// No description provided for @setMainFullscreen.
+  ///
+  /// In en, this message translates to:
+  /// **'Full screen (this window)'**
+  String get setMainFullscreen;
+
+  /// No description provided for @setMainFullscreenHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill the screen with no title bar (F11).'**
+  String get setMainFullscreenHint;
+
   /// No description provided for @setPrintQueue.
   ///
   /// In en, this message translates to:

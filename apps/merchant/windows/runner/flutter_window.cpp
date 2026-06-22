@@ -7,6 +7,7 @@
 #include "flutter/generated_plugin_registrant.h"
 
 #include "ocr_channel.h"
+#include "window_control.h"
 
 FlutterWindow::FlutterWindow(const flutter::DartProject& project)
     : project_(project) {}
@@ -30,12 +31,19 @@ bool FlutterWindow::OnCreate() {
   }
   RegisterPlugins(flutter_controller_->engine());
   RegisterOcrChannel(flutter_controller_->engine());
+  // Native window control the multi-window plugin doesn't expose: main-window
+  // fullscreen + show/hide/close of the customer-display sub-window.
+  RegisterWindowControlChannel(flutter_controller_->engine(), GetHandle());
   // Register plugins (incl. desktop_multi_window) in each sub-window's engine so
-  // the customer-display window can talk over the multi-window method channel.
+  // the customer-display window can talk over the multi-window method channel,
+  // and make that window a frameless fullscreen kiosk on the customer screen.
   DesktopMultiWindowSetWindowCreatedCallback([](void *controller) {
     auto *flutter_controller =
         reinterpret_cast<flutter::FlutterViewController *>(controller);
     RegisterPlugins(flutter_controller->engine());
+    HWND top =
+        GetAncestor(flutter_controller->view()->GetNativeWindow(), GA_ROOT);
+    WindowControlSetupDisplayWindow(top);
   });
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
 

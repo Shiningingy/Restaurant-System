@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'core/l10n_ext.dart';
+import 'core/window/window_control.dart';
 import 'features/admin/application/providers.dart';
 import 'features/admin/domain/staff.dart';
 import 'features/admin/presentation/admin_screen.dart';
@@ -98,9 +100,30 @@ class _MerchantAppState extends ConsumerState<MerchantApp> {
   late final GoRouter _router = _createRouter();
 
   @override
+  void initState() {
+    super.initState();
+    // F11 toggles the main window's fullscreen, anywhere in the app.
+    HardwareKeyboard.instance.addHandler(_onKey);
+  }
+
+  @override
   void dispose() {
+    HardwareKeyboard.instance.removeHandler(_onKey);
     _router.dispose();
     super.dispose();
+  }
+
+  bool _onKey(KeyEvent event) {
+    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.f11) {
+      () async {
+        final state = await ref
+            .read(windowControlProvider)
+            .toggleMainFullscreen();
+        if (mounted) ref.read(mainFullscreenProvider.notifier).set(state);
+      }();
+      return true;
+    }
+    return false;
   }
 
   @override

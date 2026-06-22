@@ -11,6 +11,7 @@ import '../../../core/l10n_ext.dart';
 import '../../../core/settings/providers.dart';
 import '../../../core/settings/settings_repository.dart';
 import '../../../core/supabase_auth.dart';
+import '../../../core/window/window_control.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../customer_display/application/customer_display.dart';
 import '../../customer_display/data/promo_image_store.dart';
@@ -225,14 +226,42 @@ class SettingsScreen extends ConsumerWidget {
             leading: const Icon(Icons.tv_outlined),
             title: Text(context.l10n.setOpenCustomerDisplay),
             subtitle: Text(context.l10n.setCustomerDisplayHint),
-            onTap: () => ref
-                .read(customerDisplayProvider)
-                .open(
+            onTap: () {
+              final display = ref.read(customerDisplayProvider);
+              // "Open" doubles as "show again" after the display was hidden.
+              if (display.isOpen) {
+                display.restore();
+              } else {
+                display.open(
                   businessName: receiptConfig.businessName,
                   mode: ref.read(customerDisplayModeProvider),
                   promoLines: ref.read(displayPromoProvider),
                   promoImages: ref.read(displayPromoImagesProvider),
-                ),
+                );
+              }
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.tv_off_outlined),
+            title: Text(context.l10n.setDisplayHide),
+            subtitle: Text(context.l10n.setDisplayHideHint),
+            trailing: TextButton(
+              onPressed: () => ref.read(customerDisplayProvider).close(),
+              child: Text(context.l10n.setDisplayClose),
+            ),
+            onTap: () => ref.read(customerDisplayProvider).minimize(),
+          ),
+          SwitchListTile(
+            secondary: const Icon(Icons.fullscreen),
+            title: Text(context.l10n.setMainFullscreen),
+            subtitle: Text(context.l10n.setMainFullscreenHint),
+            value: ref.watch(mainFullscreenProvider),
+            onChanged: (v) async {
+              final state = await ref
+                  .read(windowControlProvider)
+                  .setMainFullscreen(v);
+              ref.read(mainFullscreenProvider.notifier).set(state);
+            },
           ),
           ListTile(
             leading: const Icon(Icons.campaign_outlined),

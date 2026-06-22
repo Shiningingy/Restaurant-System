@@ -851,6 +851,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get setKioskPayHereHint => '关闭：所有自助点餐订单在柜台付款。开启：显示“在此付款”选项（刷卡付款即将推出）。';
 
   @override
+  String get setDisplayHide => '隐藏顾客屏幕';
+
+  @override
+  String get setDisplayHideHint => '点击可将其隐藏；“打开”可再次显示。第二屏幕没有关闭按钮，顾客不会误点。';
+
+  @override
+  String get setDisplayClose => '关闭';
+
+  @override
+  String get setMainFullscreen => '全屏（此窗口）';
+
+  @override
+  String get setMainFullscreenHint => '全屏显示且无标题栏（F11）。';
+
+  @override
   String get setPrintQueue => '打印队列';
 
   @override

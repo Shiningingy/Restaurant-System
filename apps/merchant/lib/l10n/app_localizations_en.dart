@@ -874,6 +874,23 @@ class AppLocalizationsEn extends AppLocalizations {
       'Off: all kiosk orders are paid at the counter. On: shows a “pay here” option (card payment coming soon).';
 
   @override
+  String get setDisplayHide => 'Hide customer display';
+
+  @override
+  String get setDisplayHideHint =>
+      'Tap to hide it off-screen; “Open” shows it again. The second screen has no close button so customers can\'t misclick.';
+
+  @override
+  String get setDisplayClose => 'Close';
+
+  @override
+  String get setMainFullscreen => 'Full screen (this window)';
+
+  @override
+  String get setMainFullscreenHint =>
+      'Fill the screen with no title bar (F11).';
+
+  @override
   String get setPrintQueue => 'Print queue';
 
   @override

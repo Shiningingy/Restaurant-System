@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/settings/providers.dart';
 import '../../../core/settings/settings_repository.dart';
+import '../../../core/window/window_control.dart';
 import '../../menu/application/providers.dart';
 import '../../orders/application/providers.dart';
 import '../customer_display_channel.dart';
@@ -57,11 +58,21 @@ class CustomerDisplayController {
     await window.show();
   }
 
+  /// Closes (destroys) the display window natively and resets state so it can
+  /// be reopened. The plugin exposes no close, so this goes through the native
+  /// window-control channel.
   Future<void> close() async {
+    await _ref.read(windowControlProvider).closeDisplay();
     await _channel?.setMethodCallHandler(null);
     _channel = null;
     _window = null;
   }
+
+  /// Hides the display off-screen (staff control; reverse with [restore]).
+  Future<void> minimize() => _ref.read(windowControlProvider).minimizeDisplay();
+
+  /// Re-shows a hidden display.
+  Future<void> restore() => _ref.read(windowControlProvider).showDisplay();
 
   /// Pushes the current order (or null to show the idle/promo screen). Best
   /// effort — silently no-ops if the display window isn't listening yet.
