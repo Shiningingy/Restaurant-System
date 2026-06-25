@@ -343,6 +343,8 @@
     "placeholders": { "minutes": { "type": "int" } }
   },
   "setNewOrderSound": "Alert sound on new order",
+  "setAutoAcceptKiosk": "Auto-accept kiosk orders",
+  "setAutoAcceptKioskHint": "Send in-store kiosk orders straight to the Orders board. Turn off to review them in the Inbox first.",
   "setPayments": "Payments",
   "setCardTerminalManual": "Card terminal: manual entry",
   "setCardTerminalManualSubtitle": "Staff key the amount on the standalone terminal and record the outcome. Semi-integrated Moneris Go support arrives once the Moneris Cloud API access is set up.",

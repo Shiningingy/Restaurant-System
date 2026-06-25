@@ -180,7 +180,8 @@ class _HomeShell extends ConsumerWidget {
     // New (un-actioned) online preorders waiting in the inbox — shown as a
     // badge on the Inbox rail icon so staff notice from any screen, not just
     // when the inbox is open. Only polls when online ordering is set up.
-    final newPreorders = ref.watch(onlineOrderingEnabledProvider)
+    final onlineEnabled = ref.watch(onlineOrderingEnabledProvider);
+    final newPreorders = onlineEnabled
         ? (ref
                   .watch(
                     onlineOrdersByStatusProvider(
@@ -191,6 +192,21 @@ class _HomeShell extends ConsumerWidget {
                   ?.length ??
               0)
         : 0;
+    // In-store kiosk orders auto-accept straight to the Orders board (the
+    // customer is on site). Driven from the shell so it works from any screen
+    // while the app is open; the atomic claim keeps it safe across devices.
+    // Gated on online ordering so it never starts the poll when cloud is off.
+    if (onlineEnabled) {
+      ref.listen(
+        onlineOrdersByStatusProvider(domain.OnlineOrderStatus.submitted),
+        (_, next) {
+          final orders = next.value;
+          if (orders == null || orders.isEmpty) return;
+          if (!ref.read(onlineOrderSettingsProvider).autoAcceptKiosk) return;
+          ref.read(inboxServiceProvider).autoAcceptKiosk(orders);
+        },
+      );
+    }
     final items = <_NavItem>[
       _NavItem(
         Icons.receipt_long_outlined,

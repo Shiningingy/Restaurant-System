@@ -134,6 +134,7 @@ class SettingsRepository {
   static const _secondNameReceiptKey = 'secondNameReceipt';
   static const _pickupLeadKey = 'pickupLeadMinutes';
   static const _newOrderSoundKey = 'newOrderSound';
+  static const _autoAcceptKioskKey = 'autoAcceptKiosk';
   static const _secondNameLangKey = 'secondNameLanguage';
   static const _serviceFeeBpKey = 'serviceFeeBp';
   static const _discountPresetsKey = 'discountPresetsBp';
@@ -288,6 +289,13 @@ class SettingsRepository {
 
   Future<void> setNewOrderSound(bool on) =>
       prefs.setBool(_newOrderSoundKey, on);
+
+  /// Whether in-store kiosk orders auto-accept straight to the Orders board
+  /// (default on). Off routes them through the Inbox like remote orders.
+  bool get autoAcceptKiosk => prefs.getBool(_autoAcceptKioskKey) ?? true;
+
+  Future<void> setAutoAcceptKiosk(bool on) =>
+      prefs.setBool(_autoAcceptKioskKey, on);
 
   /// The language code the item second names are written in (e.g. 'zh'), or
   /// null/empty if not set. Published so the customer app can surface the

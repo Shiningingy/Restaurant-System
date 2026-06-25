@@ -27,6 +27,10 @@ class IncomingOnlineOrder {
   /// timeProposed; null otherwise.
   final DateTime? proposedPickupAt;
 
+  /// True when placed at an in-store self-order kiosk — eligible for
+  /// auto-accept straight to the Orders board.
+  final bool kiosk;
+
   const IncomingOnlineOrder({
     required this.id,
     required this.customerName,
@@ -35,6 +39,7 @@ class IncomingOnlineOrder {
     required this.submittedAt,
     this.customerPhone,
     this.proposedPickupAt,
+    this.kiosk = false,
   });
 }
 
@@ -58,6 +63,12 @@ abstract interface class OnlineOrderChannel {
 
   /// Pushes accept/reject/ready/picked-up back to the customer.
   Future<void> updateOrderStatus(String orderId, OnlineOrderStatus status);
+
+  /// Atomically claims a `submitted` order for acceptance: flips it to
+  /// `accepted` only if it is still `submitted`, returning true if this device
+  /// won. Lets several POSes auto-accept the same kiosk order without two of
+  /// them both building a local order. Returns false if already claimed.
+  Future<bool> claimForAccept(String orderId);
 
   /// Proposes a new pickup time (status -> timeProposed); the customer then
   /// approves or declines it.

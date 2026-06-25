@@ -244,6 +244,8 @@
     "placeholders": { "minutes": { "type": "int" } }
   },
   "setNewOrderSound": "新订单提示音",
+  "setAutoAcceptKiosk": "自动接受自助点餐机订单",
+  "setAutoAcceptKioskHint": "将店内自助点餐机的订单直接送到订单面板。关闭则先在收件箱中审核。",
   "setPayments": "支付",
   "setCardTerminalManual": "刷卡终端：手动输入",
   "setCardTerminalManualSubtitle": "员工在独立终端上输入金额并记录结果。配置 Moneris Cloud API 访问后即可支持半集成的 Moneris Go。",

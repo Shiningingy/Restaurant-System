@@ -1571,6 +1571,15 @@ class _OnlineOrderingSection extends ConsumerWidget {
               .read(onlineOrderSettingsProvider.notifier)
               .setNewOrderSound(v),
         ),
+        SwitchListTile(
+          secondary: const Icon(Icons.storefront_outlined),
+          title: Text(context.l10n.setAutoAcceptKiosk),
+          subtitle: Text(context.l10n.setAutoAcceptKioskHint),
+          value: settings.autoAcceptKiosk,
+          onChanged: (v) => ref
+              .read(onlineOrderSettingsProvider.notifier)
+              .setAutoAcceptKiosk(v),
+        ),
       ],
     );
   }

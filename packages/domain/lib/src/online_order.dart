@@ -282,6 +282,11 @@ class PreorderSubmission {
   final List<PreorderLine> lines;
   final String? note;
 
+  /// True when this preorder was placed at an in-store self-order **kiosk**
+  /// (not a remote customer). The merchant can auto-accept these straight to
+  /// the Orders board, since the customer is already on site.
+  final bool kiosk;
+
   const PreorderSubmission({
     required this.customerName,
     required this.requestedPickupAt,
@@ -291,6 +296,7 @@ class PreorderSubmission {
     this.notifyByEmail = false,
     this.notifyBySms = false,
     this.note,
+    this.kiosk = false,
   });
 
   Money get total => lines.fold(Money.zero, (sum, l) => sum + l.lineTotal);
@@ -304,6 +310,7 @@ class PreorderSubmission {
         'requestedPickupAt': requestedPickupAt.toIso8601String(),
         'lines': lines.map((l) => l.toJson()).toList(),
         'note': note,
+        'kiosk': kiosk,
       };
 
   factory PreorderSubmission.fromJson(Map<String, dynamic> j) =>
@@ -319,5 +326,6 @@ class PreorderSubmission {
             .map(PreorderLine.fromJson)
             .toList(),
         note: j['note'] as String?,
+        kiosk: j['kiosk'] as bool? ?? false,
       );
 }

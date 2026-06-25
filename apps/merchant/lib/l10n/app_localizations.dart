@@ -1346,6 +1346,18 @@ abstract class AppLocalizations {
   /// **'Alert sound on new order'**
   String get setNewOrderSound;
 
+  /// No description provided for @setAutoAcceptKiosk.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-accept kiosk orders'**
+  String get setAutoAcceptKiosk;
+
+  /// No description provided for @setAutoAcceptKioskHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Send in-store kiosk orders straight to the Orders board. Turn off to review them in the Inbox first.'**
+  String get setAutoAcceptKioskHint;
+
   /// No description provided for @setPayments.
   ///
   /// In en, this message translates to:

@@ -83,6 +83,9 @@ class SupabaseStorefront {
       'submitted_at': DateTime.now().toUtc().toIso8601String(),
       'status': domain.OnlineOrderStatus.submitted.name,
       'note': sub.note,
+      // Optional column (docs/CLOUD_SECURITY.md): only sent for kiosk orders,
+      // so a storefront that hasn't added it doesn't 400 for normal orders.
+      if (sub.kiosk) 'is_kiosk': true,
     };
     // Only send the email/SMS-notification columns when the customer opted in.
     // They're optional schema (docs/EMAIL_SMS_NOTIFICATIONS.md); referencing

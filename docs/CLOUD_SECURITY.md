@@ -124,7 +124,8 @@ create table online_orders (
   requested_pickup_at timestamptz not null,
   submitted_at        timestamptz not null default now(),
   status              text not null default 'submitted',
-  note                text
+  note                text,
+  is_kiosk            boolean not null default false  -- placed at an in-store kiosk
 );
 create index online_orders_status on online_orders (status);
 
@@ -171,6 +172,11 @@ this once, then re-run `apps/customer/tool/live_cloud_smoke_test.dart`:
 ```sql
 -- New column for the merchant's proposed time.
 alter table online_orders add column if not exists proposed_pickup_at timestamptz;
+
+-- Flags an in-store kiosk order so the merchant can auto-accept it straight to
+-- the Orders board. Optional: the customer app only sends it for kiosk orders,
+-- so shops that haven't added the column still take normal orders fine.
+alter table online_orders add column if not exists is_kiosk boolean not null default false;
 
 -- Customer may UPDATE only their own row, only out of 'timeProposed' (respond)
 -- or 'ready' (confirm pickup). The exact transitions are pinned by the trigger.

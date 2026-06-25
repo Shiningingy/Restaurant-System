@@ -746,6 +746,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setNewOrderSound => 'Alert sound on new order';
 
   @override
+  String get setAutoAcceptKiosk => 'Auto-accept kiosk orders';
+
+  @override
+  String get setAutoAcceptKioskHint =>
+      'Send in-store kiosk orders straight to the Orders board. Turn off to review them in the Inbox first.';
+
+  @override
   String get setPayments => 'Payments';
 
   @override

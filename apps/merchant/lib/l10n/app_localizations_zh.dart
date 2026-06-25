@@ -729,6 +729,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get setNewOrderSound => '新订单提示音';
 
   @override
+  String get setAutoAcceptKiosk => '自动接受自助点餐机订单';
+
+  @override
+  String get setAutoAcceptKioskHint => '将店内自助点餐机的订单直接送到订单面板。关闭则先在收件箱中审核。';
+
+  @override
   String get setPayments => '支付';
 
   @override
