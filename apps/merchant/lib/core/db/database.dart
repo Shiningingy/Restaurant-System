@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 import 'package:sqlite3/sqlite3.dart' as sqlite;
 
+import 'db_backup.dart';
 import 'tables.dart';
 
 part 'database.g.dart';
@@ -40,9 +41,16 @@ class AppDatabase extends _$AppDatabase {
   /// the device, so the file is unreadable if copied to another machine/user.
   AppDatabase.open(String dbKey) : super(_connect(dbKey));
 
+  /// The on-disk database filename, in the app documents directory. Shared with
+  /// [DbBackupService] so the backup ring backs up the right file.
+  static const dbFileName = 'restaurant_pos.sqlite';
+
   static LazyDatabase _connect(String dbKey) => LazyDatabase(() async {
     final dir = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dir.path, 'restaurant_pos.sqlite'));
+    final file = File(p.join(dir.path, dbFileName));
+    // Before opening, swap in a backup the user staged for restore (it can't
+    // overwrite the live file while we hold it open — so it waits for launch).
+    DbBackupService.applyPendingRestore(file);
     await _migratePlaintextIfNeeded(file, dbKey);
     return NativeDatabase.createInBackground(
       file,

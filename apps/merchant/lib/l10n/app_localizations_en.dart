@@ -1213,6 +1213,90 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setAnonKey => 'Anon key';
 
   @override
+  String get setLocalBackups => 'Local backups';
+
+  @override
+  String get setLocalBackupsHint =>
+      'A copy of your data is saved on this device before each sync, and whenever you tap Back up now. If a sync goes wrong, restore one to roll back.';
+
+  @override
+  String get setBackupNow => 'Back up now';
+
+  @override
+  String get setBackupSavedMsg => 'Backup saved.';
+
+  @override
+  String setBackupFailed(String error) {
+    return 'Backup failed: $error';
+  }
+
+  @override
+  String get setBackupNone => 'No backups yet.';
+
+  @override
+  String get setBackupRestore => 'Restore';
+
+  @override
+  String get setBackupReasonManual => 'Manual';
+
+  @override
+  String get setBackupReasonSync => 'Before sync';
+
+  @override
+  String get setBackupReasonRestore => 'Before restore';
+
+  @override
+  String get setBackupReasonForcepush => 'Before force push';
+
+  @override
+  String get setRestoreBackupTitle => 'Restore this backup?';
+
+  @override
+  String setRestoreBackupBody(String time) {
+    return 'This replaces all current data with the backup from $time. The app will close — reopen it to finish. Your current data is kept as a one-off safety copy.';
+  }
+
+  @override
+  String get setRestoreBackupConfirm => 'Restore & close';
+
+  @override
+  String get setRestoreStagedMsg =>
+      'Backup restored. The app will now close — please reopen it to finish.';
+
+  @override
+  String get setRestoreClose => 'Close app';
+
+  @override
+  String get setRecovery => 'Recovery';
+
+  @override
+  String get setForcePushHint =>
+      'If another device overwrote the cloud with wrong data, push this device\'s data back over it.';
+
+  @override
+  String get setForcePush => 'Force push to cloud';
+
+  @override
+  String get setForcePushTitle => 'Overwrite cloud with this device?';
+
+  @override
+  String get setForcePushBody =>
+      'Makes the cloud exactly match THIS device: your data here is re-uploaded as the newest version, and any cloud data from other devices that isn\'t here is removed. Other devices update to match this one on their next sync. Use this to recover after another device overwrote the cloud.';
+
+  @override
+  String get setForcePushConfirm => 'Overwrite cloud';
+
+  @override
+  String setForcePushedMsg(int pushed) {
+    return 'Pushed $pushed changes — the cloud now matches this device.';
+  }
+
+  @override
+  String setForcePushFailed(String error) {
+    return 'Force push failed: $error';
+  }
+
+  @override
   String get navAdmin => 'Admin';
 
   @override

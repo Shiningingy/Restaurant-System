@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'db/database.dart';
+import 'db/db_backup.dart';
 import 'secure/secure_store.dart';
 
 /// OS-encrypted storage for the DB key and the cloud refresh token.
@@ -20,6 +21,13 @@ final databaseProvider = Provider<AppDatabase>((ref) {
   ref.onDispose(db.close);
   return db;
 });
+
+/// Local backup ring for the on-disk encrypted database. Uses the same key as
+/// [databaseProvider]; reads/writes the documents directory directly, so it is
+/// not used in unit tests (which run an in-memory database).
+final dbBackupServiceProvider = Provider<DbBackupService>(
+  (ref) => DbBackupService(dbKey: ref.watch(dbKeyProvider)),
+);
 
 /// Overridden in main() after SharedPreferences.getInstance() resolves,
 /// and with a mock in tests.

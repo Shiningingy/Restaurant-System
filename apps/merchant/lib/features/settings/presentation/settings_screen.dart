@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +9,9 @@ import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 import 'package:restaurant_ui/restaurant_ui.dart';
 
 import '../../../core/db/database.dart';
+import '../../../core/db/db_backup.dart';
 import '../../../core/l10n_ext.dart';
+import '../../../core/providers.dart';
 import '../../../core/settings/brand_logo_store.dart';
 import '../../../core/settings/providers.dart';
 import '../../../core/settings/settings_repository.dart';
@@ -1621,6 +1624,96 @@ class _CloudSyncSection extends ConsumerStatefulWidget {
 class _CloudSyncSectionState extends ConsumerState<_CloudSyncSection> {
   bool _busy = false;
   String? _message;
+  List<DbBackup> _backups = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBackups();
+  }
+
+  /// Loads the local backup ring. Guarded: the backup service needs the real
+  /// db key, so it's a no-op in environments (tests) where that's absent.
+  Future<void> _loadBackups() async {
+    try {
+      final list = await ref.read(dbBackupServiceProvider).list();
+      if (mounted) setState(() => _backups = list);
+    } on Object {
+      // No backups available (or not on a real device) — leave the list empty.
+    }
+  }
+
+  Future<void> _backupNow() async {
+    final l10n = context.l10n;
+    setState(() {
+      _busy = true;
+      _message = null;
+    });
+    try {
+      await ref.read(dbBackupServiceProvider).snapshot(reason: 'manual');
+      await _loadBackups();
+      if (mounted) setState(() => _message = l10n.setBackupSavedMsg);
+    } on Object catch (e) {
+      if (mounted) setState(() => _message = l10n.setBackupFailed('$e'));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  /// Stages a backup for restore, then closes the app — the swap happens at the
+  /// next launch, before the database is opened (it can't replace the live file
+  /// while it's held open).
+  Future<void> _restoreBackup(DbBackup backup) async {
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.setRestoreBackupTitle),
+        content: Text(
+          l10n.setRestoreBackupBody(_dateTimeFormat.format(backup.at)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.setRestoreBackupConfirm),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await ref.read(dbBackupServiceProvider).restore(backup.file);
+    } on Object catch (e) {
+      if (mounted) setState(() => _message = l10n.setBackupFailed('$e'));
+      return;
+    }
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.setRestoreBackupTitle),
+        content: Text(l10n.setRestoreStagedMsg),
+        actions: [
+          FilledButton(
+            onPressed: () => exit(0),
+            child: Text(l10n.setRestoreClose),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _backupReasonLabel(String reason) => switch (reason) {
+    'sync' => context.l10n.setBackupReasonSync,
+    'restore' => context.l10n.setBackupReasonRestore,
+    'forcepush' => context.l10n.setBackupReasonForcepush,
+    _ => context.l10n.setBackupReasonManual,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -1724,7 +1817,86 @@ class _CloudSyncSectionState extends ConsumerState<_CloudSyncSection> {
               ),
             ],
           ),
+          // Recovery — push this device's data back over a cloud that another
+          // device overwrote. Only meaningful when signed in (it writes).
+          if (settings.isSignedIn) ...[
+            const Divider(height: 32),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+              child: Text(
+                context.l10n.setRecovery,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+              child: Text(
+                context.l10n.setForcePushHint,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: TextButton.icon(
+                  onPressed: _busy ? null : _forcePush,
+                  icon: const Icon(Icons.cloud_upload_outlined),
+                  label: Text(context.l10n.setForcePush),
+                ),
+              ),
+            ),
+          ],
         ],
+        // Local backups — shown even when the cloud is off; the ring is taken
+        // before every sync and on demand, and restores roll the device back.
+        const Divider(height: 32),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                context.l10n.setLocalBackups,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              TextButton.icon(
+                onPressed: _busy ? null : _backupNow,
+                icon: const Icon(Icons.save_outlined),
+                label: Text(context.l10n.setBackupNow),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+          child: Text(
+            context.l10n.setLocalBackupsHint,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ),
+        if (_backups.isEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+            child: Text(
+              context.l10n.setBackupNone,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          )
+        else
+          for (final b in _backups)
+            ListTile(
+              dense: true,
+              leading: const Icon(Icons.history),
+              title: Text(_dateTimeFormat.format(b.at)),
+              subtitle: Text(
+                '${_backupReasonLabel(b.reason)} · ${(b.bytes / 1024).round()} KB',
+              ),
+              trailing: TextButton(
+                onPressed: _busy ? null : () => _restoreBackup(b),
+                child: Text(context.l10n.setBackupRestore),
+              ),
+            ),
         if (_message != null)
           Padding(
             padding: const EdgeInsets.only(left: 16, top: 8),
@@ -1938,6 +2110,46 @@ class _CloudSyncSectionState extends ConsumerState<_CloudSyncSection> {
       _message = outcome.ok
           ? l10n.setRestoredMsg(outcome.pulled)
           : l10n.setRestoreFailed('${outcome.error}');
+    });
+  }
+
+  /// Recovery: overwrite the cloud with this device's data (and drop cloud rows
+  /// from other devices that aren't here). Double-confirmed — it's destructive
+  /// to the cloud. A local backup is taken first by the sync service.
+  Future<void> _forcePush() async {
+    final l10n = context.l10n;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.setForcePushTitle),
+        content: Text(l10n.setForcePushBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.setForcePushConfirm),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    setState(() {
+      _busy = true;
+      _message = null;
+    });
+    final outcome = await ref
+        .read(syncServiceProvider)
+        .forcePushFromThisDevice();
+    await _loadBackups(); // the force-push took a snapshot first
+    if (!mounted) return;
+    setState(() {
+      _busy = false;
+      _message = outcome.ok
+          ? l10n.setForcePushedMsg(outcome.pushed)
+          : l10n.setForcePushFailed('${outcome.error}');
     });
   }
 

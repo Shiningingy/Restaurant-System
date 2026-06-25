@@ -1180,6 +1180,88 @@ class AppLocalizationsZh extends AppLocalizations {
   String get setAnonKey => 'Anon 密钥';
 
   @override
+  String get setLocalBackups => '本地备份';
+
+  @override
+  String get setLocalBackupsHint =>
+      '每次同步前，以及您点击“立即备份”时，都会在本设备上保存一份数据副本。若同步出错，可恢复其中一份以回退。';
+
+  @override
+  String get setBackupNow => '立即备份';
+
+  @override
+  String get setBackupSavedMsg => '备份已保存。';
+
+  @override
+  String setBackupFailed(String error) {
+    return '备份失败：$error';
+  }
+
+  @override
+  String get setBackupNone => '暂无备份。';
+
+  @override
+  String get setBackupRestore => '恢复';
+
+  @override
+  String get setBackupReasonManual => '手动';
+
+  @override
+  String get setBackupReasonSync => '同步前';
+
+  @override
+  String get setBackupReasonRestore => '恢复前';
+
+  @override
+  String get setBackupReasonForcepush => '强制推送前';
+
+  @override
+  String get setRestoreBackupTitle => '恢复此备份？';
+
+  @override
+  String setRestoreBackupBody(String time) {
+    return '这将用 $time 的备份替换当前所有数据。应用将关闭 — 请重新打开以完成。当前数据会保留为一次性安全副本。';
+  }
+
+  @override
+  String get setRestoreBackupConfirm => '恢复并关闭';
+
+  @override
+  String get setRestoreStagedMsg => '备份已就绪。应用即将关闭 — 请重新打开以完成。';
+
+  @override
+  String get setRestoreClose => '关闭应用';
+
+  @override
+  String get setRecovery => '恢复';
+
+  @override
+  String get setForcePushHint => '若另一台设备用错误数据覆盖了云端，可将本设备的数据推回覆盖它。';
+
+  @override
+  String get setForcePush => '强制推送到云端';
+
+  @override
+  String get setForcePushTitle => '用本设备覆盖云端？';
+
+  @override
+  String get setForcePushBody =>
+      '使云端与本设备完全一致：本设备的数据将作为最新版本重新上传，云端来自其他设备而本设备没有的数据将被移除。其他设备会在下次同步时更新为与本设备一致。用于在另一台设备覆盖云端后进行恢复。';
+
+  @override
+  String get setForcePushConfirm => '覆盖云端';
+
+  @override
+  String setForcePushedMsg(int pushed) {
+    return '已推送 $pushed 条更改 — 云端现已与本设备一致。';
+  }
+
+  @override
+  String setForcePushFailed(String error) {
+    return '强制推送失败：$error';
+  }
+
+  @override
   String get navAdmin => '管理';
 
   @override

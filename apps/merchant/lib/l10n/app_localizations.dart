@@ -2174,6 +2174,150 @@ abstract class AppLocalizations {
   /// **'Anon key'**
   String get setAnonKey;
 
+  /// No description provided for @setLocalBackups.
+  ///
+  /// In en, this message translates to:
+  /// **'Local backups'**
+  String get setLocalBackups;
+
+  /// No description provided for @setLocalBackupsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A copy of your data is saved on this device before each sync, and whenever you tap Back up now. If a sync goes wrong, restore one to roll back.'**
+  String get setLocalBackupsHint;
+
+  /// No description provided for @setBackupNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up now'**
+  String get setBackupNow;
+
+  /// No description provided for @setBackupSavedMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup saved.'**
+  String get setBackupSavedMsg;
+
+  /// No description provided for @setBackupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup failed: {error}'**
+  String setBackupFailed(String error);
+
+  /// No description provided for @setBackupNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No backups yet.'**
+  String get setBackupNone;
+
+  /// No description provided for @setBackupRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get setBackupRestore;
+
+  /// No description provided for @setBackupReasonManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual'**
+  String get setBackupReasonManual;
+
+  /// No description provided for @setBackupReasonSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Before sync'**
+  String get setBackupReasonSync;
+
+  /// No description provided for @setBackupReasonRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Before restore'**
+  String get setBackupReasonRestore;
+
+  /// No description provided for @setBackupReasonForcepush.
+  ///
+  /// In en, this message translates to:
+  /// **'Before force push'**
+  String get setBackupReasonForcepush;
+
+  /// No description provided for @setRestoreBackupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore this backup?'**
+  String get setRestoreBackupTitle;
+
+  /// No description provided for @setRestoreBackupBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This replaces all current data with the backup from {time}. The app will close — reopen it to finish. Your current data is kept as a one-off safety copy.'**
+  String setRestoreBackupBody(String time);
+
+  /// No description provided for @setRestoreBackupConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore & close'**
+  String get setRestoreBackupConfirm;
+
+  /// No description provided for @setRestoreStagedMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup restored. The app will now close — please reopen it to finish.'**
+  String get setRestoreStagedMsg;
+
+  /// No description provided for @setRestoreClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close app'**
+  String get setRestoreClose;
+
+  /// No description provided for @setRecovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery'**
+  String get setRecovery;
+
+  /// No description provided for @setForcePushHint.
+  ///
+  /// In en, this message translates to:
+  /// **'If another device overwrote the cloud with wrong data, push this device\'s data back over it.'**
+  String get setForcePushHint;
+
+  /// No description provided for @setForcePush.
+  ///
+  /// In en, this message translates to:
+  /// **'Force push to cloud'**
+  String get setForcePush;
+
+  /// No description provided for @setForcePushTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Overwrite cloud with this device?'**
+  String get setForcePushTitle;
+
+  /// No description provided for @setForcePushBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Makes the cloud exactly match THIS device: your data here is re-uploaded as the newest version, and any cloud data from other devices that isn\'t here is removed. Other devices update to match this one on their next sync. Use this to recover after another device overwrote the cloud.'**
+  String get setForcePushBody;
+
+  /// No description provided for @setForcePushConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Overwrite cloud'**
+  String get setForcePushConfirm;
+
+  /// No description provided for @setForcePushedMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Pushed {pushed} changes — the cloud now matches this device.'**
+  String setForcePushedMsg(int pushed);
+
+  /// No description provided for @setForcePushFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Force push failed: {error}'**
+  String setForcePushFailed(String error);
+
   /// No description provided for @navAdmin.
   ///
   /// In en, this message translates to:

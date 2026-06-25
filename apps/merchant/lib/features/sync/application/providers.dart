@@ -107,6 +107,10 @@ final syncServiceProvider = Provider<SyncService>((ref) {
     journal: ref.watch(syncJournalProvider),
     codec: ref.watch(syncCodecProvider),
     settings: settings,
+    // Snapshot the database before a sync touches it, so a bad pull/push is
+    // recoverable (best-effort; never blocks the sync).
+    snapshot: (reason) =>
+        ref.read(dbBackupServiceProvider).snapshot(reason: reason),
     // Read credentials per cycle so a settings change applies immediately.
     buildBackend: () {
       final config = settings.config;
