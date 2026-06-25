@@ -11,6 +11,7 @@ import '../../cart/presentation/cart_screen.dart';
 import '../../kiosk/presentation/kiosk_setup_screen.dart';
 import '../../orders/presentation/orders_screen.dart';
 import '../application/providers.dart';
+import '../data/menu_photo_url.dart';
 import 'item_sheet.dart';
 
 class MenuScreen extends ConsumerWidget {
@@ -190,9 +191,10 @@ class MenuScreen extends ConsumerWidget {
     domain.PublishedItem item,
   ) async {
     final l10n = context.l10n;
-    // Always open the detail sheet — description, options and quantity — even
-    // for items with no options, so the customer can review before adding.
-    final line = await showItemSheet(context, item);
+    // Always open the detail sheet — photo, description, options and quantity —
+    // even for items with no options, so the customer can review before adding.
+    final imageUrl = menuPhotoUrl(ref.read(storefrontConfigProvider).url, item);
+    final line = await showItemSheet(context, item, imageUrl: imageUrl);
     if (line == null) return;
     ref.read(cartProvider.notifier).add(line);
     if (context.mounted) {

@@ -90,6 +90,12 @@ class PublishedItem {
   final Money price;
   final List<PublishedModifierGroup> modifierGroups;
 
+  /// Content-addressed photo reference (sha256 of the bytes + extension), or
+  /// null when the item has no photo. The customer builds a public Storage URL
+  /// from it (`menu-photos/<sha><ext>`) — see docs/CLOUD_SECURITY.md.
+  final String? imageSha;
+  final String? imageExt;
+
   const PublishedItem({
     required this.id,
     required this.name,
@@ -97,6 +103,8 @@ class PublishedItem {
     this.nameSecondary,
     this.description,
     this.modifierGroups = const [],
+    this.imageSha,
+    this.imageExt,
   });
 
   Map<String, dynamic> toJson() => {
@@ -106,6 +114,8 @@ class PublishedItem {
         if (description != null) 'description': description,
         'price': price.cents,
         'modifierGroups': modifierGroups.map((g) => g.toJson()).toList(),
+        if (imageSha != null) 'imageSha': imageSha,
+        if (imageExt != null) 'imageExt': imageExt,
       };
 
   factory PublishedItem.fromJson(Map<String, dynamic> j) => PublishedItem(
@@ -118,6 +128,8 @@ class PublishedItem {
             .cast<Map<String, dynamic>>()
             .map(PublishedModifierGroup.fromJson)
             .toList(),
+        imageSha: j['imageSha'] as String?,
+        imageExt: j['imageExt'] as String?,
       );
 }
 
