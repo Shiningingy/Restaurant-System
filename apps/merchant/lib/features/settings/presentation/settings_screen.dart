@@ -27,6 +27,9 @@ import 'storefront_qr_dialog.dart';
 
 final _dateTimeFormat = DateFormat('yyyy-MM-dd HH:mm');
 
+/// Outcome of the pre-sync confirm dialog.
+enum _SyncChoice { cancel, sync, restore }
+
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -1813,11 +1816,30 @@ class _CloudSyncSectionState extends ConsumerState<_CloudSyncSection> {
 
   Future<void> _syncNow() async {
     final l10n = context.l10n;
+    final svc = ref.read(syncServiceProvider);
+    // A push of local changes can overwrite cloud data (last-write-wins), so
+    // confirm before a sync that has anything to upload. A pull-only sync
+    // (nothing pending) is safe and skips the prompt.
+    final pending = await svc.pendingPush();
+    if (!mounted) return;
+    if (!pending.isEmpty) {
+      final firstSync = ref.read(syncSettingsProvider).lastSyncedAt == null;
+      final choice = await _confirmSync(
+        pending.total,
+        pending.deletes,
+        firstSync,
+      );
+      if (choice == _SyncChoice.cancel) return;
+      if (choice == _SyncChoice.restore) {
+        await _restore();
+        return;
+      }
+    }
     setState(() {
       _busy = true;
       _message = null;
     });
-    final outcome = await ref.read(syncServiceProvider).syncNow();
+    final outcome = await svc.syncNow();
     if (!mounted) return;
     setState(() {
       _busy = false;
@@ -1825,6 +1847,55 @@ class _CloudSyncSectionState extends ConsumerState<_CloudSyncSection> {
           ? l10n.setSyncedMsg(outcome.pulled, outcome.pushed)
           : l10n.setSyncFailed('${outcome.error}');
     });
+  }
+
+  /// Confirms a "Sync now" that will upload local changes. On a first sync to
+  /// this backend it warns harder and offers Restore instead — the safe action
+  /// when the cloud may already hold the real data.
+  Future<_SyncChoice> _confirmSync(
+    int total,
+    int deletes,
+    bool firstSync,
+  ) async {
+    final l10n = context.l10n;
+    final lines = <String>[
+      l10n.setSyncConfirmBody(total),
+      if (deletes > 0) l10n.setSyncConfirmDeletes(deletes),
+      if (firstSync) l10n.setSyncFirstWarning,
+    ];
+    final choice = await showDialog<_SyncChoice>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.setSyncConfirmTitle),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final t in lines)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(t),
+              ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, _SyncChoice.cancel),
+            child: Text(l10n.commonCancel),
+          ),
+          if (firstSync)
+            TextButton(
+              onPressed: () => Navigator.pop(context, _SyncChoice.restore),
+              child: Text(l10n.setRestoreFromCloud),
+            ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, _SyncChoice.sync),
+            child: Text(firstSync ? l10n.setSyncAnyway : l10n.setSyncNow),
+          ),
+        ],
+      ),
+    );
+    return choice ?? _SyncChoice.cancel;
   }
 
   Future<void> _restore() async {

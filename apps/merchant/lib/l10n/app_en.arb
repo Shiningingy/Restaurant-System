@@ -495,6 +495,17 @@
   "@setSyncFailed": {
     "placeholders": { "error": { "type": "String" } }
   },
+  "setSyncConfirmTitle": "Sync now?",
+  "setSyncConfirmBody": "This will upload {count} local change(s) to the cloud and download any cloud changes.",
+  "@setSyncConfirmBody": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "setSyncConfirmDeletes": "{count} of them delete data from the cloud.",
+  "@setSyncConfirmDeletes": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "setSyncFirstWarning": "This device hasn't synced with this cloud yet — uploading may overwrite data already there. If the cloud already has your real data, choose Restore from cloud instead.",
+  "setSyncAnyway": "Sync anyway",
   "setRestoreTitle": "Restore from cloud?",
   "setRestoreBody": "Pulls the full history from your Supabase and applies it to this device. Use this on a new or wiped tablet. Existing local data is merged (last write wins), never wiped.",
   "setRestore": "Restore",

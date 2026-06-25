@@ -2060,6 +2060,36 @@ abstract class AppLocalizations {
   /// **'Sync failed: {error}'**
   String setSyncFailed(String error);
 
+  /// No description provided for @setSyncConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync now?'**
+  String get setSyncConfirmTitle;
+
+  /// No description provided for @setSyncConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This will upload {count} local change(s) to the cloud and download any cloud changes.'**
+  String setSyncConfirmBody(int count);
+
+  /// No description provided for @setSyncConfirmDeletes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of them delete data from the cloud.'**
+  String setSyncConfirmDeletes(int count);
+
+  /// No description provided for @setSyncFirstWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This device hasn\'t synced with this cloud yet — uploading may overwrite data already there. If the cloud already has your real data, choose Restore from cloud instead.'**
+  String get setSyncFirstWarning;
+
+  /// No description provided for @setSyncAnyway.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync anyway'**
+  String get setSyncAnyway;
+
   /// No description provided for @setRestoreTitle.
   ///
   /// In en, this message translates to:

@@ -1144,6 +1144,26 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get setSyncConfirmTitle => 'Sync now?';
+
+  @override
+  String setSyncConfirmBody(int count) {
+    return 'This will upload $count local change(s) to the cloud and download any cloud changes.';
+  }
+
+  @override
+  String setSyncConfirmDeletes(int count) {
+    return '$count of them delete data from the cloud.';
+  }
+
+  @override
+  String get setSyncFirstWarning =>
+      'This device hasn\'t synced with this cloud yet — uploading may overwrite data already there. If the cloud already has your real data, choose Restore from cloud instead.';
+
+  @override
+  String get setSyncAnyway => 'Sync anyway';
+
+  @override
   String get setRestoreTitle => 'Restore from cloud?';
 
   @override

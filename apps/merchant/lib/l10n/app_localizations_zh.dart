@@ -1112,6 +1112,26 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get setSyncConfirmTitle => '立即同步？';
+
+  @override
+  String setSyncConfirmBody(int count) {
+    return '这将向云端上传 $count 项本地更改，并下载云端的更改。';
+  }
+
+  @override
+  String setSyncConfirmDeletes(int count) {
+    return '其中 $count 项会从云端删除数据。';
+  }
+
+  @override
+  String get setSyncFirstWarning =>
+      '本设备尚未与此云端同步过——上传可能会覆盖云端已有的数据。如果云端已有您的真实数据，请改用“从云端恢复”。';
+
+  @override
+  String get setSyncAnyway => '仍要同步';
+
+  @override
   String get setRestoreTitle => '从云端恢复？';
 
   @override

@@ -83,10 +83,21 @@ class SyncSettings {
   Future<void> setConfig(SupabaseConfig config) async {
     final url = config.url;
     final key = config.anonKey;
-    if (url == null || url.isEmpty) {
+    final newUrl = (url == null || url.isEmpty)
+        ? null
+        : normalizeSupabaseUrl(url);
+    // Pointing at a different backend clears the sync bookkeeping, so the next
+    // sync is treated as a first sync (the cursor replays the whole feed, and
+    // the UI warns before pushing this device's data over a backend it has
+    // never reconciled with — the data-loss case).
+    if (newUrl != _get(_urlKey)) {
+      await resetCursor();
+      await _remove(_lastAtKey);
+    }
+    if (newUrl == null) {
       await _remove(_urlKey);
     } else {
-      await _set(_urlKey, normalizeSupabaseUrl(url));
+      await _set(_urlKey, newUrl);
     }
     if (key == null || key.isEmpty) {
       await _remove(_anonKeyKey);
