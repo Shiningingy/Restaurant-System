@@ -90,7 +90,7 @@ void main() {
 
     final closed = await order(orderId);
     expect(closed.status, OrderStatus.paid);
-    expect(closed.closedAt, isNotNull);
+    expect(closed.paidAt, isNotNull);
 
     final recorded = await payments.paymentsForOrder(orderId);
     expect(recorded, hasLength(2));

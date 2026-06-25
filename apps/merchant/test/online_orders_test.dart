@@ -63,10 +63,18 @@ class FakeSupabase {
         break;
       case 'PATCH':
         final patch = jsonDecode(body!) as Map<String, dynamic>;
-        for (final row in rows.where((r) => _matches(r, q))) {
+        final matched = rows.where((r) => _matches(r, q)).toList();
+        for (final row in matched) {
           row.addAll(patch);
         }
         res.statusCode = HttpStatus.ok;
+        // PostgREST returns the changed rows when asked — drives the atomic
+        // claim (a non-empty array means this device won the claim).
+        if (req.headers.value('Prefer')?.contains('return=representation') ??
+            false) {
+          res.headers.contentType = ContentType.json;
+          res.write(jsonEncode(matched));
+        }
         break;
       case 'GET':
         var result = rows.where((r) => _matches(r, q)).toList();
@@ -172,7 +180,7 @@ void main() {
     expect(pending.single.customerName, 'Sam');
 
     // Accept it -> a local online order is created, status pushed back.
-    final localId = await inbox.accept(pending.single);
+    final localId = (await inbox.accept(pending.single))!;
     final order = (await orders.getOrder(localId))!;
     expect(order.type, domain.OrderType.online);
     // (1000+200) * 2 = 2400 subtotal; 13% tax -> 312; total 2712.
@@ -215,6 +223,57 @@ void main() {
 
       expect(server.rowsOf('online_orders').single['status'], 'rejected');
       expect(await inbox.orders.watchOpenOrders().first, isEmpty);
+    },
+  );
+
+  test(
+    'kiosk order auto-accepts to a local order; the claim is atomic',
+    () async {
+      final inbox = await buildInbox();
+
+      // A kiosk order carries is_kiosk = true.
+      await http.post(
+        Uri.parse('${server.baseUrl}/rest/v1/online_orders'),
+        headers: {'apikey': server.apiKey, 'Content-Type': 'application/json'},
+        body: jsonEncode([
+          {
+            'id': domain.newId(),
+            'customer_name': 'Kiosk 3',
+            'lines': [
+              domain.PreorderLine(
+                itemId: 'i1',
+                nameSnapshot: 'Tea',
+                priceSnapshot: const domain.Money(300),
+                qty: 1,
+              ).toJson(),
+            ],
+            'requested_pickup_at': DateTime.utc(
+              2026,
+              6,
+              1,
+              12,
+            ).toIso8601String(),
+            'submitted_at': DateTime.utc(2026, 6, 1, 11).toIso8601String(),
+            'status': 'submitted',
+            'is_kiosk': true,
+          },
+        ]),
+      );
+
+      final pending = await inbox.currentPending();
+      expect(pending.single.kiosk, isTrue);
+
+      // Auto-accept → a local online order appears on the board, server accepted.
+      await inbox.autoAcceptKiosk(pending);
+      final board = await inbox.orders.watchOpenOrders().first;
+      expect(
+        board.where((o) => o.type == domain.OrderType.online),
+        hasLength(1),
+      );
+      expect(server.rowsOf('online_orders').single['status'], 'accepted');
+
+      // A second claim loses — it's no longer 'submitted' (no double-build).
+      expect(await inbox.channel.claimForAccept(pending.single.id), isFalse);
     },
   );
 

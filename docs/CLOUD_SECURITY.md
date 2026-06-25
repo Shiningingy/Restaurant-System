@@ -95,6 +95,24 @@ create policy assets_restaurant_all on storage.objects for all
 -- for just that key prefix — never make the whole bucket public.
 
 -- ───────────────────────────────────────────────────────────────────────
+-- menu-photos (Storage bucket) : item photos shown in the CUSTOMER app, so
+-- they ARE public to read (like published_menu) — never order/payment/PII.
+-- Objects are content-addressed (<sha><ext>); the customer reads them by the
+-- public CDN URL, no auth. Only the restaurant writes.
+-- ───────────────────────────────────────────────────────────────────────
+insert into storage.buckets (id, name, public)
+  values ('menu-photos', 'menu-photos', true)
+  on conflict (id) do nothing;
+
+-- Public bucket → anonymous read needs no policy. Writes are restaurant-only.
+create policy menu_photos_restaurant_write on storage.objects for all
+  to authenticated
+  using  (bucket_id = 'menu-photos'
+          and coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false) = false)
+  with check (bucket_id = 'menu-photos'
+          and coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false) = false);
+
+-- ───────────────────────────────────────────────────────────────────────
 -- published_menu : public to read, restaurant to write.
 -- ───────────────────────────────────────────────────────────────────────
 create table published_menu (
@@ -124,7 +142,8 @@ create table online_orders (
   requested_pickup_at timestamptz not null,
   submitted_at        timestamptz not null default now(),
   status              text not null default 'submitted',
-  note                text
+  note                text,
+  is_kiosk            boolean not null default false  -- placed at an in-store kiosk
 );
 create index online_orders_status on online_orders (status);
 
@@ -171,6 +190,11 @@ this once, then re-run `apps/customer/tool/live_cloud_smoke_test.dart`:
 ```sql
 -- New column for the merchant's proposed time.
 alter table online_orders add column if not exists proposed_pickup_at timestamptz;
+
+-- Flags an in-store kiosk order so the merchant can auto-accept it straight to
+-- the Orders board. Optional: the customer app only sends it for kiosk orders,
+-- so shops that haven't added the column still take normal orders fine.
+alter table online_orders add column if not exists is_kiosk boolean not null default false;
 
 -- Customer may UPDATE only their own row, only out of 'timeProposed' (respond)
 -- or 'ready' (confirm pickup). The exact transitions are pinned by the trigger.

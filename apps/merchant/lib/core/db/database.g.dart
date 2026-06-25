@@ -2100,6 +2100,15 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, OrderRow> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _paidAtMeta = const VerificationMeta('paidAt');
+  @override
+  late final GeneratedColumn<DateTime> paidAt = GeneratedColumn<DateTime>(
+    'paid_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _closedAtMeta = const VerificationMeta(
     'closedAt',
   );
@@ -2197,6 +2206,7 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, OrderRow> {
     status,
     tableId,
     createdAt,
+    paidAt,
     closedAt,
     taxRateBp,
     serviceFeeBp,
@@ -2237,6 +2247,12 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, OrderRow> {
       );
     } else if (isInserting) {
       context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('paid_at')) {
+      context.handle(
+        _paidAtMeta,
+        paidAt.isAcceptableOrUnknown(data['paid_at']!, _paidAtMeta),
+      );
     }
     if (data.containsKey('closed_at')) {
       context.handle(
@@ -2300,6 +2316,10 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, OrderRow> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
       )!,
+      paidAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}paid_at'],
+      ),
       closedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}closed_at'],
@@ -2378,6 +2398,7 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
   final domain.OrderStatus status;
   final String? tableId;
   final DateTime createdAt;
+  final DateTime? paidAt;
   final DateTime? closedAt;
   final int taxRateBp;
   final int serviceFeeBp;
@@ -2393,6 +2414,7 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
     required this.status,
     this.tableId,
     required this.createdAt,
+    this.paidAt,
     this.closedAt,
     required this.taxRateBp,
     required this.serviceFeeBp,
@@ -2419,6 +2441,9 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
       map['table_id'] = Variable<String>(tableId);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || paidAt != null) {
+      map['paid_at'] = Variable<DateTime>(paidAt);
+    }
     if (!nullToAbsent || closedAt != null) {
       map['closed_at'] = Variable<DateTime>(closedAt);
     }
@@ -2460,6 +2485,9 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
           ? const Value.absent()
           : Value(tableId),
       createdAt: Value(createdAt),
+      paidAt: paidAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(paidAt),
       closedAt: closedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(closedAt),
@@ -2489,6 +2517,7 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
       ),
       tableId: serializer.fromJson<String?>(json['tableId']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      paidAt: serializer.fromJson<DateTime?>(json['paidAt']),
       closedAt: serializer.fromJson<DateTime?>(json['closedAt']),
       taxRateBp: serializer.fromJson<int>(json['taxRateBp']),
       serviceFeeBp: serializer.fromJson<int>(json['serviceFeeBp']),
@@ -2513,6 +2542,7 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
       ),
       'tableId': serializer.toJson<String?>(tableId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'paidAt': serializer.toJson<DateTime?>(paidAt),
       'closedAt': serializer.toJson<DateTime?>(closedAt),
       'taxRateBp': serializer.toJson<int>(taxRateBp),
       'serviceFeeBp': serializer.toJson<int>(serviceFeeBp),
@@ -2531,6 +2561,7 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
     domain.OrderStatus? status,
     Value<String?> tableId = const Value.absent(),
     DateTime? createdAt,
+    Value<DateTime?> paidAt = const Value.absent(),
     Value<DateTime?> closedAt = const Value.absent(),
     int? taxRateBp,
     int? serviceFeeBp,
@@ -2546,6 +2577,7 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
     status: status ?? this.status,
     tableId: tableId.present ? tableId.value : this.tableId,
     createdAt: createdAt ?? this.createdAt,
+    paidAt: paidAt.present ? paidAt.value : this.paidAt,
     closedAt: closedAt.present ? closedAt.value : this.closedAt,
     taxRateBp: taxRateBp ?? this.taxRateBp,
     serviceFeeBp: serviceFeeBp ?? this.serviceFeeBp,
@@ -2563,6 +2595,7 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
       status: data.status.present ? data.status.value : this.status,
       tableId: data.tableId.present ? data.tableId.value : this.tableId,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      paidAt: data.paidAt.present ? data.paidAt.value : this.paidAt,
       closedAt: data.closedAt.present ? data.closedAt.value : this.closedAt,
       taxRateBp: data.taxRateBp.present ? data.taxRateBp.value : this.taxRateBp,
       serviceFeeBp: data.serviceFeeBp.present
@@ -2587,6 +2620,7 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
           ..write('status: $status, ')
           ..write('tableId: $tableId, ')
           ..write('createdAt: $createdAt, ')
+          ..write('paidAt: $paidAt, ')
           ..write('closedAt: $closedAt, ')
           ..write('taxRateBp: $taxRateBp, ')
           ..write('serviceFeeBp: $serviceFeeBp, ')
@@ -2607,6 +2641,7 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
     status,
     tableId,
     createdAt,
+    paidAt,
     closedAt,
     taxRateBp,
     serviceFeeBp,
@@ -2626,6 +2661,7 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
           other.status == this.status &&
           other.tableId == this.tableId &&
           other.createdAt == this.createdAt &&
+          other.paidAt == this.paidAt &&
           other.closedAt == this.closedAt &&
           other.taxRateBp == this.taxRateBp &&
           other.serviceFeeBp == this.serviceFeeBp &&
@@ -2643,6 +2679,7 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
   final Value<domain.OrderStatus> status;
   final Value<String?> tableId;
   final Value<DateTime> createdAt;
+  final Value<DateTime?> paidAt;
   final Value<DateTime?> closedAt;
   final Value<int> taxRateBp;
   final Value<int> serviceFeeBp;
@@ -2659,6 +2696,7 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
     this.status = const Value.absent(),
     this.tableId = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.paidAt = const Value.absent(),
     this.closedAt = const Value.absent(),
     this.taxRateBp = const Value.absent(),
     this.serviceFeeBp = const Value.absent(),
@@ -2676,6 +2714,7 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
     required domain.OrderStatus status,
     this.tableId = const Value.absent(),
     required DateTime createdAt,
+    this.paidAt = const Value.absent(),
     this.closedAt = const Value.absent(),
     required int taxRateBp,
     this.serviceFeeBp = const Value.absent(),
@@ -2700,6 +2739,7 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
     Expression<String>? status,
     Expression<String>? tableId,
     Expression<DateTime>? createdAt,
+    Expression<DateTime>? paidAt,
     Expression<DateTime>? closedAt,
     Expression<int>? taxRateBp,
     Expression<int>? serviceFeeBp,
@@ -2717,6 +2757,7 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
       if (status != null) 'status': status,
       if (tableId != null) 'table_id': tableId,
       if (createdAt != null) 'created_at': createdAt,
+      if (paidAt != null) 'paid_at': paidAt,
       if (closedAt != null) 'closed_at': closedAt,
       if (taxRateBp != null) 'tax_rate_bp': taxRateBp,
       if (serviceFeeBp != null) 'service_fee_bp': serviceFeeBp,
@@ -2736,6 +2777,7 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
     Value<domain.OrderStatus>? status,
     Value<String?>? tableId,
     Value<DateTime>? createdAt,
+    Value<DateTime?>? paidAt,
     Value<DateTime?>? closedAt,
     Value<int>? taxRateBp,
     Value<int>? serviceFeeBp,
@@ -2753,6 +2795,7 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
       status: status ?? this.status,
       tableId: tableId ?? this.tableId,
       createdAt: createdAt ?? this.createdAt,
+      paidAt: paidAt ?? this.paidAt,
       closedAt: closedAt ?? this.closedAt,
       taxRateBp: taxRateBp ?? this.taxRateBp,
       serviceFeeBp: serviceFeeBp ?? this.serviceFeeBp,
@@ -2787,6 +2830,9 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (paidAt.present) {
+      map['paid_at'] = Variable<DateTime>(paidAt.value);
     }
     if (closedAt.present) {
       map['closed_at'] = Variable<DateTime>(closedAt.value);
@@ -2837,6 +2883,7 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
           ..write('status: $status, ')
           ..write('tableId: $tableId, ')
           ..write('createdAt: $createdAt, ')
+          ..write('paidAt: $paidAt, ')
           ..write('closedAt: $closedAt, ')
           ..write('taxRateBp: $taxRateBp, ')
           ..write('serviceFeeBp: $serviceFeeBp, ')
@@ -8916,6 +8963,7 @@ typedef $$OrdersTableCreateCompanionBuilder =
       required domain.OrderStatus status,
       Value<String?> tableId,
       required DateTime createdAt,
+      Value<DateTime?> paidAt,
       Value<DateTime?> closedAt,
       required int taxRateBp,
       Value<int> serviceFeeBp,
@@ -8934,6 +8982,7 @@ typedef $$OrdersTableUpdateCompanionBuilder =
       Value<domain.OrderStatus> status,
       Value<String?> tableId,
       Value<DateTime> createdAt,
+      Value<DateTime?> paidAt,
       Value<DateTime?> closedAt,
       Value<int> taxRateBp,
       Value<int> serviceFeeBp,
@@ -9032,6 +9081,11 @@ class $$OrdersTableFilterComposer
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get paidAt => $composableBuilder(
+    column: $table.paidAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -9188,6 +9242,11 @@ class $$OrdersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get paidAt => $composableBuilder(
+    column: $table.paidAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get closedAt => $composableBuilder(
     column: $table.closedAt,
     builder: (column) => ColumnOrderings(column),
@@ -9277,6 +9336,9 @@ class $$OrdersTableAnnotationComposer
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get paidAt =>
+      $composableBuilder(column: $table.paidAt, builder: (column) => column);
 
   GeneratedColumn<DateTime> get closedAt =>
       $composableBuilder(column: $table.closedAt, builder: (column) => column);
@@ -9421,6 +9483,7 @@ class $$OrdersTableTableManager
                 Value<domain.OrderStatus> status = const Value.absent(),
                 Value<String?> tableId = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> paidAt = const Value.absent(),
                 Value<DateTime?> closedAt = const Value.absent(),
                 Value<int> taxRateBp = const Value.absent(),
                 Value<int> serviceFeeBp = const Value.absent(),
@@ -9437,6 +9500,7 @@ class $$OrdersTableTableManager
                 status: status,
                 tableId: tableId,
                 createdAt: createdAt,
+                paidAt: paidAt,
                 closedAt: closedAt,
                 taxRateBp: taxRateBp,
                 serviceFeeBp: serviceFeeBp,
@@ -9455,6 +9519,7 @@ class $$OrdersTableTableManager
                 required domain.OrderStatus status,
                 Value<String?> tableId = const Value.absent(),
                 required DateTime createdAt,
+                Value<DateTime?> paidAt = const Value.absent(),
                 Value<DateTime?> closedAt = const Value.absent(),
                 required int taxRateBp,
                 Value<int> serviceFeeBp = const Value.absent(),
@@ -9471,6 +9536,7 @@ class $$OrdersTableTableManager
                 status: status,
                 tableId: tableId,
                 createdAt: createdAt,
+                paidAt: paidAt,
                 closedAt: closedAt,
                 taxRateBp: taxRateBp,
                 serviceFeeBp: serviceFeeBp,

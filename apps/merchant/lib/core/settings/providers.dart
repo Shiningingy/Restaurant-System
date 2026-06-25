@@ -333,10 +333,12 @@ final checkoutPricingProvider =
 class OnlineOrderSettings {
   final int pickupLeadMinutes;
   final bool newOrderSound;
+  final bool autoAcceptKiosk;
 
   const OnlineOrderSettings({
     required this.pickupLeadMinutes,
     required this.newOrderSound,
+    required this.autoAcceptKiosk,
   });
 }
 
@@ -347,6 +349,7 @@ class OnlineOrderSettingsNotifier extends Notifier<OnlineOrderSettings> {
     return OnlineOrderSettings(
       pickupLeadMinutes: r.pickupLeadMinutes,
       newOrderSound: r.newOrderSound,
+      autoAcceptKiosk: r.autoAcceptKiosk,
     );
   }
 
@@ -357,6 +360,11 @@ class OnlineOrderSettingsNotifier extends Notifier<OnlineOrderSettings> {
 
   Future<void> setNewOrderSound(bool on) async {
     await ref.read(settingsRepositoryProvider).setNewOrderSound(on);
+    ref.invalidateSelf();
+  }
+
+  Future<void> setAutoAcceptKiosk(bool on) async {
+    await ref.read(settingsRepositoryProvider).setAutoAcceptKiosk(on);
     ref.invalidateSelf();
   }
 }

@@ -254,6 +254,12 @@ abstract class AppLocalizations {
   /// **'Orders'**
   String get ordersStaffSection;
 
+  /// No description provided for @ordersPendingSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid · preparing'**
+  String get ordersPendingSection;
+
   /// No description provided for @ordStatusOpen.
   ///
   /// In en, this message translates to:
@@ -266,11 +272,23 @@ abstract class AppLocalizations {
   /// **'Preparing'**
   String get ordStatusPreparing;
 
+  /// No description provided for @ordStatusPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid · preparing'**
+  String get ordStatusPaid;
+
   /// No description provided for @ordStatusSelfOrder.
   ///
   /// In en, this message translates to:
   /// **'Self-order'**
   String get ordStatusSelfOrder;
+
+  /// No description provided for @ordMarkFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark finished'**
+  String get ordMarkFinished;
 
   /// No description provided for @ordersLoadFailed.
   ///
@@ -1346,6 +1364,18 @@ abstract class AppLocalizations {
   /// **'Alert sound on new order'**
   String get setNewOrderSound;
 
+  /// No description provided for @setAutoAcceptKiosk.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-accept kiosk orders'**
+  String get setAutoAcceptKiosk;
+
+  /// No description provided for @setAutoAcceptKioskHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Send in-store kiosk orders straight to the Orders board. Turn off to review them in the Inbox first.'**
+  String get setAutoAcceptKioskHint;
+
   /// No description provided for @setPayments.
   ///
   /// In en, this message translates to:
@@ -2059,6 +2089,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sync failed: {error}'**
   String setSyncFailed(String error);
+
+  /// No description provided for @setSyncConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync now?'**
+  String get setSyncConfirmTitle;
+
+  /// No description provided for @setSyncConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This will upload {count} local change(s) to the cloud and download any cloud changes.'**
+  String setSyncConfirmBody(int count);
+
+  /// No description provided for @setSyncConfirmDeletes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of them delete data from the cloud.'**
+  String setSyncConfirmDeletes(int count);
+
+  /// No description provided for @setSyncFirstWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This device hasn\'t synced with this cloud yet — uploading may overwrite data already there. If the cloud already has your real data, choose Restore from cloud instead.'**
+  String get setSyncFirstWarning;
+
+  /// No description provided for @setSyncAnyway.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync anyway'**
+  String get setSyncAnyway;
 
   /// No description provided for @setRestoreTitle.
   ///

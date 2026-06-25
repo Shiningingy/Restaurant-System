@@ -91,6 +91,9 @@ class SupabaseOnlineOrderChannel implements domain.OnlineOrderChannel {
         proposedPickupAt: r['proposed_pickup_at'] == null
             ? null
             : DateTime.parse(r['proposed_pickup_at'] as String),
+        // Optional column (docs/CLOUD_SECURITY.md); absent on shops that
+        // haven't added it → not a kiosk order.
+        kiosk: r['is_kiosk'] as bool? ?? false,
       );
 
   @override
@@ -145,6 +148,28 @@ class SupabaseOnlineOrderChannel implements domain.OnlineOrderChannel {
     if (resp.statusCode >= 300) {
       throw domain.SyncException('update order status (${resp.statusCode})');
     }
+  }
+
+  @override
+  Future<bool> claimForAccept(String orderId) async {
+    // Conditional update: only flips to accepted while still submitted. With
+    // `return=representation` the body is the rows actually changed, so a
+    // non-empty array means this device won the claim.
+    final resp = await _client
+        .patch(
+          _rest(domain.OnlineOrderingTables.onlineOrders, {
+            'id': 'eq.$orderId',
+            'status': 'eq.${domain.OnlineOrderStatus.submitted.name}',
+          }),
+          headers: {...await _authHeaders(), 'Prefer': 'return=representation'},
+          body: jsonEncode({'status': domain.OnlineOrderStatus.accepted.name}),
+        )
+        .timeout(timeout);
+    if (resp.statusCode >= 300) {
+      throw domain.SyncException('claim order (${resp.statusCode})');
+    }
+    final changed = jsonDecode(resp.body) as List;
+    return changed.isNotEmpty;
   }
 
   @override

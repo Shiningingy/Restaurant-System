@@ -101,7 +101,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -132,6 +132,17 @@ class AppDatabase extends _$AppDatabase {
       if (from < 8) {
         // v8: per-line settlement marker for split-by-item bills.
         await m.addColumn(orderLines, orderLines.settledByPaymentId);
+      }
+      if (from < 9) {
+        // v9: paid orders stay on the board until "finished". Add paidAt (the
+        // financial timestamp) and migrate already-closed `paid` orders to the
+        // new `done` state — so existing history stays in history and old
+        // orders don't resurface on the board.
+        await m.addColumn(orders, orders.paidAt);
+        await m.database.customStatement(
+          "UPDATE orders SET status = 'done', paid_at = closed_at "
+          "WHERE status = 'paid'",
+        );
       }
     },
   );

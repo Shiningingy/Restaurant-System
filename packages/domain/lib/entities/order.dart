@@ -6,8 +6,10 @@ part 'order.freezed.dart';
 
 enum OrderType { dineIn, takeout, online }
 
-/// `sent` (to kitchen) becomes meaningful in Phase 2 (printing).
-enum OrderStatus { open, sent, paid, voided }
+/// Lifecycle: `open` → `sent` (to kitchen) → `paid` (fully paid, but still
+/// being prepared — stays on the board) → `done` (finished/handed over, leaves
+/// the board → history). `voided` is a cancelled order kept for the record.
+enum OrderStatus { open, sent, paid, done, voided }
 
 enum OrderLineStatus { active, voided }
 
@@ -27,6 +29,13 @@ abstract class Order with _$Order {
     /// [taxRateBp] so a settings change never rewrites an existing order.
     @Default(0) int serviceFeeBp,
     String? tableId,
+
+    /// When the order was fully paid (the financial event). Set independently
+    /// of [closedAt] so a paid order can sit on the board (being prepared) and
+    /// still count as a sale on the day it was paid.
+    DateTime? paidAt,
+
+    /// When the order left the board — finished (`done`) or `voided`.
     DateTime? closedAt,
     @Default(Money.zero) Money subtotal,
 

@@ -139,6 +139,7 @@ class SyncCodec {
       'status': o.status.name,
       'tableId': o.tableId,
       'createdAt': o.createdAt.toUtc().toIso8601String(),
+      'paidAt': o.paidAt?.toUtc().toIso8601String(),
       'closedAt': o.closedAt?.toUtc().toIso8601String(),
       'taxRateBp': o.taxRateBp,
       'subtotal': o.subtotal.cents,
@@ -312,6 +313,11 @@ class SyncCodec {
               status: domain.OrderStatus.values.byName(p['status'] as String),
               tableId: Value(p['tableId'] as String?),
               createdAt: DateTime.parse(p['createdAt'] as String).toLocal(),
+              paidAt: Value(
+                p['paidAt'] == null
+                    ? null
+                    : DateTime.parse(p['paidAt'] as String).toLocal(),
+              ),
               closedAt: Value(
                 p['closedAt'] == null
                     ? null

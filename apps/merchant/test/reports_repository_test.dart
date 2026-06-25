@@ -68,11 +68,12 @@ void main() {
     return orderId;
   }
 
-  /// Moves an order's close time (and its payments) to another day, to
-  /// simulate history.
+  /// Moves an order's paid + close time (and its payments) to another day, to
+  /// simulate history. Sales bucket by paidAt and history by closedAt, so both
+  /// move together.
   Future<void> backdate(String orderId, DateTime to) async {
     await (db.update(db.orders)..where((t) => t.id.equals(orderId))).write(
-      OrdersCompanion(closedAt: Value(to)),
+      OrdersCompanion(paidAt: Value(to), closedAt: Value(to)),
     );
     await (db.update(db.payments)..where((t) => t.orderId.equals(orderId)))
         .write(PaymentsCompanion(createdAt: Value(to)));
@@ -86,6 +87,8 @@ void main() {
     await paidOrder([(burger, 1)], tip: const Money(200));
     await paidOrder([(fries, 2)], method: PaymentMethod.manual);
 
+    // An unpaid order that's voided is discarded (a misclick shouldn't show
+    // up), so it contributes nothing — not even to the voided count.
     final voidedId = await orders.createOrder(
       type: OrderType.takeout,
       taxRateBp: 1300,
@@ -109,7 +112,7 @@ void main() {
 
     // Sales side: the two orders paid today only.
     expect(report.ordersPaid, 2);
-    expect(report.ordersVoided, 1);
+    expect(report.ordersVoided, 0);
     expect(report.gross, const Money(1130 + 791));
     expect(report.subtotal, const Money(1000 + 700));
     expect(report.tax, const Money(130 + 91));
@@ -176,24 +179,28 @@ void main() {
     expect(report.gross, const Money(1000));
   });
 
-  test('history lists the day\'s paid and voided orders, newest first, '
-      'open orders excluded', () async {
+  test('history lists the day\'s finished and voided orders, newest first, '
+      'open/paid orders excluded', () async {
     final now = DateTime.now();
     final todayStart = DateTime(now.year, now.month, now.day);
 
+    // A finished (paid → done) order goes to history.
     final paidId = await paidOrder([(burger, 1)]);
-    final voidedId = await orders.createOrder(
-      type: OrderType.takeout,
-      taxRateBp: 1300,
-    );
+    await orders.markFinished(paidId);
+    // A voided order shows only when it had been paid (a cancelled sale);
+    // an unpaid void is discarded.
+    final voidedId = await paidOrder([(burger, 1)]);
     await orders.voidOrder(voidedId);
     // Drift stores DateTime at second precision; pin distinct close
     // times (inside today) so "newest first" is deterministic.
     await backdate(paidId, todayStart.add(const Duration(minutes: 1)));
     await backdate(voidedId, todayStart.add(const Duration(minutes: 2)));
+    // A still-open order (and a paid-but-not-finished one) are excluded.
     await orders.createOrder(type: OrderType.takeout, taxRateBp: 1300);
+    await paidOrder([(fries, 1)]);
 
     final yesterdayId = await paidOrder([(fries, 1)]);
+    await orders.markFinished(yesterdayId);
     await backdate(
       yesterdayId,
       DateTime.now().subtract(const Duration(days: 1)),

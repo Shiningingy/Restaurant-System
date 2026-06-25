@@ -53,6 +53,8 @@ class KioskOrderScreen extends ConsumerWidget {
       requestedPickupAt: DateTime.now().add(
         Duration(minutes: menu?.pickupLeadMinutes ?? 0),
       ),
+      // In-store kiosk → the merchant can auto-accept straight to the board.
+      kiosk: true,
       lines: [
         for (final l in cart)
           domain.PreorderLine(

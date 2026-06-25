@@ -27,6 +27,17 @@ class SyncOutcome {
       error = 'Cloud sync is not set up.';
 }
 
+/// Preview of what a push would upload, so the UI can warn before a "Sync now"
+/// overwrites cloud data (push is last-write-wins; pull is always safe).
+class PendingPush {
+  final int total;
+  final int deletes;
+
+  const PendingPush({required this.total, required this.deletes});
+
+  bool get isEmpty => total == 0;
+}
+
 /// Drives optional cloud sync against the restaurant's own Supabase.
 ///
 /// The local SQLite database is always the source of truth. Sync is a
@@ -71,6 +82,15 @@ class SyncService {
   }
 
   Future<domain.SyncHealth> health() => buildBackend().healthCheck();
+
+  /// How many local changes a "Sync now" would upload (and how many delete
+  /// data), without sending anything — for a pre-sync confirm. A push of local
+  /// state can overwrite the cloud (last-write-wins), so the UI warns on this.
+  Future<PendingPush> pendingPush() async {
+    final rows = await journal.unsynced();
+    final deletes = rows.where((r) => r.op == domain.SyncOp.delete).length;
+    return PendingPush(total: rows.length, deletes: deletes);
+  }
 
   /// Pull then push. Pull first so a newer local edit re-pushes and wins.
   Future<SyncOutcome> syncNow() async {

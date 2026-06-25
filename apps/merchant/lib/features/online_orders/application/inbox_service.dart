@@ -50,11 +50,13 @@ class InboxService {
     await channel.publishMenu(jsonEncode(menu.toJson()));
   }
 
-  /// Turns an accepted preorder into a normal local order (type=online),
-  /// then tells the customer it was accepted. Returns the local order id.
-  /// Line prices use the customer's submitted snapshots; tax is applied
-  /// locally (pickup is pay-at-store, tax included).
-  Future<String> accept(domain.IncomingOnlineOrder incoming) async {
+  /// Turns a preorder into a normal local order (type=online). **Claims the
+  /// order first** (atomic `submitted` → `accepted`) so two POSes can't both
+  /// build it; returns the local order id, or **null** if another device
+  /// already claimed it. Line prices use the customer's submitted snapshots;
+  /// tax is applied locally (pickup is pay-at-store, tax included).
+  Future<String?> accept(domain.IncomingOnlineOrder incoming) async {
+    if (!await channel.claimForAccept(incoming.id)) return null;
     final lines = (jsonDecode(incoming.linesJson) as List)
         .cast<Map<String, dynamic>>()
         .map(domain.PreorderLine.fromJson)
@@ -89,11 +91,19 @@ class InboxService {
         note: line.note,
       );
     }
-    await channel.updateOrderStatus(
-      incoming.id,
-      domain.OnlineOrderStatus.accepted,
-    );
     return orderId;
+  }
+
+  /// Auto-accepts any in-store **kiosk** orders in [incoming] straight to the
+  /// Orders board (the customer is on site). Each is claimed atomically, so
+  /// several POSes polling at once never double-build the same order. Remote
+  /// (non-kiosk) orders are left for manual review.
+  Future<void> autoAcceptKiosk(
+    List<domain.IncomingOnlineOrder> incoming,
+  ) async {
+    for (final o in incoming) {
+      if (o.kiosk) await accept(o);
+    }
   }
 
   Future<void> reject(String onlineOrderId) => channel.updateOrderStatus(

@@ -48,34 +48,50 @@ class OrdersScreen extends ConsumerWidget {
           if (orders.isEmpty) {
             return Center(child: Text(context.l10n.ordersEmpty));
           }
-          // Self-order (kiosk) orders are unpaid and customer-placed — show them
-          // in their own section, each card carrying its pickup number, so staff
-          // can spot and reconcile them at the counter.
-          final kiosk = [
+          // Paid orders being prepared — kept on the board until finished.
+          final pending = [
             for (final o in orders)
+              if (o.status == domain.OrderStatus.paid) o,
+          ];
+          // Still being rung up. Self-order (kiosk) orders show in their own
+          // section, each card carrying its pickup number, so staff can
+          // reconcile them at the counter.
+          final active = [
+            for (final o in orders)
+              if (o.status != domain.OrderStatus.paid) o,
+          ];
+          final kiosk = [
+            for (final o in active)
               if (kioskPickupCode(o.note) != null) o,
           ];
-          final regular = [
-            for (final o in orders)
+          final staff = [
+            for (final o in active)
               if (kioskPickupCode(o.note) == null) o,
           ];
 
-          if (kiosk.isEmpty) {
+          // Just one plain section → a simple grid, no headers.
+          if (pending.isEmpty && kiosk.isEmpty) {
             return GridView.builder(
               padding: const EdgeInsets.all(16),
               gridDelegate: _ordersGridDelegate,
-              itemCount: regular.length,
+              itemCount: staff.length,
               itemBuilder: (context, i) =>
-                  _orderCard(context, regular[i], tableLabels),
+                  _orderCard(context, ref, staff[i], tableLabels),
             );
           }
 
+          final sections = <(String, List<domain.Order>)>[
+            if (pending.isNotEmpty)
+              (context.l10n.ordersPendingSection, pending),
+            if (kiosk.isNotEmpty) (context.l10n.ordersSelfOrderSection, kiosk),
+            if (staff.isNotEmpty) (context.l10n.ordersStaffSection, staff),
+          ];
           return CustomScrollView(
             slivers: [
-              _sectionHeader(context, context.l10n.ordersSelfOrderSection),
-              _ordersSliver(context, kiosk, tableLabels),
-              _sectionHeader(context, context.l10n.ordersStaffSection),
-              _ordersSliver(context, regular, tableLabels),
+              for (final (label, list) in sections) ...[
+                _sectionHeader(context, label),
+                _ordersSliver(context, ref, list, tableLabels),
+              ],
               const SliverToBoxAdapter(child: SizedBox(height: 88)),
             ],
           );
@@ -99,6 +115,14 @@ class OrdersScreen extends ConsumerWidget {
   ) {
     final cs = Theme.of(context).colorScheme;
     final st = context.posStatus;
+    if (order.status == domain.OrderStatus.paid) {
+      return StatusPill(
+        icon: Icons.check_circle,
+        label: context.l10n.ordStatusPaid,
+        foreground: st.onSuccessContainer,
+        background: st.successContainer,
+      );
+    }
     if (code != null) {
       return StatusPill(
         icon: Icons.storefront,
@@ -141,6 +165,7 @@ class OrdersScreen extends ConsumerWidget {
 
   Widget _ordersSliver(
     BuildContext context,
+    WidgetRef ref,
     List<domain.Order> orders,
     Map<String, String> tableLabels,
   ) => SliverPadding(
@@ -148,7 +173,7 @@ class OrdersScreen extends ConsumerWidget {
     sliver: SliverGrid(
       gridDelegate: _ordersGridDelegate,
       delegate: SliverChildBuilderDelegate(
-        (context, i) => _orderCard(context, orders[i], tableLabels),
+        (context, i) => _orderCard(context, ref, orders[i], tableLabels),
         childCount: orders.length,
       ),
     ),
@@ -156,6 +181,7 @@ class OrdersScreen extends ConsumerWidget {
 
   Widget _orderCard(
     BuildContext context,
+    WidgetRef ref,
     domain.Order order,
     Map<String, String> tableLabels,
   ) {
@@ -215,28 +241,46 @@ class OrdersScreen extends ConsumerWidget {
                 child: _statusPill(context, order, code),
               ),
               const Spacer(),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Text(
-                    order.total.format(),
-                    style: moneyTextStyle(theme.textTheme.titleLarge),
-                  ),
-                  const SizedBox(width: 8),
-                  // Expanded so the time shrinks/ellipsizes rather than pushing
-                  // the row past a narrow card.
-                  Expanded(
-                    child: Text(
-                      TimeOfDay.fromDateTime(order.createdAt).format(context),
-                      textAlign: TextAlign.right,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall,
+              // A paid order shows a full-width "Mark finished" (one tap →
+              // history); other orders show the total + the order time.
+              if (order.status == domain.OrderStatus.paid)
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.tonalIcon(
+                    onPressed: () => ref
+                        .read(orderRepositoryProvider)
+                        .markFinished(order.id),
+                    icon: const Icon(Icons.check, size: 18),
+                    label: Text(context.l10n.ordMarkFinished),
+                    // Override the POS theme's 64px touch floor to fit the card.
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(0, 38),
+                      visualDensity: VisualDensity.compact,
                     ),
                   ),
-                ],
-              ),
+                )
+              else
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(
+                      order.total.format(),
+                      style: moneyTextStyle(theme.textTheme.titleLarge),
+                    ),
+                    const SizedBox(width: 8),
+                    // Expanded so the time ellipsizes rather than overflowing.
+                    Expanded(
+                      child: Text(
+                        TimeOfDay.fromDateTime(order.createdAt).format(context),
+                        textAlign: TextAlign.right,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ),
+                  ],
+                ),
             ],
           ),
         ),

@@ -44,6 +44,8 @@ void main() {
       amount: const domain.Money(1130),
       tip: const domain.Money(200),
     );
+    // Finish it so it leaves the board and lands in history.
+    await orders.markFinished(orderId);
 
     tester.view.physicalSize = const Size(1280, 800);
     tester.view.devicePixelRatio = 1.0;

@@ -25,9 +25,10 @@ class PaymentRepository {
   Future<List<domain.Payment>> paymentsForOrder(String orderId) =>
       watchPayments(orderId).first;
 
-  /// Records an approved payment and closes the order when its balance
-  /// reaches zero — one transaction, so a crash can't leave a fully paid
-  /// order open. Returns true if the order was closed.
+  /// Records an approved payment and marks the order `paid` when its balance
+  /// reaches zero — one transaction, so a crash can't leave a fully paid order
+  /// open. The order stays on the board (Pending) until it's finished. Returns
+  /// true if this payment fully paid it.
   Future<bool> recordApproved({
     required String orderId,
     required domain.PaymentMethod method,
@@ -62,10 +63,10 @@ class PaymentRepository {
       await (db.update(db.orders)..where((t) => t.id.equals(orderId))).write(
         OrdersCompanion(
           status: const Value(domain.OrderStatus.paid),
-          closedAt: Value(DateTime.now()),
+          paidAt: Value(DateTime.now()),
         ),
       );
-      // Closing changes the order row — re-journal it for sync.
+      // Paying changes the order row — re-journal it for sync.
       await journal.recordUpsert(SyncEntities.order, orderId);
       return true;
     });

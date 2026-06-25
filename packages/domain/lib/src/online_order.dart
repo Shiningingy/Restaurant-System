@@ -90,6 +90,12 @@ class PublishedItem {
   final Money price;
   final List<PublishedModifierGroup> modifierGroups;
 
+  /// Content-addressed photo reference (sha256 of the bytes + extension), or
+  /// null when the item has no photo. The customer builds a public Storage URL
+  /// from it (`menu-photos/<sha><ext>`) — see docs/CLOUD_SECURITY.md.
+  final String? imageSha;
+  final String? imageExt;
+
   const PublishedItem({
     required this.id,
     required this.name,
@@ -97,6 +103,8 @@ class PublishedItem {
     this.nameSecondary,
     this.description,
     this.modifierGroups = const [],
+    this.imageSha,
+    this.imageExt,
   });
 
   Map<String, dynamic> toJson() => {
@@ -106,6 +114,8 @@ class PublishedItem {
         if (description != null) 'description': description,
         'price': price.cents,
         'modifierGroups': modifierGroups.map((g) => g.toJson()).toList(),
+        if (imageSha != null) 'imageSha': imageSha,
+        if (imageExt != null) 'imageExt': imageExt,
       };
 
   factory PublishedItem.fromJson(Map<String, dynamic> j) => PublishedItem(
@@ -118,6 +128,8 @@ class PublishedItem {
             .cast<Map<String, dynamic>>()
             .map(PublishedModifierGroup.fromJson)
             .toList(),
+        imageSha: j['imageSha'] as String?,
+        imageExt: j['imageExt'] as String?,
       );
 }
 
@@ -282,6 +294,11 @@ class PreorderSubmission {
   final List<PreorderLine> lines;
   final String? note;
 
+  /// True when this preorder was placed at an in-store self-order **kiosk**
+  /// (not a remote customer). The merchant can auto-accept these straight to
+  /// the Orders board, since the customer is already on site.
+  final bool kiosk;
+
   const PreorderSubmission({
     required this.customerName,
     required this.requestedPickupAt,
@@ -291,6 +308,7 @@ class PreorderSubmission {
     this.notifyByEmail = false,
     this.notifyBySms = false,
     this.note,
+    this.kiosk = false,
   });
 
   Money get total => lines.fold(Money.zero, (sum, l) => sum + l.lineTotal);
@@ -304,6 +322,7 @@ class PreorderSubmission {
         'requestedPickupAt': requestedPickupAt.toIso8601String(),
         'lines': lines.map((l) => l.toJson()).toList(),
         'note': note,
+        'kiosk': kiosk,
       };
 
   factory PreorderSubmission.fromJson(Map<String, dynamic> j) =>
@@ -319,5 +338,6 @@ class PreorderSubmission {
             .map(PreorderLine.fromJson)
             .toList(),
         note: j['note'] as String?,
+        kiosk: j['kiosk'] as bool? ?? false,
       );
 }

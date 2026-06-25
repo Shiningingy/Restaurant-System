@@ -19,6 +19,9 @@ class NoopOnlineOrderChannel implements domain.OnlineOrderChannel {
   ) async {}
 
   @override
+  Future<bool> claimForAccept(String orderId) async => false;
+
+  @override
   Future<void> proposePickupTime(
     String orderId,
     DateTime proposedPickupAt,

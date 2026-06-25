@@ -79,19 +79,28 @@ class ReportsRepository {
     final from = DateTime(day.year, day.month, day.day);
     final to = from.add(const Duration(days: 1));
 
-    final closed =
+    // Sales: every order paid that day — whether it's still being prepared
+    // (`paid`) or finished (`done`) — bucketed by when it was paid.
+    final paid =
+        await (db.select(db.orders)..where(
+              (t) =>
+                  t.paidAt.isBiggerOrEqualValue(from) &
+                  t.paidAt.isSmallerThanValue(to) &
+                  t.status.isInValues([
+                    domain.OrderStatus.paid,
+                    domain.OrderStatus.done,
+                  ]),
+            ))
+            .get();
+    // Voids recorded that day (kept only for orders that had been paid).
+    final voided =
         await (db.select(db.orders)..where(
               (t) =>
                   t.closedAt.isBiggerOrEqualValue(from) &
-                  t.closedAt.isSmallerThanValue(to),
+                  t.closedAt.isSmallerThanValue(to) &
+                  t.status.equalsValue(domain.OrderStatus.voided),
             ))
             .get();
-    final paid = closed
-        .where((o) => o.status == domain.OrderStatus.paid)
-        .toList();
-    final voided = closed
-        .where((o) => o.status == domain.OrderStatus.voided)
-        .length;
 
     var gross = domain.Money.zero;
     var subtotal = domain.Money.zero;
@@ -105,7 +114,7 @@ class ReportsRepository {
     return DailyReport(
       day: from,
       ordersPaid: paid.length,
-      ordersVoided: voided,
+      ordersVoided: voided.length,
       gross: gross,
       subtotal: subtotal,
       tax: tax,
@@ -126,8 +135,8 @@ class ReportsRepository {
         .asyncMap((_) => dailyReport(day));
   }
 
-  /// Closed orders (paid and voided) of that day, newest first — the
-  /// history browser.
+  /// Finished (`done`) and `voided` orders of that day, newest first — the
+  /// history browser. (A `paid` order is still on the board, not here yet.)
   Stream<List<domain.Order>> watchClosedOrders(DateTime day) {
     final from = DateTime(day.year, day.month, day.day);
     final to = from.add(const Duration(days: 1));
@@ -137,7 +146,7 @@ class ReportsRepository {
             t.closedAt.isBiggerOrEqualValue(from) &
             t.closedAt.isSmallerThanValue(to) &
             t.status.isInValues([
-              domain.OrderStatus.paid,
+              domain.OrderStatus.done,
               domain.OrderStatus.voided,
             ]),
       )
@@ -151,6 +160,7 @@ class ReportsRepository {
               status: r.status,
               tableId: r.tableId,
               createdAt: r.createdAt,
+              paidAt: r.paidAt,
               closedAt: r.closedAt,
               taxRateBp: r.taxRateBp,
               subtotal: r.subtotal,

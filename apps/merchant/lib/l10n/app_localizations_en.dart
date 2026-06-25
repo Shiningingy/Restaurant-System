@@ -90,13 +90,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ordersStaffSection => 'Orders';
 
   @override
+  String get ordersPendingSection => 'Paid · preparing';
+
+  @override
   String get ordStatusOpen => 'Open';
 
   @override
   String get ordStatusPreparing => 'Preparing';
 
   @override
+  String get ordStatusPaid => 'Paid · preparing';
+
+  @override
   String get ordStatusSelfOrder => 'Self-order';
+
+  @override
+  String get ordMarkFinished => 'Mark finished';
 
   @override
   String ordersLoadFailed(String error) {
@@ -746,6 +755,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setNewOrderSound => 'Alert sound on new order';
 
   @override
+  String get setAutoAcceptKiosk => 'Auto-accept kiosk orders';
+
+  @override
+  String get setAutoAcceptKioskHint =>
+      'Send in-store kiosk orders straight to the Orders board. Turn off to review them in the Inbox first.';
+
+  @override
   String get setPayments => 'Payments';
 
   @override
@@ -1142,6 +1158,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String setSyncFailed(String error) {
     return 'Sync failed: $error';
   }
+
+  @override
+  String get setSyncConfirmTitle => 'Sync now?';
+
+  @override
+  String setSyncConfirmBody(int count) {
+    return 'This will upload $count local change(s) to the cloud and download any cloud changes.';
+  }
+
+  @override
+  String setSyncConfirmDeletes(int count) {
+    return '$count of them delete data from the cloud.';
+  }
+
+  @override
+  String get setSyncFirstWarning =>
+      'This device hasn\'t synced with this cloud yet — uploading may overwrite data already there. If the cloud already has your real data, choose Restore from cloud instead.';
+
+  @override
+  String get setSyncAnyway => 'Sync anyway';
 
   @override
   String get setRestoreTitle => 'Restore from cloud?';
