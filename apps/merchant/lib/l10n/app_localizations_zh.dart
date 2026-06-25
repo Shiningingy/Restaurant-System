@@ -89,13 +89,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get ordersStaffSection => '订单';
 
   @override
+  String get ordersPendingSection => '已付款 · 备餐中';
+
+  @override
   String get ordStatusOpen => '进行中';
 
   @override
   String get ordStatusPreparing => '备餐中';
 
   @override
+  String get ordStatusPaid => '已付款 · 备餐中';
+
+  @override
   String get ordStatusSelfOrder => '自助点餐';
+
+  @override
+  String get ordMarkFinished => '标记完成';
 
   @override
   String ordersLoadFailed(String error) {

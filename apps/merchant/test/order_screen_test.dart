@@ -165,15 +165,20 @@ void main() {
     expect(find.byType(SnackBar), findsNothing);
 
     // Pay the remaining balance - the order closes and we return to
-    // the (now empty) orders board.
+    // the orders board — where the paid order now sits in Pending until
+    // finished.
     await tester.tap(find.text(r'Pay $6.30'));
     await pumpUntilFound(tester, find.text(r'Collect $6.30'));
     await tester.tap(find.text('Cash'));
+    await pumpUntilFound(tester, find.text('Mark finished'));
+    expect(find.text('Send to kitchen'), findsNothing);
+
+    // Finishing it clears the board.
+    await tester.tap(find.text('Mark finished'));
     await pumpUntilFound(
       tester,
       find.text('No open orders — start a dine-in or takeout order.'),
     );
-    expect(find.text('Send to kitchen'), findsNothing);
 
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 1));

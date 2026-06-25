@@ -90,13 +90,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ordersStaffSection => 'Orders';
 
   @override
+  String get ordersPendingSection => 'Paid · preparing';
+
+  @override
   String get ordStatusOpen => 'Open';
 
   @override
   String get ordStatusPreparing => 'Preparing';
 
   @override
+  String get ordStatusPaid => 'Paid · preparing';
+
+  @override
   String get ordStatusSelfOrder => 'Self-order';
+
+  @override
+  String get ordMarkFinished => 'Mark finished';
 
   @override
   String ordersLoadFailed(String error) {

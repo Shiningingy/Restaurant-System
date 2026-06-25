@@ -91,14 +91,20 @@ void main() {
 
       order = (await orders.watchOrder(orderId).first)!;
       expect(order.status, OrderStatus.paid);
-      expect(order.closedAt, isNotNull);
+      expect(order.paidAt, isNotNull);
+      expect(order.closedAt, isNull);
 
       final rows = await db.select(db.payments).get();
       expect(rows, hasLength(1));
       expect(rows.single.amount, const Money(2147));
       expect(rows.single.status, PaymentStatus.approved);
 
-      // Closed order no longer shows as open.
+      // A paid order stays on the board (Pending) until it's finished.
+      expect(await orders.watchOpenOrders().first, hasLength(1));
+      await orders.markFinished(orderId);
+      final done = (await orders.watchOrder(orderId).first)!;
+      expect(done.status, OrderStatus.done);
+      expect(done.closedAt, isNotNull);
       expect(await orders.watchOpenOrders().first, isEmpty);
     },
   );
@@ -334,6 +340,65 @@ void main() {
       expect(order.serviceFee, const Money(60));
       expect(order.tax, const Money(78));
       expect(order.total, const Money(738));
+    });
+  });
+
+  group('void & discard', () {
+    test('voiding an unpaid order discards it; a paid void is kept', () async {
+      // Unpaid void → gone (a misclick shouldn't clutter history).
+      final unpaid = await orders.createOrder(
+        type: OrderType.takeout,
+        taxRateBp: 0,
+      );
+      await orders.addLine(orderId: unpaid, item: burger);
+      await orders.voidOrder(unpaid);
+      expect(await orders.getOrder(unpaid), isNull);
+
+      // Paid void → kept as a voided record.
+      final paid = await orders.createOrder(
+        type: OrderType.takeout,
+        taxRateBp: 0,
+      );
+      await orders.addLine(orderId: paid, item: burger);
+      await payments.recordApproved(
+        orderId: paid,
+        method: PaymentMethod.cash,
+        amount: const Money(1000),
+      );
+      await orders.voidOrder(paid);
+      final voided = (await orders.getOrder(paid))!;
+      expect(voided.status, OrderStatus.voided);
+      expect(voided.closedAt, isNotNull);
+    });
+
+    test('discardIfEmpty removes empty unpaid orders only', () async {
+      // Opened, nothing added → discarded.
+      final empty = await orders.createOrder(
+        type: OrderType.takeout,
+        taxRateBp: 0,
+      );
+      expect(await orders.discardIfEmpty(empty), isTrue);
+      expect(await orders.getOrder(empty), isNull);
+
+      // Every line voided → also empty → discarded.
+      final emptied = await orders.createOrder(
+        type: OrderType.takeout,
+        taxRateBp: 0,
+      );
+      await orders.addLine(orderId: emptied, item: burger);
+      final line = (await orders.getLines(emptied)).single;
+      await orders.voidLine(line.id);
+      expect(await orders.discardIfEmpty(emptied), isTrue);
+      expect(await orders.getOrder(emptied), isNull);
+
+      // Has an active line → kept.
+      final withItem = await orders.createOrder(
+        type: OrderType.takeout,
+        taxRateBp: 0,
+      );
+      await orders.addLine(orderId: withItem, item: fries);
+      expect(await orders.discardIfEmpty(withItem), isFalse);
+      expect(await orders.getOrder(withItem), isNotNull);
     });
   });
 }

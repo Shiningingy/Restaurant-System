@@ -123,6 +123,7 @@ class Orders extends Table {
   TextColumn get status => textEnum<domain.OrderStatus>()();
   TextColumn get tableId => text().nullable().references(DiningTables, #id)();
   DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get paidAt => dateTime().nullable()();
   DateTimeColumn get closedAt => dateTime().nullable()();
   IntColumn get taxRateBp => integer()();
   IntColumn get serviceFeeBp => integer().withDefault(const Constant(0))();

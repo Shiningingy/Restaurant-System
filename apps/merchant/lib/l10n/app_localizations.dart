@@ -254,6 +254,12 @@ abstract class AppLocalizations {
   /// **'Orders'**
   String get ordersStaffSection;
 
+  /// No description provided for @ordersPendingSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid · preparing'**
+  String get ordersPendingSection;
+
   /// No description provided for @ordStatusOpen.
   ///
   /// In en, this message translates to:
@@ -266,11 +272,23 @@ abstract class AppLocalizations {
   /// **'Preparing'**
   String get ordStatusPreparing;
 
+  /// No description provided for @ordStatusPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid · preparing'**
+  String get ordStatusPaid;
+
   /// No description provided for @ordStatusSelfOrder.
   ///
   /// In en, this message translates to:
   /// **'Self-order'**
   String get ordStatusSelfOrder;
+
+  /// No description provided for @ordMarkFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark finished'**
+  String get ordMarkFinished;
 
   /// No description provided for @ordersLoadFailed.
   ///

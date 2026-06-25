@@ -63,14 +63,16 @@ class OrderRepository {
     });
   }
 
-  /// Active orders for the board: `open` plus `sent` (sent to kitchen but
-  /// not yet paid — still editable).
+  /// Active orders for the board: `open`/`sent` (still being rung up) plus
+  /// `paid` (fully paid but still being prepared — sits in the Pending area
+  /// until staff mark it finished). `done`/`voided` orders have left the board.
   Stream<List<domain.Order>> watchOpenOrders() {
     final q = db.select(db.orders)
       ..where(
         (t) => t.status.isInValues([
           domain.OrderStatus.open,
           domain.OrderStatus.sent,
+          domain.OrderStatus.paid,
         ]),
       )
       ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]);
@@ -287,11 +289,40 @@ class OrderRepository {
     });
   }
 
-  // Closing an order now lives in PaymentRepository.recordApproved
-  // (Phase 3): the order closes when its payment balance reaches zero.
+  // Paying an order lives in PaymentRepository.recordApproved (Phase 3): when
+  // the balance reaches zero the order goes to `paid` (and stays on the board
+  // in the Pending area until [markFinished]).
 
+  /// Marks a paid order as finished/handed over: it leaves the board and moves
+  /// to history. `paid` → `done`, stamping [closedAt]. Idempotent / a no-op for
+  /// orders that aren't currently `paid`.
+  Future<void> markFinished(String orderId) {
+    return db.transaction(() async {
+      final changed =
+          await (db.update(db.orders)..where(
+                (t) =>
+                    t.id.equals(orderId) &
+                    t.status.equalsValue(domain.OrderStatus.paid),
+              ))
+              .write(
+                OrdersCompanion(
+                  status: const Value(domain.OrderStatus.done),
+                  closedAt: Value(DateTime.now()),
+                ),
+              );
+      if (changed > 0) await _journalOrder(orderId);
+    });
+  }
+
+  /// Voids an order. An **unpaid** order (no approved payment) is **discarded**
+  /// — a void there is usually a misclick and shouldn't clutter history. A
+  /// **paid** order is kept (`voided` + [closedAt]) as a financial record.
   Future<void> voidOrder(String orderId) {
     return db.transaction(() async {
+      if (!await _hasApprovedPayment(orderId)) {
+        await _deleteOrderTx(orderId);
+        return;
+      }
       await (db.update(db.orders)..where((t) => t.id.equals(orderId))).write(
         OrdersCompanion(
           status: const Value(domain.OrderStatus.voided),
@@ -302,26 +333,64 @@ class OrderRepository {
     });
   }
 
+  /// Discards an order that has **no active lines and no payment** — one that
+  /// was opened and left empty, or had every line voided. Returns true if it
+  /// was deleted. Keeps $0 ghosts off the board (called on leaving the editor).
+  Future<bool> discardIfEmpty(String orderId) {
+    return db.transaction(() async {
+      if (await _hasApprovedPayment(orderId)) return false;
+      final active =
+          await (db.select(db.orderLines)
+                ..where(
+                  (t) =>
+                      t.orderId.equals(orderId) &
+                      t.status.equalsValue(domain.OrderLineStatus.active),
+                )
+                ..limit(1))
+              .getSingleOrNull();
+      if (active != null) return false;
+      await _deleteOrderTx(orderId);
+      return true;
+    });
+  }
+
+  /// Whether the order has at least one approved payment.
+  Future<bool> _hasApprovedPayment(String orderId) async {
+    final row =
+        await (db.select(db.payments)
+              ..where(
+                (t) =>
+                    t.orderId.equals(orderId) &
+                    t.status.equalsValue(domain.PaymentStatus.approved),
+              )
+              ..limit(1))
+            .getSingleOrNull();
+    return row != null;
+  }
+
   /// Permanently removes a closed order and everything under it (lines,
   /// modifiers, payments) — owner-only, for clearing test/mistaken history.
   /// Journals a delete so other devices drop it too.
-  Future<void> deleteOrder(String orderId) {
-    return db.transaction(() async {
-      final lineIds = (await (db.select(
-        db.orderLines,
-      )..where((t) => t.orderId.equals(orderId))).get()).map((l) => l.id);
-      await (db.delete(
-        db.orderLineModifiers,
-      )..where((t) => t.lineId.isIn(lineIds))).go();
-      await (db.delete(
-        db.orderLines,
-      )..where((t) => t.orderId.equals(orderId))).go();
-      await (db.delete(
-        db.payments,
-      )..where((t) => t.orderId.equals(orderId))).go();
-      await (db.delete(db.orders)..where((t) => t.id.equals(orderId))).go();
-      await journal.recordDelete(SyncEntities.order, orderId);
-    });
+  Future<void> deleteOrder(String orderId) =>
+      db.transaction(() => _deleteOrderTx(orderId));
+
+  /// The body of [deleteOrder] without its own transaction, so [voidOrder] and
+  /// [discardIfEmpty] can delete inside their own transaction.
+  Future<void> _deleteOrderTx(String orderId) async {
+    final lineIds = (await (db.select(
+      db.orderLines,
+    )..where((t) => t.orderId.equals(orderId))).get()).map((l) => l.id);
+    await (db.delete(
+      db.orderLineModifiers,
+    )..where((t) => t.lineId.isIn(lineIds))).go();
+    await (db.delete(
+      db.orderLines,
+    )..where((t) => t.orderId.equals(orderId))).go();
+    await (db.delete(
+      db.payments,
+    )..where((t) => t.orderId.equals(orderId))).go();
+    await (db.delete(db.orders)..where((t) => t.id.equals(orderId))).go();
+    await journal.recordDelete(SyncEntities.order, orderId);
   }
 
   // --- Internals ---
@@ -356,6 +425,7 @@ class OrderRepository {
     status: r.status,
     tableId: r.tableId,
     createdAt: r.createdAt,
+    paidAt: r.paidAt,
     closedAt: r.closedAt,
     taxRateBp: r.taxRateBp,
     serviceFeeBp: r.serviceFeeBp,

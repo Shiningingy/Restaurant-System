@@ -43,6 +43,14 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
     super.dispose();
   }
 
+  /// Leaves the editor back to the board. Discards the order first if it was
+  /// left empty and unpaid (opened with nothing added, or every line voided),
+  /// so no $0 ghost lingers on the board. Best-effort — navigation doesn't wait.
+  void _leave() {
+    ref.read(orderRepositoryProvider).discardIfEmpty(widget.orderId);
+    context.go('/orders');
+  }
+
   /// Sends the current order (items + total) to the customer display when it's
   /// open; a no-op otherwise.
   void _pushToDisplay() {
@@ -98,7 +106,7 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        leading: BackButton(onPressed: () => context.go('/orders')),
+        leading: BackButton(onPressed: _leave),
         title: Text(_title(context, order)),
         actions: [
           // Discount moved inline (above the Tax row in the ticket); the app bar
@@ -108,6 +116,23 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
               onPressed: () => _voidOrder(context),
               icon: const Icon(Icons.delete_outline),
               label: Text(context.l10n.ordVoidOrder),
+            ),
+          // A paid order is being prepared — "Mark finished" sends it to
+          // history and off the board.
+          if (order != null && order.status == domain.OrderStatus.paid)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: FilledButton.icon(
+                onPressed: () {
+                  ref.read(orderRepositoryProvider).markFinished(order.id);
+                  context.go('/orders');
+                },
+                // Override the POS theme's 64px touch floor so it fits the
+                // app bar.
+                style: FilledButton.styleFrom(minimumSize: const Size(0, 40)),
+                icon: const Icon(Icons.check),
+                label: Text(context.l10n.ordMarkFinished),
+              ),
             ),
         ],
       ),
