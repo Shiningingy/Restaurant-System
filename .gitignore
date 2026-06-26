@@ -5,6 +5,13 @@ build/
 release/
 pubspec.lock.bak
 
+# Node — only present because the Supabase CLI was run via npx; not part of the
+# Flutter workspace. The CLI is invoked on demand (`npx supabase ...`).
+node_modules/
+/package.json
+/package-lock.json
+/supabase/.temp/
+
 # Presentation / pitch material — not part of the app, never upload
 presentation/
 

@@ -29,6 +29,7 @@ Future<Map<String, dynamic>> buildKioskMenuSnapshot(
   required int taxRateBp,
   required int serviceFeeBp,
   required bool payHere,
+  Future<String?> Function(String itemId)? imagePath,
 }) async {
   final categories = await menu.watchCategories().first;
   final cats = <Map<String, dynamic>>[];
@@ -45,6 +46,8 @@ Future<Map<String, dynamic>> buildKioskMenuSnapshot(
         'description': it.description,
         'priceCents': it.price.cents,
         'price': it.price.format(),
+        // A local file path the same-machine display window reads directly.
+        'imageUrl': imagePath == null ? null : await imagePath(it.id),
         'modifierGroups': [
           for (final g in groups)
             {

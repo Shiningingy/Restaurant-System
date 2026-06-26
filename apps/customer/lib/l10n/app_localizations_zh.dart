@@ -218,6 +218,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String kioskAddToOrderTotal(String total) {
+    return '加入订单  ·  $total';
+  }
+
+  @override
   String kioskOrderName(int number) {
     return '自助机 $number';
   }

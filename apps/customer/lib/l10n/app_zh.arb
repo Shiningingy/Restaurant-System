@@ -68,6 +68,7 @@
   "kioskService": "服务费 ({pct}%)",
   "kioskTax": "税 ({pct}%)",
   "kioskAddToOrderExtra": "加入订单  ·  +{extra}",
+  "kioskAddToOrderTotal": "加入订单  ·  {total}",
   "kioskOrderName": "自助机 {number}",
   "kioskSetupTitle": "设置自助点餐机",
   "kioskSetupBody": "使用餐厅的商家登录信息将本设备设为自助点餐机。该登录仅用于授权设置，不会保存在本设备上。",

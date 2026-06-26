@@ -482,6 +482,12 @@ abstract class AppLocalizations {
   /// **'Add to order  ·  +{extra}'**
   String kioskAddToOrderExtra(String extra);
 
+  /// No description provided for @kioskAddToOrderTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to order  ·  {total}'**
+  String kioskAddToOrderTotal(String total);
+
   /// No description provided for @kioskOrderName.
   ///
   /// In en, this message translates to:

@@ -5,21 +5,31 @@ import '../../../core/l10n_ext.dart';
 import '../../../core/widgets/item_name.dart';
 import '../../cart/cart.dart';
 
-/// Item detail popup: a photo (when the item has one), name + description,
-/// add-ons, a quantity stepper and add-to-cart. Single-select groups
-/// (maxSelect == 1) use radios, others checkboxes. Returns the resulting
+/// Item detail popup: a centered dialog with the item photo (when it has one),
+/// name + description, add-ons, a quantity stepper and add-to-cart. Single-select
+/// groups (maxSelect == 1) use radios, others checkboxes. Returns the resulting
 /// [CartLine], or null if cancelled. [imageUrl] is the item's public photo URL
-/// (null skips the photo section — no placeholder).
+/// (null shows a camera-icon placeholder banner).
 Future<CartLine?> showItemSheet(
   BuildContext context,
   domain.PublishedItem item, {
   String? imageUrl,
 }) {
-  return showModalBottomSheet<CartLine>(
+  final size = MediaQuery.of(context).size;
+  return showDialog<CartLine>(
     context: context,
-    isScrollControlled: true,
-    showDragHandle: true,
-    builder: (_) => _ItemSheet(item: item, imageUrl: imageUrl),
+    builder: (_) => Dialog(
+      clipBehavior: Clip.antiAlias,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 420,
+          maxHeight: size.height * 0.9,
+        ),
+        child: _ItemSheet(item: item, imageUrl: imageUrl),
+      ),
+    ),
   );
 }
 
@@ -77,100 +87,120 @@ class _ItemSheetState extends State<_ItemSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final desc = widget.item.description?.trim();
-    return SafeArea(
-      top: false,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Flexible(
-            child: ListView(
-              shrinkWrap: true,
-              padding: EdgeInsets.zero,
-              children: [
-                if (widget.imageUrl != null) _photo(widget.imageUrl!),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ItemName(
-                        name: widget.item.name,
-                        nameSecondary: widget.item.nameSecondary,
-                        style: theme.textTheme.titleLarge,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Flexible(
+          child: ListView(
+            shrinkWrap: true,
+            padding: EdgeInsets.zero,
+            children: [
+              _photo(widget.imageUrl),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ItemName(
+                      name: widget.item.name,
+                      nameSecondary: widget.item.nameSecondary,
+                      style: theme.textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      widget.item.price.format(),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: theme.colorScheme.primary,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        widget.item.price.format(),
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: theme.colorScheme.primary,
-                        ),
-                      ),
-                      if (desc != null && desc.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        Text(desc, style: theme.textTheme.bodyMedium),
-                      ],
+                    ),
+                    if (desc != null && desc.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(desc, style: theme.textTheme.bodyMedium),
                     ],
-                  ),
+                  ],
                 ),
-                for (final g in widget.item.modifierGroups)
-                  ..._group(context, g),
-                const SizedBox(height: 8),
-              ],
-            ),
+              ),
+              for (final g in widget.item.modifierGroups) ..._group(context, g),
+              const SizedBox(height: 8),
+            ],
           ),
-          const Divider(height: 1),
-          Padding(
-            padding: EdgeInsets.only(
-              left: 16,
-              right: 16,
-              top: 12,
-              bottom: MediaQuery.of(context).viewInsets.bottom + 12,
-            ),
-            child: Row(
-              children: [
-                IconButton.filledTonal(
-                  onPressed: _qty == 1 ? null : () => setState(() => _qty--),
-                  icon: const Icon(Icons.remove),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Text('$_qty', style: theme.textTheme.titleMedium),
-                ),
-                IconButton.filledTonal(
-                  onPressed: () => setState(() => _qty++),
-                  icon: const Icon(Icons.add),
-                ),
-                const Spacer(),
-                FilledButton(
+        ),
+        const Divider(height: 1),
+        Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 12,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 12,
+          ),
+          child: Row(
+            children: [
+              IconButton.filledTonal(
+                onPressed: _qty == 1 ? null : () => setState(() => _qty--),
+                icon: const Icon(Icons.remove),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Text('$_qty', style: theme.textTheme.titleMedium),
+              ),
+              IconButton.filledTonal(
+                onPressed: () => setState(() => _qty++),
+                icon: const Icon(Icons.add),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: FilledButton(
                   onPressed: () => Navigator.pop(
                     context,
                     CartLine(item: widget.item, modifiers: _chosen, qty: _qty),
                   ),
                   child: Text(context.l10n.itemAdd((_unit * _qty).format())),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  /// The item photo, full-bleed at the top. A broken/missing image just
-  /// collapses (no placeholder, per the no-placeholder rule).
-  Widget _photo(String url) => Image.network(
-    url,
-    height: 200,
-    width: double.infinity,
-    fit: BoxFit.cover,
-    errorBuilder: (_, _, _) => const SizedBox.shrink(),
-    loadingBuilder: (context, child, progress) => progress == null
-        ? child
-        : const SizedBox(
-            height: 200,
-            child: Center(child: CircularProgressIndicator()),
+  /// The item photo as a rounded 160px banner (mockup spec). With no photo — or
+  /// on a load failure — it shows a camera-icon placeholder on a surface-variant
+  /// tile, so the dialog keeps a steady image area.
+  Widget _photo(String? url) {
+    final cs = Theme.of(context).colorScheme;
+    final placeholder = Center(
+      child: Icon(
+        Icons.photo_camera_outlined,
+        size: 40,
+        color: cs.onSurfaceVariant,
+      ),
+    );
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: SizedBox(
+          height: 160,
+          width: double.infinity,
+          child: ColoredBox(
+            color: cs.surfaceContainerHighest,
+            child: url == null
+                ? placeholder
+                : Image.network(
+                    url,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => placeholder,
+                    loadingBuilder: (context, child, progress) =>
+                        progress == null
+                        ? child
+                        : const Center(child: CircularProgressIndicator()),
+                  ),
           ),
-  );
+        ),
+      ),
+    );
+  }
 
   List<Widget> _group(BuildContext context, domain.PublishedModifierGroup g) {
     final single = g.maxSelect == 1;

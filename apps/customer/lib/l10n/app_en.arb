@@ -86,6 +86,10 @@
   "@kioskAddToOrderExtra": {
     "placeholders": { "extra": { "type": "String" } }
   },
+  "kioskAddToOrderTotal": "Add to order  ·  {total}",
+  "@kioskAddToOrderTotal": {
+    "placeholders": { "total": { "type": "String" } }
+  },
   "kioskOrderName": "Kiosk {number}",
   "@kioskOrderName": {
     "placeholders": { "number": { "type": "int" } }

@@ -22,7 +22,11 @@ class KioskOrderScreen extends ConsumerWidget {
     final menu = ref.watch(menuProvider).value;
     final kioskMenu = menu == null
         ? null
-        : publishedToKioskMenu(menu, appLanguageCode: lang);
+        : publishedToKioskMenu(
+            menu,
+            appLanguageCode: lang,
+            storefrontUrl: ref.read(storefrontConfigProvider).url,
+          );
     return KioskSurface(
       businessName: menu?.restaurantName ?? '',
       // The shop logo isn't synced to the customer app, so the generic glyph
@@ -111,4 +115,5 @@ KioskLabels _labels(AppLocalizations l10n) => KioskLabels(
   service: (pct) => l10n.kioskService(pct),
   tax: (pct) => l10n.kioskTax(pct),
   addToOrderExtra: (extra) => l10n.kioskAddToOrderExtra(extra),
+  addToOrderTotal: (total) => l10n.kioskAddToOrderTotal(total),
 );

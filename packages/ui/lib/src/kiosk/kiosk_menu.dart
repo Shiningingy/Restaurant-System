@@ -61,6 +61,11 @@ class KioskItem {
   final String? description;
   final int priceCents;
   final String price;
+
+  /// Public photo URL for this item, or null when it has none (the surface
+  /// shows a camera-icon placeholder). The customer kiosk fills this from the
+  /// menu-photos bucket; the merchant display leaves it null for now.
+  final String? imageUrl;
   final List<KioskModifierGroup> modifierGroups;
 
   const KioskItem({
@@ -71,6 +76,7 @@ class KioskItem {
     required this.description,
     required this.priceCents,
     required this.price,
+    this.imageUrl,
     required this.modifierGroups,
   });
 
@@ -82,6 +88,7 @@ class KioskItem {
     description: j['description'] as String?,
     priceCents: (j['priceCents'] as num).toInt(),
     price: j['price'] as String,
+    imageUrl: j['imageUrl'] as String?,
     modifierGroups: ((j['modifierGroups'] as List?) ?? const [])
         .cast<Map<String, dynamic>>()
         .map(KioskModifierGroup.fromJson)

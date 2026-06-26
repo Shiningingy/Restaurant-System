@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
@@ -78,31 +79,29 @@ class _KioskSurfaceState extends State<KioskSurface> {
     super.dispose();
   }
 
-  void _addToCart(KioskItem item, List<KioskModifier> modifiers) {
-    final line = KioskCartLine(item: item, modifiers: modifiers);
+  void _addToCart(KioskItem item, List<KioskModifier> modifiers, int qty) {
+    final line = KioskCartLine(item: item, modifiers: modifiers, qty: qty);
     final existing = _cart
         .where((l) => l.signature == line.signature)
         .firstOrNull;
     setState(() {
       if (existing != null) {
-        existing.qty += 1;
+        existing.qty += qty;
       } else {
         _cart.add(line);
       }
     });
   }
 
+  /// Always opens the item popup (photo, options, quantity) — even for items
+  /// with no options — so the customer reviews the dish before adding, matching
+  /// the storefront menu.
   Future<void> _onItemTap(KioskItem item) async {
-    if (!item.hasModifiers) {
-      _addToCart(item, const []);
-      return;
-    }
-    final mods = await showModalBottomSheet<List<KioskModifier>>(
+    final result = await showDialog<(List<KioskModifier>, int)>(
       context: context,
-      isScrollControlled: true,
-      builder: (_) => _ModifierSheet(item: item, labels: _l),
+      builder: (_) => _ItemDialog(item: item, labels: _l),
     );
-    if (mods != null) _addToCart(item, mods);
+    if (result != null && mounted) _addToCart(item, result.$1, result.$2);
   }
 
   Future<void> _placeOrder() async {
@@ -264,9 +263,9 @@ class _KioskSurfaceState extends State<KioskSurface> {
     padding: const EdgeInsets.all(16),
     gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
       maxCrossAxisExtent: 240,
-      mainAxisExtent: 150,
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
+      mainAxisExtent: 232,
+      crossAxisSpacing: 16,
+      mainAxisSpacing: 16,
     ),
     itemCount: items.length,
     itemBuilder: (context, i) {
@@ -276,46 +275,59 @@ class _KioskSurfaceState extends State<KioskSurface> {
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: () => _onItemTap(item),
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _kioskPhoto(context, item.imageUrl, height: 124, iconSize: 32),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        item.name,
-                        maxLines: item.nameSecondary == null ? 2 : 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleMedium,
-                      ),
-                      if (item.nameSecondary != null &&
-                          item.nameSecondary!.isNotEmpty)
-                        Text(
-                          item.nameSecondary!,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodyMedium,
+                      Flexible(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.name,
+                              maxLines: item.nameSecondary == null ? 2 : 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.titleMedium,
+                            ),
+                            if (item.nameSecondary != null &&
+                                item.nameSecondary!.isNotEmpty)
+                              Text(
+                                item.nameSecondary!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                          ],
                         ),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            item.price,
+                            style: moneyTextStyle(theme.textTheme.titleMedium),
+                          ),
+                          Icon(
+                            Icons.add_circle,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      item.price,
-                      style: moneyTextStyle(theme.textTheme.titleMedium),
-                    ),
-                    Icon(Icons.add_circle, color: theme.colorScheme.primary),
-                  ],
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       );
@@ -607,26 +619,79 @@ class _KioskSurfaceState extends State<KioskSurface> {
   }
 }
 
-/// Bottom sheet for choosing an item's modifiers. Single-select required groups
-/// render as radios (first option pre-selected); multi-select groups as checks.
-class _ModifierSheet extends StatefulWidget {
+/// A rounded photo box for the kiosk — the card thumbnail and the popup banner.
+/// Shows the item photo, or a camera-icon placeholder on a surface-variant tile
+/// when there's none (or it fails to load), so the cards stay aligned in the
+/// grid. [radius] 0 leaves square corners (the card already clips its own).
+Widget _kioskPhoto(
+  BuildContext context,
+  String? url, {
+  required double height,
+  double iconSize = 40,
+  double radius = 0,
+}) {
+  final cs = Theme.of(context).colorScheme;
+  final placeholder = Center(
+    child: Icon(
+      Icons.photo_camera_outlined,
+      size: iconSize,
+      color: cs.onSurfaceVariant,
+    ),
+  );
+  // The customer kiosk passes a network URL (menu-photos bucket); the merchant
+  // display passes a local file path it reads on the same machine.
+  final Widget image;
+  if (url == null) {
+    image = placeholder;
+  } else if (url.startsWith('http')) {
+    image = Image.network(
+      url,
+      fit: BoxFit.cover,
+      errorBuilder: (_, _, _) => placeholder,
+      loadingBuilder: (c, child, p) =>
+          p == null ? child : const Center(child: CircularProgressIndicator()),
+    );
+  } else {
+    image = Image.file(
+      File(url),
+      fit: BoxFit.cover,
+      errorBuilder: (_, _, _) => placeholder,
+    );
+  }
+  final box = SizedBox(
+    height: height,
+    width: double.infinity,
+    child: ColoredBox(color: cs.surfaceContainerHighest, child: image),
+  );
+  return radius == 0
+      ? box
+      : ClipRRect(borderRadius: BorderRadius.circular(radius), child: box);
+}
+
+/// The item popup: a centered dialog with a photo banner, options as big touch
+/// targets, a quantity stepper and the running total on the add button.
+/// Single-select required groups pre-select their first option. Returns the
+/// chosen `(modifiers, quantity)`, or null if dismissed.
+class _ItemDialog extends StatefulWidget {
   final KioskItem item;
   final KioskLabels labels;
 
-  const _ModifierSheet({required this.item, required this.labels});
+  const _ItemDialog({required this.item, required this.labels});
 
   @override
-  State<_ModifierSheet> createState() => _ModifierSheetState();
+  State<_ItemDialog> createState() => _ItemDialogState();
 }
 
-class _ModifierSheetState extends State<_ModifierSheet> {
+class _ItemDialogState extends State<_ItemDialog> {
   /// groupId -> selected modifier ids.
   final Map<String, Set<String>> _selected = {};
+  int _qty = 1;
+
+  KioskLabels get _l => widget.labels;
 
   @override
   void initState() {
     super.initState();
-    // Pre-select the first option of required single-choice groups.
     for (final g in widget.item.modifierGroups) {
       if (g.isSingleChoice && g.isRequired && g.modifiers.isNotEmpty) {
         _selected[g.id] = {g.modifiers.first.id};
@@ -650,6 +715,14 @@ class _ModifierSheetState extends State<_ModifierSheet> {
     return cents;
   }
 
+  int get _totalCents => (widget.item.priceCents + _extraCents) * _qty;
+
+  List<KioskModifier> get _chosen => [
+    for (final g in widget.item.modifierGroups)
+      for (final m in g.modifiers)
+        if (_selected[g.id]?.contains(m.id) ?? false) m,
+  ];
+
   void _toggle(KioskModifierGroup g, KioskModifier m) {
     setState(() {
       final set = _selected[g.id] ??= {};
@@ -670,82 +743,153 @@ class _ModifierSheetState extends State<_ModifierSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return DraggableScrollableSheet(
-      expand: false,
-      initialChildSize: 0.7,
-      maxChildSize: 0.95,
-      builder: (context, scroll) => Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Text(widget.item.name, style: theme.textTheme.headlineSmall),
-          ),
-          Expanded(
-            child: ListView(
-              controller: scroll,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              children: [
-                for (final g in widget.item.modifierGroups) ...[
+    final size = MediaQuery.of(context).size;
+    final item = widget.item;
+    final desc = item.description?.trim();
+    final hasSecond =
+        item.nameSecondary != null && item.nameSecondary!.isNotEmpty;
+    return Dialog(
+      clipBehavior: Clip.antiAlias,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: 560,
+          maxHeight: size.height * 0.9,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                padding: EdgeInsets.zero,
+                children: [
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(8, 12, 8, 4),
-                    child: Text(
-                      g.isRequired ? '${g.name} *' : g.name,
-                      style: theme.textTheme.titleMedium,
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                    child: _kioskPhoto(
+                      context,
+                      item.imageUrl,
+                      height: 200,
+                      iconSize: 52,
+                      radius: 12,
                     ),
                   ),
-                  for (final m in g.modifiers) _modifierTile(g, m),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(item.name, style: theme.textTheme.headlineSmall),
+                        if (hasSecond)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text(
+                              item.nameSecondary!,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                        if (desc != null && desc.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            desc,
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  for (final g in widget.item.modifierGroups)
+                    ..._group(theme, g),
+                  const SizedBox(height: 12),
                 ],
-                const SizedBox(height: 16),
-              ],
-            ),
-          ),
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: FilledButton(
-                onPressed: _satisfied
-                    ? () => Navigator.pop(context, [
-                        for (final g in widget.item.modifierGroups)
-                          for (final m in g.modifiers)
-                            if (_selected[g.id]?.contains(m.id) ?? false) m,
-                      ])
-                    : null,
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size.fromHeight(56),
-                  textStyle: theme.textTheme.titleMedium,
-                ),
-                child: Text(
-                  _extraCents == 0
-                      ? widget.labels.addToOrder
-                      : widget.labels.addToOrderExtra(formatCents(_extraCents)),
-                ),
               ),
             ),
-          ),
-        ],
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  IconButton.filledTonal(
+                    iconSize: 28,
+                    onPressed: _qty == 1 ? null : () => setState(() => _qty--),
+                    icon: const Icon(Icons.remove),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text('$_qty', style: theme.textTheme.headlineSmall),
+                  ),
+                  IconButton.filledTonal(
+                    iconSize: 28,
+                    onPressed: () => setState(() => _qty++),
+                    icon: const Icon(Icons.add),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: _satisfied
+                          ? () => Navigator.pop(context, (_chosen, _qty))
+                          : null,
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size.fromHeight(56),
+                      ),
+                      child: Text(_l.addToOrderTotal(formatCents(_totalCents))),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _modifierTile(KioskModifierGroup g, KioskModifier m) {
-    final checked = _selected[g.id]?.contains(m.id) ?? false;
-    final trailing = m.deltaCents == 0 ? null : Text(m.delta);
-    if (g.isSingleChoice) {
-      return RadioListTile<String>(
-        value: m.id,
-        // ignore: deprecated_member_use
-        groupValue: _selected[g.id]?.firstOrNull,
-        // ignore: deprecated_member_use
-        onChanged: (_) => _toggle(g, m),
-        title: Text(m.name),
-        secondary: trailing,
-      );
-    }
-    return CheckboxListTile(
-      value: checked,
-      onChanged: (_) => _toggle(g, m),
-      title: Text(m.name),
-      secondary: trailing,
+  List<Widget> _group(ThemeData theme, KioskModifierGroup g) => [
+    Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+      child: Text(
+        g.isRequired ? '${g.name} *' : g.name,
+        style: theme.textTheme.titleMedium,
+      ),
+    ),
+    for (final m in g.modifiers)
+      Padding(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+        child: _optionButton(theme, g, m),
+      ),
+  ];
+
+  Widget _optionButton(ThemeData theme, KioskModifierGroup g, KioskModifier m) {
+    final cs = theme.colorScheme;
+    final on = _selected[g.id]?.contains(m.id) ?? false;
+    final icon = g.isSingleChoice
+        ? (on ? Icons.radio_button_checked : Icons.radio_button_unchecked)
+        : (on ? Icons.check_box : Icons.check_box_outline_blank);
+    return Material(
+      color: on ? cs.secondaryContainer : cs.surfaceContainerHigh,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => _toggle(g, m),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 56),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              Icon(icon, color: on ? cs.primary : cs.onSurfaceVariant),
+              const SizedBox(width: 12),
+              Expanded(child: Text(m.name, style: theme.textTheme.titleSmall)),
+              if (m.deltaCents != 0)
+                Text('+${m.delta}', style: theme.textTheme.bodyLarge),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

@@ -224,6 +224,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String kioskAddToOrderTotal(String total) {
+    return 'Add to order  ·  $total';
+  }
+
+  @override
   String kioskOrderName(int number) {
     return 'Kiosk $number';
   }

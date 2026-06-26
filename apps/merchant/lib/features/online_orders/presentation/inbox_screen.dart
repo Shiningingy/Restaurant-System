@@ -55,18 +55,7 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.inboxTitle),
-        actions: [
-          if (enabled)
-            TextButton.icon(
-              onPressed: () => _publishMenu(context, ref),
-              icon: const Icon(Icons.cloud_upload_outlined),
-              label: Text(context.l10n.inboxPublishMenu),
-            ),
-          const SizedBox(width: 8),
-        ],
-      ),
+      appBar: AppBar(title: Text(context.l10n.inboxTitle)),
       body: !enabled
           ? Center(
               child: Padding(
@@ -118,19 +107,6 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
               ],
             ),
     );
-  }
-
-  Future<void> _publishMenu(BuildContext context, WidgetRef ref) async {
-    final messenger = ScaffoldMessenger.of(context);
-    final l10n = context.l10n;
-    try {
-      await ref.read(inboxServiceProvider).publishMenu();
-      messenger.showSnackBar(SnackBar(content: Text(l10n.inboxMenuPublished)));
-    } on Object catch (e) {
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.inboxPublishFailed('$e'))),
-      );
-    }
   }
 }
 
