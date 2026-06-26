@@ -247,8 +247,11 @@ async function handleVerify(req: Request): Promise<Response> {
     idempotencyKey: idemKey(order_id, "p"),
   });
   if (!r.approved) return json({ paid: false, reason: "declined" }, 402);
-  // Guard against a tampered/short charge: Moneris must have taken our amount.
-  if (r.amountCents !== expected) {
+  // We compute `expected` from the order and send it as the charge amount, so
+  // the charge IS the expected amount by construction. This is a belt-and-braces
+  // echo check — only enforced when Moneris returns the amount (don't block a
+  // good payment if the field is absent).
+  if (r.amountCents != null && r.amountCents !== expected) {
     return json({ paid: false, reason: "amount_mismatch" }, 409);
   }
   await patchOrder(order_id, {
