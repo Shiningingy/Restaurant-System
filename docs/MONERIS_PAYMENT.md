@@ -9,16 +9,23 @@ project and **your own** Moneris account.
 
 ```
 customer app  ──"Pay online"──▶  pay-online Edge Function (your Supabase)
-                                   │  preload → Moneris, serve hosted page
-   browser  ◀── Moneris hosted checkout page (card entered on Moneris) ──┘
-   customer pays on Moneris ▶ function verifies the receipt server-to-server
-                              ▶ writes online_orders.payment_status = 'paid'
+                                   │  serves a page with Moneris's Hosted
+                                   │  Tokenization iframe (card field)
+   browser ── card entered in Moneris's iframe ─▶ Moneris returns a token
+   page POSTs the token ▶ function charges it (POST /payments, X-Api-Key)
+                        ▶ writes online_orders.payment_status = 'paid'
 merchant tablet polls the order ▶ sees 'paid' ▶ records the order as paid online
 ```
 
+This uses the **new Moneris API** (`api.moneris.io`) + **Hosted Tokenization**:
+the customer types their card into a Moneris-controlled iframe, which returns a
+temporary token; the function charges that token with `paymentMethodSource:
+TEMPORARY_TOKEN`. Auth is your **Subscriptions API key** (`X-Api-Key`) with the
+**Payment** + **Refund** scopes.
+
 - **Card data goes customer → Moneris directly.** It never touches the customer
   app, the merchant tablet, this function's logs, or your database — only a
-  ticket / receipt / transaction id does.
+  temporary token / paymentId does.
 - The function **recomputes the amount from the order** (subtotal + tax, the
   same math the apps use) before trusting any payment, so nobody can pay $0.01
   for a $50 order.
@@ -50,14 +57,24 @@ restaurant's login, and it only ever writes paid after verifying with Moneris.
 
 ## 3. Set your Moneris secrets
 
-From your Moneris account (use the **QA / test store** first):
+From the Moneris developer portal (use the **sandbox** first). Auth can be your
+**Subscriptions API key** *or* an **OAuth2 client** — set whichever you have; the
+function prefers the API key if `MONERIS_API_KEY` is set, else uses OAuth2.
 
 ```sh
+# Common to both:
 supabase secrets set \
-  MONERIS_STORE_ID=<your store id> \
-  MONERIS_API_TOKEN=<your api token> \
-  MONERIS_CHECKOUT_ID=<your Moneris Checkout id> \
+  MONERIS_MERCHANT_ID=<your 13-char merchant id> \
+  MONERIS_HT_PROFILE_ID=<your Hosted Tokenization profile id> \
   MONERIS_ENV=qa \
+  --project-ref <your-ref>
+
+# Option A — API key (simplest; needs its Subscription to include Payments+Refunds):
+supabase secrets set MONERIS_API_KEY=<your primary api key> --project-ref <your-ref>
+
+# Option B — OAuth2 client (scopes payment.* + refund.*; secret expires, so rotate it):
+supabase secrets set \
+  MONERIS_CLIENT_ID=<client id> MONERIS_CLIENT_SECRET=<client secret> \
   --project-ref <your-ref>
 ```
 
@@ -65,22 +82,41 @@ Switch `MONERIS_ENV=prod` when you go live. `SUPABASE_URL`,
 `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` are injected automatically —
 you don't set those. **Secrets never go in the app or this repo.**
 
+> The **HT Profile ID** is created in the Merchant Resource Center → Hosted
+> Tokenization / Hosted Solutions Configuration on a **real store** — it is **not
+> available in the developer sandbox**. So the hosted card-entry frame can only
+> be tested once you've onboarded a Moneris store; until then, validate the
+> charge/refund API with the sandbox script below.
+
 ## 4. Turn it on in the POS
 
 Merchant app → **Settings → Online ordering → Accept online payment** (on), then
 publish the menu (any menu edit republishes). The customer app now shows
 **"Pay online"** at checkout.
 
-## Testing on the QA sandbox
+## Testing
 
-1. Place a preorder in the customer app → tap **Pay online** → the browser opens
-   Moneris's hosted page.
-2. Pay with a [Moneris test card](https://developer.moneris.com) (QA store).
-3. The customer's status screen flips to **"Paid online"**; the merchant tablet
-   receives the order **already paid** and auto-accepts it to the board.
-4. **Refund:** open the order on the tablet → **Refund** → the charge is reversed
-   through Moneris and the order is voided.
+**Now (developer sandbox) — the charge/refund API.** Hosted Tokenization needs a
+real store (above), so validate the server side with the script:
+
+```sh
+# Set the same Moneris values as env vars, then:
+node tools/moneris-sandbox-check.mjs
+```
+
+It gets a token (API key or OAuth2), does a **Purchase** with a Moneris **test
+card**, then a **Refund** — proving your credentials, host, and the request
+shapes work. See the script header for the env vars + test card numbers.
+
+**Later (real store) — the full hosted flow.** Once you've onboarded a store and
+created the HT profile:
+1. Customer app → **Pay online** → the browser opens the page with Moneris's card
+   iframe → pay with a test card.
+2. Status screen flips to **"Paid online"**; the merchant tablet receives the
+   order **already paid** and auto-accepts it.
+3. **Refund:** open the order on the tablet → **Refund** → reversed via Moneris,
+   order voided.
 
 > ⚠️ The Moneris request/response field names in `pay-online/moneris.ts` follow
-> the Moneris Checkout Integration Guide; confirm them against your QA sandbox
-> before going live. They're isolated in that one file.
+> the new Moneris API docs (`developer.moneris.com/moneris-api`); confirm them
+> against your sandbox before going live. They're isolated in that one file.
