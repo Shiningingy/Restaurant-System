@@ -46,11 +46,13 @@ class Device {
 
 /// Builds a device backed by [buildBackend]. The same shared [clock]
 /// across devices makes the cross-device change order deterministic.
+/// [snapshot] is the optional pre-sync backup hook (default off).
 Future<Device> makeDevice(
   TickingClock clock,
   String deviceId, {
   required SyncBackend Function() buildBackend,
   bool configured = true,
+  Future<void> Function(String reason)? snapshot,
 }) async {
   final db = createTestDb();
   final journal = SyncJournal(db, clock: clock.now);
@@ -72,9 +74,75 @@ Future<Device> makeDevice(
       codec: SyncCodec(db),
       settings: settings,
       buildBackend: buildBackend,
+      snapshot: snapshot,
       clock: () => DateTime.utc(2030),
     ),
   );
+}
+
+/// A shared in-memory stand-in for the restaurant's Supabase change feed.
+/// Append-only, upsert-by-id (keyed on the change's own id) — the same
+/// contract as the PostgREST `sync_changes` table the real backend talks to.
+class FakeCloud {
+  final List<RemoteChange> _rows = [];
+  final List<String> _ids = [];
+  final List<String> _devices = [];
+
+  void upsert(String id, String device, RemoteChange change) {
+    final existing = _ids.indexOf(id);
+    if (existing >= 0) {
+      _rows[existing] = change;
+      _devices[existing] = device;
+    } else {
+      _ids.add(id);
+      _rows.add(change);
+      _devices.add(device);
+    }
+  }
+
+  List<RemoteChange> since(DateTime since, String exceptDevice) {
+    final out = <RemoteChange>[];
+    for (var i = 0; i < _rows.length; i++) {
+      if (_devices[i] != exceptDevice && _rows[i].occurredAt.isAfter(since)) {
+        out.add(_rows[i]);
+      }
+    }
+    out.sort((a, b) => a.occurredAt.compareTo(b.occurredAt));
+    return out;
+  }
+}
+
+/// Per-device view of the [FakeCloud] — skips the device's own writes,
+/// exactly like the real backend filters on `device_id`.
+class FakeCloudBackend implements SyncBackend {
+  final FakeCloud cloud;
+  final String deviceId;
+
+  FakeCloudBackend(this.cloud, this.deviceId);
+
+  @override
+  Future<void> push(List<SyncLogEntry> changes) async {
+    for (final c in changes) {
+      cloud.upsert(
+        c.id,
+        deviceId,
+        RemoteChange(
+          entity: c.entity,
+          entityId: c.entityId,
+          op: c.op,
+          payloadJson: c.payloadJson,
+          occurredAt: c.createdAt,
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<List<RemoteChange>> pull({required DateTime since}) async =>
+      cloud.since(since, deviceId);
+
+  @override
+  Future<SyncHealth> healthCheck() async => SyncHealth.ok;
 }
 
 /// Builds a realistic dataset on [d] and returns the ids a restore test

@@ -527,6 +527,43 @@
   "setProjectUrl": "Project URL",
   "setAnonKey": "Anon key",
 
+  "setLocalBackups": "Local backups",
+  "setLocalBackupsHint": "A copy of your data is saved on this device before each sync, and whenever you tap Back up now. If a sync goes wrong, restore one to roll back.",
+  "setBackupNow": "Back up now",
+  "setBackupSavedMsg": "Backup saved.",
+  "setBackupFailed": "Backup failed: {error}",
+  "@setBackupFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "setBackupNone": "No backups yet.",
+  "setBackupRestore": "Restore",
+  "setBackupReasonManual": "Manual",
+  "setBackupReasonSync": "Before sync",
+  "setBackupReasonRestore": "Before restore",
+  "setBackupReasonForcepush": "Before force push",
+  "setRestoreBackupTitle": "Restore this backup?",
+  "setRestoreBackupBody": "This replaces all current data with the backup from {time}. The app will close — reopen it to finish. Your current data is kept as a one-off safety copy.",
+  "@setRestoreBackupBody": {
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "setRestoreBackupConfirm": "Restore & close",
+  "setRestoreStagedMsg": "Backup restored. The app will now close — please reopen it to finish.",
+  "setRestoreClose": "Close app",
+  "setRecovery": "Recovery",
+  "setForcePushHint": "If another device overwrote the cloud with wrong data, push this device's data back over it.",
+  "setForcePush": "Force push to cloud",
+  "setForcePushTitle": "Overwrite cloud with this device?",
+  "setForcePushBody": "Makes the cloud exactly match THIS device: your data here is re-uploaded as the newest version, and any cloud data from other devices that isn't here is removed. Other devices update to match this one on their next sync. Use this to recover after another device overwrote the cloud.",
+  "setForcePushConfirm": "Overwrite cloud",
+  "setForcePushedMsg": "Pushed {pushed} changes — the cloud now matches this device.",
+  "@setForcePushedMsg": {
+    "placeholders": { "pushed": { "type": "int" } }
+  },
+  "setForcePushFailed": "Force push failed: {error}",
+  "@setForcePushFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+
   "navAdmin": "Admin",
   "roleOwner": "Owner",
   "roleManager": "Manager",

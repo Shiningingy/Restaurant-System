@@ -172,6 +172,32 @@ class SyncCodec {
     };
   }
 
+  /// All local row ids for [entity] — used by a force-push to re-journal the
+  /// whole local state as fresh upserts.
+  Future<List<String>> localIds(String entity) async {
+    switch (entity) {
+      case SyncEntities.category:
+        return (await db.select(db.categories).get()).map((r) => r.id).toList();
+      case SyncEntities.menuItem:
+        return (await db.select(db.menuItems).get()).map((r) => r.id).toList();
+      case SyncEntities.modifierGroup:
+        return (await db.select(db.modifierGroups).get())
+            .map((r) => r.id)
+            .toList();
+      case SyncEntities.modifier:
+        return (await db.select(db.modifiers).get()).map((r) => r.id).toList();
+      case SyncEntities.diningTable:
+        return (await db.select(db.diningTables).get())
+            .map((r) => r.id)
+            .toList();
+      case SyncEntities.order:
+        return (await db.select(db.orders).get()).map((r) => r.id).toList();
+      case SyncEntities.payment:
+        return (await db.select(db.payments).get()).map((r) => r.id).toList();
+    }
+    throw ArgumentError('Unknown sync entity: $entity');
+  }
+
   // --- Apply: write a remote change into the local database. ---
 
   Future<void> applyUpsert(String entity, Map<String, dynamic> p) async {
@@ -382,6 +408,45 @@ class SyncCodec {
 
   Future<void> applyDelete(String entity, String id) async {
     switch (entity) {
+      case SyncEntities.category:
+        // An owner deleted the category — cascade its items (and their
+        // children) then the category, mirroring MenuRepository.deleteCategory.
+        await db.transaction(() async {
+          final items = await (db.select(
+            db.menuItems,
+          )..where((t) => t.categoryId.equals(id))).get();
+          final itemIds = items.map((r) => r.id).toList();
+          await (db.delete(
+            db.menuItemModifierGroups,
+          )..where((t) => t.itemId.isIn(itemIds))).go();
+          await (db.delete(
+            db.menuItemAttributes,
+          )..where((t) => t.itemId.isIn(itemIds))).go();
+          await (db.delete(
+            db.menuItemImages,
+          )..where((t) => t.itemId.isIn(itemIds))).go();
+          await (db.delete(
+            db.menuItems,
+          )..where((t) => t.categoryId.equals(id))).go();
+          await (db.delete(db.categories)..where((t) => t.id.equals(id))).go();
+        });
+        return;
+      case SyncEntities.menuItem:
+        // Mirror MenuRepository._deleteItemTx: drop the item's join/attribute/
+        // image rows, then the item.
+        await db.transaction(() async {
+          await (db.delete(
+            db.menuItemModifierGroups,
+          )..where((t) => t.itemId.equals(id))).go();
+          await (db.delete(
+            db.menuItemAttributes,
+          )..where((t) => t.itemId.equals(id))).go();
+          await (db.delete(
+            db.menuItemImages,
+          )..where((t) => t.itemId.equals(id))).go();
+          await (db.delete(db.menuItems)..where((t) => t.id.equals(id))).go();
+        });
+        return;
       case SyncEntities.modifier:
         await (db.delete(db.modifiers)..where((t) => t.id.equals(id))).go();
         return;
