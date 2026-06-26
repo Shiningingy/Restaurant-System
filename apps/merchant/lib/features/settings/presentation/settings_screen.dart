@@ -1583,6 +1583,15 @@ class _OnlineOrderingSection extends ConsumerWidget {
               .read(onlineOrderSettingsProvider.notifier)
               .setAutoAcceptKiosk(v),
         ),
+        SwitchListTile(
+          secondary: const Icon(Icons.credit_card_outlined),
+          title: Text(context.l10n.setAcceptOnlinePayment),
+          subtitle: Text(context.l10n.setAcceptOnlinePaymentHint),
+          value: settings.acceptsOnlinePayment,
+          onChanged: (v) => ref
+              .read(onlineOrderSettingsProvider.notifier)
+              .setAcceptsOnlinePayment(v),
+        ),
       ],
     );
   }

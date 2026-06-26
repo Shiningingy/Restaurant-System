@@ -77,6 +77,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get payCardKeyed => 'Card (keyed)';
 
   @override
+  String get payOnline => 'Online';
+
+  @override
   String get ordersTitle => 'Open Orders';
 
   @override
@@ -138,6 +141,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ordVoidConfirmBody => 'The order is kept in history as voided.';
+
+  @override
+  String get ordRefundOnline => 'Refund';
+
+  @override
+  String get ordRefundConfirmTitle => 'Refund this online payment?';
+
+  @override
+  String get ordRefundConfirmBody =>
+      'This refunds the card payment through Moneris and voids the order. It can\'t be undone.';
+
+  @override
+  String get ordRefundDone => 'Refund issued.';
+
+  @override
+  String ordRefundFailed(String error) {
+    return 'Refund failed: $error';
+  }
 
   @override
   String get ordKeep => 'Keep';
@@ -760,6 +781,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get setAutoAcceptKioskHint =>
       'Send in-store kiosk orders straight to the Orders board. Turn off to review them in the Inbox first.';
+
+  @override
+  String get setAcceptOnlinePayment => 'Accept online payment';
+
+  @override
+  String get setAcceptOnlinePaymentHint =>
+      'Let customers pay by card when they preorder. Requires the pay-online function on your Supabase — see docs/MONERIS_PAYMENT.md.';
 
   @override
   String get setPayments => 'Payments';

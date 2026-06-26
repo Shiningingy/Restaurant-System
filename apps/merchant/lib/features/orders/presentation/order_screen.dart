@@ -11,6 +11,7 @@ import '../../admin/domain/staff.dart';
 import '../../admin/presentation/pin_dialog.dart';
 import '../../customer_display/application/customer_display.dart';
 import '../../menu/application/providers.dart';
+import '../../online_orders/application/providers.dart';
 import '../../payments/application/payment_service.dart';
 import '../../payments/application/providers.dart';
 import '../../payments/presentation/payment_sheet.dart';
@@ -104,6 +105,18 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
     ref.listen(orderProvider(widget.orderId), (_, _) => _pushToDisplay());
     ref.listen(orderLinesProvider(widget.orderId), (_, _) => _pushToDisplay());
 
+    // A paid online order can be refunded through the Edge Function.
+    final payments =
+        ref.watch(orderPaymentsProvider(widget.orderId)).value ?? const [];
+    final canRefund =
+        order != null &&
+        order.status != domain.OrderStatus.voided &&
+        payments.any(
+          (p) =>
+              p.method == domain.PaymentMethod.online &&
+              p.status == domain.PaymentStatus.approved,
+        );
+
     return Scaffold(
       appBar: AppBar(
         leading: BackButton(onPressed: _leave),
@@ -116,6 +129,12 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
               onPressed: () => _voidOrder(context),
               icon: const Icon(Icons.delete_outline),
               label: Text(context.l10n.ordVoidOrder),
+            ),
+          if (canRefund)
+            TextButton.icon(
+              onPressed: () => _refundOnline(context),
+              icon: const Icon(Icons.currency_exchange),
+              label: Text(context.l10n.ordRefundOnline),
             ),
           // A paid order is being prepared — "Mark finished" sends it to
           // history and off the board.
@@ -217,6 +236,46 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
     if (confirmed == true) {
       await ref.read(orderRepositoryProvider).voidOrder(widget.orderId);
       if (context.mounted) context.go('/orders');
+    }
+  }
+
+  /// Refunds a paid online order through the restaurant's pay-online Edge
+  /// Function, then reverses the local payment and voids the order.
+  Future<void> _refundOnline(BuildContext context) async {
+    final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.ordRefundConfirmTitle),
+        content: Text(l10n.ordRefundConfirmBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.ordRefundOnline),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      final ok = await ref
+          .read(inboxServiceProvider)
+          .refundOnline(widget.orderId);
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(ok ? l10n.ordRefundDone : l10n.ordRefundFailed('')),
+        ),
+      );
+      if (ok && context.mounted) context.go('/orders');
+    } on Object catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.ordRefundFailed('$e'))),
+      );
     }
   }
 

@@ -185,6 +185,8 @@
     "placeholders": { "error": { "type": "String" } }
   },
   "checkoutPlacePreorder": "Place preorder",
+  "checkoutPayOnline": "Pay online",
+  "checkoutPayAtCounterButton": "Pay at counter",
 
   "statusTitle": "Your preorder",
   "statusSendingHeadline": "Sending your order…",
@@ -208,6 +210,11 @@
   "@statusTotalPayAtPickup": {
     "placeholders": { "total": { "type": "String" } }
   },
+  "statusPaidOnline": "Paid online — {total}",
+  "@statusPaidOnline": {
+    "placeholders": { "total": { "type": "String" } }
+  },
+  "statusPayNow": "Pay now",
   "statusBackToMenu": "Back to menu",
 
   "ordersTitle": "My orders",

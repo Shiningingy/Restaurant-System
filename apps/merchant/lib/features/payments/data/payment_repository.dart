@@ -91,6 +91,35 @@ class PaymentRepository {
     );
   }
 
+  /// Reverses an online card payment that was refunded through the processor:
+  /// flips the order's approved `online` payment(s) to `reversed` (so they
+  /// leave collections) and voids the order. One transaction.
+  Future<void> recordOnlineRefund(String orderId) {
+    return db.transaction(() async {
+      final pays =
+          await (db.select(db.payments)..where(
+                (t) =>
+                    t.orderId.equals(orderId) &
+                    t.method.equalsValue(domain.PaymentMethod.online) &
+                    t.status.equalsValue(domain.PaymentStatus.approved),
+              ))
+              .get();
+      for (final p in pays) {
+        await (db.update(db.payments)..where((t) => t.id.equals(p.id))).write(
+          PaymentsCompanion(status: Value(domain.PaymentStatus.reversed)),
+        );
+        await journal.recordUpsert(SyncEntities.payment, p.id);
+      }
+      await (db.update(db.orders)..where((t) => t.id.equals(orderId))).write(
+        OrdersCompanion(
+          status: const Value(domain.OrderStatus.voided),
+          closedAt: Value(DateTime.now()),
+        ),
+      );
+      await journal.recordUpsert(SyncEntities.order, orderId);
+    });
+  }
+
   // --- Internals ---
 
   Future<domain.Money> _approvedTotal(String orderId) async {

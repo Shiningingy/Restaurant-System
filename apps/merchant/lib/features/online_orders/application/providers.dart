@@ -8,6 +8,7 @@ import '../../../core/providers.dart';
 import '../../menu/application/providers.dart';
 import '../../menu/data/item_image_repository.dart';
 import '../../orders/application/providers.dart';
+import '../../payments/application/providers.dart';
 import '../../../core/settings/providers.dart';
 import '../../sync/application/providers.dart';
 import '../../sync/drivers/supabase_object_store.dart';
@@ -63,6 +64,7 @@ final inboxServiceProvider = Provider<InboxService>(
   (ref) => InboxService(
     channel: ref.watch(onlineOrderChannelProvider),
     orders: ref.watch(orderRepositoryProvider),
+    payments: ref.watch(paymentRepositoryProvider),
     settings: ref.watch(settingsRepositoryProvider),
     publisher: ref.watch(menuPublisherProvider),
   ),

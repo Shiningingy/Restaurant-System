@@ -153,6 +153,7 @@ class SupabaseStorefront {
       return (
         status: domain.OnlineOrderStatus.submitted,
         proposedPickupAt: null,
+        paymentStatus: 'unpaid',
       );
     }
     final row = rows.first;
@@ -162,6 +163,8 @@ class SupabaseStorefront {
       proposedPickupAt: proposed == null
           ? null
           : DateTime.parse(proposed as String).toLocal(),
+      // Optional column (Phase 7); absent on shops without it → unpaid.
+      paymentStatus: row['payment_status'] as String? ?? 'unpaid',
     );
   }
 
@@ -232,4 +235,5 @@ class SupabaseStorefront {
 typedef OrderState = ({
   domain.OnlineOrderStatus status,
   DateTime? proposedPickupAt,
+  String paymentStatus,
 });

@@ -230,6 +230,12 @@ abstract class AppLocalizations {
   /// **'Card (keyed)'**
   String get payCardKeyed;
 
+  /// No description provided for @payOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'Online'**
+  String get payOnline;
+
   /// No description provided for @ordersTitle.
   ///
   /// In en, this message translates to:
@@ -349,6 +355,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The order is kept in history as voided.'**
   String get ordVoidConfirmBody;
+
+  /// No description provided for @ordRefundOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund'**
+  String get ordRefundOnline;
+
+  /// No description provided for @ordRefundConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund this online payment?'**
+  String get ordRefundConfirmTitle;
+
+  /// No description provided for @ordRefundConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This refunds the card payment through Moneris and voids the order. It can\'t be undone.'**
+  String get ordRefundConfirmBody;
+
+  /// No description provided for @ordRefundDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund issued.'**
+  String get ordRefundDone;
+
+  /// No description provided for @ordRefundFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund failed: {error}'**
+  String ordRefundFailed(String error);
 
   /// No description provided for @ordKeep.
   ///
@@ -1375,6 +1411,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Send in-store kiosk orders straight to the Orders board. Turn off to review them in the Inbox first.'**
   String get setAutoAcceptKioskHint;
+
+  /// No description provided for @setAcceptOnlinePayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept online payment'**
+  String get setAcceptOnlinePayment;
+
+  /// No description provided for @setAcceptOnlinePaymentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Let customers pay by card when they preorder. Requires the pay-online function on your Supabase — see docs/MONERIS_PAYMENT.md.'**
+  String get setAcceptOnlinePaymentHint;
 
   /// No description provided for @setPayments.
   ///

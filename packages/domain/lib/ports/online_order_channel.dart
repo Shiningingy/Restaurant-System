@@ -31,6 +31,16 @@ class IncomingOnlineOrder {
   /// auto-accept straight to the Orders board.
   final bool kiosk;
 
+  /// Online card-payment state, set only by the restaurant's pay-online Edge
+  /// Function (the trusted backend): `unpaid` (pay at counter / not yet paid),
+  /// `paid` (the function verified the charge with the processor), or
+  /// `refunded`. The merchant trusts `paid` to mark the local order paid.
+  final String paymentStatus;
+
+  /// The processor's transaction reference for a paid order (Moneris txn id),
+  /// recorded against the local payment so a later refund can find it.
+  final String? processorRef;
+
   const IncomingOnlineOrder({
     required this.id,
     required this.customerName,
@@ -40,7 +50,11 @@ class IncomingOnlineOrder {
     this.customerPhone,
     this.proposedPickupAt,
     this.kiosk = false,
+    this.paymentStatus = 'unpaid',
+    this.processorRef,
   });
+
+  bool get isPaidOnline => paymentStatus == 'paid';
 }
 
 /// The bridge between the customer app and the merchant tablet.

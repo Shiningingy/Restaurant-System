@@ -58,4 +58,30 @@ void main() {
       expect(back.categories.single.items.single.nameSecondary, '三文鱼波奇饭');
     });
   });
+
+  group('PublishedMenu online payment flag', () {
+    test('defaults off and is omitted from JSON', () {
+      const menu = PublishedMenu(restaurantName: 'Diner', categories: []);
+      expect(menu.acceptsOnlinePayment, isFalse);
+      expect(menu.toJson().containsKey('acceptsOnlinePayment'), isFalse);
+    });
+
+    test('round-trips when enabled', () {
+      const menu = PublishedMenu(
+        restaurantName: 'Diner',
+        categories: [],
+        acceptsOnlinePayment: true,
+      );
+      expect(
+          PublishedMenu.fromJson(menu.toJson()).acceptsOnlinePayment, isTrue);
+    });
+
+    test('older payloads without the key parse as off', () {
+      final legacy = {
+        'restaurantName': 'Diner',
+        'categories': <dynamic>[],
+      };
+      expect(PublishedMenu.fromJson(legacy).acceptsOnlinePayment, isFalse);
+    });
+  });
 }

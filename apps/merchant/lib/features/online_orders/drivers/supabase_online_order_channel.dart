@@ -80,21 +80,25 @@ class SupabaseOnlineOrderChannel implements domain.OnlineOrderChannel {
   Future<List<domain.IncomingOnlineOrder>> fetchSubmitted() =>
       fetchByStatus(domain.OnlineOrderStatus.submitted);
 
-  domain.IncomingOnlineOrder _incomingFromRow(Map<String, dynamic> r) =>
-      domain.IncomingOnlineOrder(
-        id: r['id'] as String,
-        customerName: r['customer_name'] as String,
-        customerPhone: r['customer_phone'] as String?,
-        linesJson: jsonEncode(r['lines']),
-        requestedPickupAt: DateTime.parse(r['requested_pickup_at'] as String),
-        submittedAt: DateTime.parse(r['submitted_at'] as String),
-        proposedPickupAt: r['proposed_pickup_at'] == null
-            ? null
-            : DateTime.parse(r['proposed_pickup_at'] as String),
-        // Optional column (docs/CLOUD_SECURITY.md); absent on shops that
-        // haven't added it → not a kiosk order.
-        kiosk: r['is_kiosk'] as bool? ?? false,
-      );
+  domain.IncomingOnlineOrder _incomingFromRow(
+    Map<String, dynamic> r,
+  ) => domain.IncomingOnlineOrder(
+    id: r['id'] as String,
+    customerName: r['customer_name'] as String,
+    customerPhone: r['customer_phone'] as String?,
+    linesJson: jsonEncode(r['lines']),
+    requestedPickupAt: DateTime.parse(r['requested_pickup_at'] as String),
+    submittedAt: DateTime.parse(r['submitted_at'] as String),
+    proposedPickupAt: r['proposed_pickup_at'] == null
+        ? null
+        : DateTime.parse(r['proposed_pickup_at'] as String),
+    // Optional column (docs/CLOUD_SECURITY.md); absent on shops that
+    // haven't added it → not a kiosk order.
+    kiosk: r['is_kiosk'] as bool? ?? false,
+    // Online payment (Phase 7); absent on shops without the column → unpaid.
+    paymentStatus: r['payment_status'] as String? ?? 'unpaid',
+    processorRef: r['processor_ref'] as String?,
+  );
 
   @override
   Stream<domain.IncomingOnlineOrder> watchIncomingOrders() async* {
@@ -170,6 +174,25 @@ class SupabaseOnlineOrderChannel implements domain.OnlineOrderChannel {
     }
     final changed = jsonDecode(resp.body) as List;
     return changed.isNotEmpty;
+  }
+
+  /// Asks the restaurant's `pay-online` Edge Function to refund a paid online
+  /// order. Sent with the restaurant's access token — the function rejects
+  /// anonymous callers. Returns true when the refund went through.
+  Future<bool> refundOnline(String orderId) async {
+    final resp = await _client
+        .post(
+          baseUrl
+              .resolve('functions/v1/pay-online')
+              .replace(queryParameters: {'action': 'refund'}),
+          headers: await _authHeaders(),
+          body: jsonEncode({'order_id': orderId}),
+        )
+        .timeout(timeout);
+    if (resp.statusCode >= 300) {
+      throw domain.SyncException('refund online (${resp.statusCode})');
+    }
+    return (jsonDecode(resp.body) as Map<String, dynamic>)['refunded'] == true;
   }
 
   @override

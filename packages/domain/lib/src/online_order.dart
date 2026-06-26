@@ -181,12 +181,18 @@ class PublishedMenu {
   /// shown as the primary line. Null/empty → just stack both, name first.
   final String? secondNameLanguage;
 
+  /// True when the merchant has enabled online card payment (and deployed the
+  /// pay-online Edge Function). The customer app only offers "Pay online" when
+  /// this is set; otherwise preorders are pay-at-pickup. Defaults to off.
+  final bool acceptsOnlinePayment;
+
   const PublishedMenu({
     required this.restaurantName,
     required this.categories,
     this.pickupLeadMinutes = 0,
     this.taxRateBp = 0,
     this.secondNameLanguage,
+    this.acceptsOnlinePayment = false,
   });
 
   Map<String, dynamic> toJson() => {
@@ -195,6 +201,7 @@ class PublishedMenu {
         'taxRateBp': taxRateBp,
         if (secondNameLanguage != null)
           'secondNameLanguage': secondNameLanguage,
+        if (acceptsOnlinePayment) 'acceptsOnlinePayment': true,
         'categories': categories.map((c) => c.toJson()).toList(),
       };
 
@@ -203,6 +210,7 @@ class PublishedMenu {
         pickupLeadMinutes: j['pickupLeadMinutes'] as int? ?? 0,
         taxRateBp: j['taxRateBp'] as int? ?? 0,
         secondNameLanguage: j['secondNameLanguage'] as String?,
+        acceptsOnlinePayment: j['acceptsOnlinePayment'] as bool? ?? false,
         categories: (j['categories'] as List)
             .cast<Map<String, dynamic>>()
             .map(PublishedCategory.fromJson)

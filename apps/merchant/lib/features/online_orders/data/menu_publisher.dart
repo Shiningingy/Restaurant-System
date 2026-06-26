@@ -85,6 +85,7 @@ class MenuPublisher {
       pickupLeadMinutes: settings.pickupLeadMinutes,
       taxRateBp: settings.taxRateBp,
       secondNameLanguage: settings.secondNameLanguage,
+      acceptsOnlinePayment: settings.acceptsOnlinePayment,
       categories: categories,
     );
   }

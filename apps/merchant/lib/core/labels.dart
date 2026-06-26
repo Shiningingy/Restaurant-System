@@ -20,4 +20,5 @@ String paymentMethodLabel(BuildContext context, domain.PaymentMethod method) =>
       domain.PaymentMethod.cash => context.l10n.payCash,
       domain.PaymentMethod.terminal => context.l10n.payCard,
       domain.PaymentMethod.manual => context.l10n.payCardKeyed,
+      domain.PaymentMethod.online => context.l10n.payOnline,
     };

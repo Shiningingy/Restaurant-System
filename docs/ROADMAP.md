@@ -98,10 +98,19 @@ sync feed, other customers' orders, status changes, and uid-spoofing. Re-run any
 time against a project with `dart run tool/live_cloud_smoke_test.dart` (creds via
 env vars).*
 
-## Phase 7 — Optional online payment
+## Phase 7 — Optional online payment *(built — sandbox validation pending)*
 Processor-hosted checkout (Moneris Checkout preferred — aligns with the
 terminal) behind the existing payment abstraction. We never handle card data.
 **Exit:** a preorder can be paid online; refunds work.
+
+Built via the **`pay-online` Supabase Edge Function** (`supabase/functions/pay-online/`):
+it serves Moneris's hosted checkout, verifies the receipt server-to-server,
+recomputes the amount, and is the only writer of `payment_status='paid'`. The
+customer app opens it in the browser ("Pay online" at checkout) and polls the
+order; the merchant records a paid online order on accept and can refund it.
+Off by default (Settings → Online ordering → Accept online payment). Setup +
+sandbox testing: **docs/MONERIS_PAYMENT.md**. Field names in `moneris.ts` are
+validated against the QA sandbox before go-live.
 
 **Security model (design before building):**
 - Card data goes straight from customer → processor (hosted checkout, or a
