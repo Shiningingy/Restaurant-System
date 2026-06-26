@@ -432,6 +432,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get checkoutPlacePreorder => '提交预订单';
 
   @override
+  String get checkoutPayOnline => '在线支付';
+
+  @override
+  String get checkoutPayAtCounterButton => '柜台支付';
+
+  @override
   String get statusTitle => '您的预订单';
 
   @override
@@ -482,6 +488,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String statusTotalPayAtPickup(String total) {
     return '合计 $total — 取餐时支付';
   }
+
+  @override
+  String statusPaidOnline(String total) {
+    return '已在线支付 — $total';
+  }
+
+  @override
+  String get statusPayNow => '立即支付';
 
   @override
   String get statusBackToMenu => '返回菜单';

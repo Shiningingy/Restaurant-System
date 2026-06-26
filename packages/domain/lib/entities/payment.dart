@@ -4,7 +4,7 @@ import '../src/money.dart';
 
 part 'payment.freezed.dart';
 
-enum PaymentMethod { cash, terminal, manual }
+enum PaymentMethod { cash, terminal, manual, online }
 
 enum PaymentStatus { pending, approved, declined, reversed }
 

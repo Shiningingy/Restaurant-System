@@ -10,6 +10,7 @@ import '../../orders/data/order_history.dart';
 import '../../storefront/application/providers.dart';
 import '../../storefront/presentation/status_screen.dart';
 import '../cart.dart';
+import '../data/pay_online.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({super.key});
@@ -101,7 +102,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     return domain.Money(cents);
   }
 
-  Future<void> _place() async {
+  Future<void> _place({bool payOnline = false}) async {
     final l10n = context.l10n;
     final storefront = ref.read(storefrontProvider);
     if (storefront == null) return;
@@ -162,6 +163,13 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             );
       }
       ref.read(cartProvider.notifier).clear();
+      // Pay online: open Moneris's hosted checkout in the browser. The status
+      // screen polls and flips to "Paid online" once the Edge Function verifies
+      // the charge; a customer who cancels can still pay from there or at pickup.
+      final url = ref.read(storefrontConfigProvider).url;
+      if (payOnline && url != null) {
+        await launchPayOnline(url, orderId);
+      }
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
@@ -183,6 +191,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   @override
   Widget build(BuildContext context) {
     final cart = ref.watch(cartProvider);
+    // Online card payment is offered only when the merchant enabled it and this
+    // isn't a shared in-store kiosk (kiosk pays at the counter).
+    final payOnlineAvailable =
+        (ref.watch(menuProvider).value?.acceptsOnlinePayment ?? false) &&
+        !ref.watch(kioskModeProvider);
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.checkoutTitle)),
       body: ListView(
@@ -250,16 +263,24 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             ),
           ],
           const SizedBox(height: 24),
-          FilledButton(
-            onPressed: _busy ? null : _place,
-            child: _busy
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Text(context.l10n.checkoutPlacePreorder),
-          ),
+          if (_busy)
+            const Center(child: CircularProgressIndicator())
+          else if (payOnlineAvailable) ...[
+            FilledButton.icon(
+              onPressed: () => _place(payOnline: true),
+              icon: const Icon(Icons.lock_outline),
+              label: Text(context.l10n.checkoutPayOnline),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton(
+              onPressed: () => _place(),
+              child: Text(context.l10n.checkoutPayAtCounterButton),
+            ),
+          ] else
+            FilledButton(
+              onPressed: () => _place(),
+              child: Text(context.l10n.checkoutPlacePreorder),
+            ),
         ],
       ),
     );

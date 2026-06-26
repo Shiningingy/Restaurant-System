@@ -842,6 +842,18 @@ abstract class AppLocalizations {
   /// **'Place preorder'**
   String get checkoutPlacePreorder;
 
+  /// No description provided for @checkoutPayOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay online'**
+  String get checkoutPayOnline;
+
+  /// No description provided for @checkoutPayAtCounterButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay at counter'**
+  String get checkoutPayAtCounterButton;
+
   /// No description provided for @statusTitle.
   ///
   /// In en, this message translates to:
@@ -937,6 +949,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Total {total} — pay at pickup'**
   String statusTotalPayAtPickup(String total);
+
+  /// No description provided for @statusPaidOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid online — {total}'**
+  String statusPaidOnline(String total);
+
+  /// No description provided for @statusPayNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay now'**
+  String get statusPayNow;
 
   /// No description provided for @statusBackToMenu.
   ///

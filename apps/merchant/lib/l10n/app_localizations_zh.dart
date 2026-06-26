@@ -77,6 +77,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get payCardKeyed => '刷卡（手输）';
 
   @override
+  String get payOnline => '在线';
+
+  @override
   String get ordersTitle => '未结订单';
 
   @override
@@ -137,6 +140,23 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get ordVoidConfirmBody => '该订单将作为已作废保留在历史记录中。';
+
+  @override
+  String get ordRefundOnline => '退款';
+
+  @override
+  String get ordRefundConfirmTitle => '为此在线付款退款？';
+
+  @override
+  String get ordRefundConfirmBody => '这将通过 Moneris 退回卡付款并作废该订单，且无法撤销。';
+
+  @override
+  String get ordRefundDone => '已退款。';
+
+  @override
+  String ordRefundFailed(String error) {
+    return '退款失败：$error';
+  }
 
   @override
   String get ordKeep => '保留';
@@ -742,6 +762,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get setAutoAcceptKioskHint => '将店内自助点餐机的订单直接送到订单面板。关闭则先在收件箱中审核。';
+
+  @override
+  String get setAcceptOnlinePayment => '接受在线付款';
+
+  @override
+  String get setAcceptOnlinePaymentHint =>
+      '让顾客预订时用卡付款。需要在您的 Supabase 上部署 pay-online 函数 — 参见 docs/MONERIS_PAYMENT.md。';
 
   @override
   String get setPayments => '支付';

@@ -143,7 +143,12 @@ create table online_orders (
   submitted_at        timestamptz not null default now(),
   status              text not null default 'submitted',
   note                text,
-  is_kiosk            boolean not null default false  -- placed at an in-store kiosk
+  is_kiosk            boolean not null default false,  -- placed at an in-store kiosk
+  -- Online card payment (Phase 7). Written ONLY by the pay-online Edge
+  -- Function (service role) — never by a client. See docs/MONERIS_PAYMENT.md.
+  payment_status      text not null default 'unpaid',  -- unpaid | paid | refunded
+  paid_at             timestamptz,
+  processor_ref       text                              -- Moneris txn id
 );
 create index online_orders_status on online_orders (status);
 
@@ -196,6 +201,13 @@ alter table online_orders add column if not exists proposed_pickup_at timestampt
 -- so shops that haven't added the column still take normal orders fine.
 alter table online_orders add column if not exists is_kiosk boolean not null default false;
 
+-- Online card payment (Phase 7). These are written ONLY by the pay-online Edge
+-- Function (service role); the customer-update trigger below freezes them so a
+-- customer can never mark their own order paid. See docs/MONERIS_PAYMENT.md.
+alter table online_orders add column if not exists payment_status text not null default 'unpaid';
+alter table online_orders add column if not exists paid_at timestamptz;
+alter table online_orders add column if not exists processor_ref text;
+
 -- Customer may UPDATE only their own row, only out of 'timeProposed' (respond)
 -- or 'ready' (confirm pickup). The exact transitions are pinned by the trigger.
 create policy oo_customer_respond on online_orders for update
@@ -233,13 +245,17 @@ begin
     else
       raise exception 'customer may not update this order now';
     end if;
-    -- Order contents are immutable for the customer in every case.
+    -- Order contents are immutable for the customer in every case — including
+    -- the payment fields, which only the pay-online Edge Function may set.
     if new.lines        is distinct from old.lines
        or new.id           is distinct from old.id
        or new.customer_uid is distinct from old.customer_uid
        or new.customer_name is distinct from old.customer_name
        or new.customer_phone is distinct from old.customer_phone
-       or new.submitted_at is distinct from old.submitted_at then
+       or new.submitted_at is distinct from old.submitted_at
+       or new.payment_status is distinct from old.payment_status
+       or new.paid_at is distinct from old.paid_at
+       or new.processor_ref is distinct from old.processor_ref then
       raise exception 'customer may not change order contents';
     end if;
   end if;
@@ -268,11 +284,15 @@ permission error (the customer has no UPDATE policy) — which fails safe.
   including the `pos-assets` bucket.
 - No client holds a key that bypasses RLS.
 
-## Online payment (Phase 7) — forward note
+## Online payment (Phase 7)
 
-Online payment adds a **Supabase Edge Function** on the restaurant's project as
-the trusted backend: it holds the processor's secret key, verifies the charge
-with the processor (webhook/API — never the client's word), recomputes the
-amount from the order, and is the **only** writer of a `paid` status. Card data
-goes customer → processor directly; we never see it. See PRINCIPLES.md (5, 6)
-and the Phase 7 entry in ROADMAP.md.
+Online payment is the **`pay-online` Supabase Edge Function** on the restaurant's
+project (`supabase/functions/pay-online/`) as the trusted backend: it holds
+Moneris's secret credentials, verifies the charge with Moneris server-to-server
+(never the client's word), recomputes the amount from the order, and is the
+**only** writer of `payment_status = 'paid'` (the customer-update trigger above
+freezes the payment fields). Card data goes customer → Moneris directly; we
+never see it. Deploy it `--no-verify-jwt` (the customer's browser opens the
+checkout page with no token; the function does its own auth for refunds). Full
+setup in **docs/MONERIS_PAYMENT.md**. See PRINCIPLES.md (5, 6) and the Phase 7
+entry in ROADMAP.md.

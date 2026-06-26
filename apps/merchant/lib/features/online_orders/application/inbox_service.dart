@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../orders/data/order_repository.dart';
+import '../../payments/data/payment_repository.dart';
 import '../../../core/settings/settings_repository.dart';
 import '../data/menu_publisher.dart';
 import '../drivers/supabase_online_order_channel.dart';
@@ -17,12 +18,14 @@ final _pickupFormat = DateFormat('HH:mm');
 class InboxService {
   final domain.OnlineOrderChannel channel;
   final OrderRepository orders;
+  final PaymentRepository payments;
   final SettingsRepository settings;
   final MenuPublisher publisher;
 
   InboxService({
     required this.channel,
     required this.orders,
+    required this.payments,
     required this.settings,
     required this.publisher,
   });
@@ -63,10 +66,15 @@ class InboxService {
         .toList();
 
     final pickup = _pickupFormat.format(incoming.requestedPickupAt);
+    final paidOnline = incoming.isPaidOnline;
     final orderId = await orders.createOrder(
+      // Reuse the cloud order id locally so a later online refund can find it.
+      id: incoming.id,
       type: domain.OrderType.online,
       taxRateBp: settings.taxRateBp,
-      serviceFeeBp: settings.serviceFeeBp,
+      // A paid online order was charged subtotal+tax only (the customer never
+      // saw a service fee), so waive it here to match what they actually paid.
+      serviceFeeBp: paidOnline ? 0 : settings.serviceFeeBp,
       note: 'Online: ${incoming.customerName} - pickup $pickup',
     );
     for (final line in lines) {
@@ -91,19 +99,44 @@ class InboxService {
         note: line.note,
       );
     }
+    // The order was already paid online (the Edge Function verified it with the
+    // processor) — record it so the local order is born paid, not pay-at-counter.
+    if (paidOnline) {
+      final order = await orders.getOrder(orderId);
+      if (order != null) {
+        await payments.recordApproved(
+          orderId: orderId,
+          method: domain.PaymentMethod.online,
+          amount: order.total,
+          terminalRef: incoming.processorRef,
+        );
+      }
+    }
     return orderId;
   }
 
-  /// Auto-accepts any in-store **kiosk** orders in [incoming] straight to the
-  /// Orders board (the customer is on site). Each is claimed atomically, so
-  /// several POSes polling at once never double-build the same order. Remote
-  /// (non-kiosk) orders are left for manual review.
+  /// Auto-accepts orders that don't need a human decision straight to the
+  /// Orders board: in-store **kiosk** orders (the customer is on site) and any
+  /// order **already paid online** (no no-show risk). Each is claimed
+  /// atomically, so several POSes polling at once never double-build the same
+  /// order. Remote unpaid orders are left for manual review.
   Future<void> autoAcceptKiosk(
     List<domain.IncomingOnlineOrder> incoming,
   ) async {
     for (final o in incoming) {
-      if (o.kiosk) await accept(o);
+      if (o.kiosk || o.isPaidOnline) await accept(o);
     }
+  }
+
+  /// Refunds a paid online order through the restaurant's pay-online Edge
+  /// Function, then reverses the local payment and voids the order. The local
+  /// order id equals the cloud order id (see [accept]). Returns true on success.
+  Future<bool> refundOnline(String orderId) async {
+    final c = channel;
+    if (c is! SupabaseOnlineOrderChannel) return false;
+    final ok = await c.refundOnline(orderId);
+    if (ok) await payments.recordOnlineRefund(orderId);
+    return ok;
   }
 
   Future<void> reject(String onlineOrderId) => channel.updateOrderStatus(

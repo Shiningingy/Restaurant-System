@@ -31,6 +31,7 @@
   "payCash": "Cash",
   "payCard": "Card",
   "payCardKeyed": "Card (keyed)",
+  "payOnline": "Online",
 
   "ordersTitle": "Open Orders",
   "ordersEmpty": "No open orders — start a dine-in or takeout order.",
@@ -56,6 +57,14 @@
   "ordOrderTitle": "Order",
   "ordVoidConfirmTitle": "Void this order?",
   "ordVoidConfirmBody": "The order is kept in history as voided.",
+  "ordRefundOnline": "Refund",
+  "ordRefundConfirmTitle": "Refund this online payment?",
+  "ordRefundConfirmBody": "This refunds the card payment through Moneris and voids the order. It can't be undone.",
+  "ordRefundDone": "Refund issued.",
+  "ordRefundFailed": "Refund failed: {error}",
+  "@ordRefundFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
   "ordKeep": "Keep",
   "ordNoMenuYet": "No menu yet — add categories and items in Menu.",
   "ordTapToAdd": "Tap menu items to add them.",
@@ -348,6 +357,8 @@
   "setNewOrderSound": "Alert sound on new order",
   "setAutoAcceptKiosk": "Auto-accept kiosk orders",
   "setAutoAcceptKioskHint": "Send in-store kiosk orders straight to the Orders board. Turn off to review them in the Inbox first.",
+  "setAcceptOnlinePayment": "Accept online payment",
+  "setAcceptOnlinePaymentHint": "Let customers pay by card when they preorder. Requires the pay-online function on your Supabase — see docs/MONERIS_PAYMENT.md.",
   "setPayments": "Payments",
   "setCardTerminalManual": "Card terminal: manual entry",
   "setCardTerminalManualSubtitle": "Staff key the amount on the standalone terminal and record the outcome. Semi-integrated Moneris Go support arrives once the Moneris Cloud API access is set up.",

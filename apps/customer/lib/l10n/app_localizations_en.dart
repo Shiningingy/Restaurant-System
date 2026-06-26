@@ -449,6 +449,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checkoutPlacePreorder => 'Place preorder';
 
   @override
+  String get checkoutPayOnline => 'Pay online';
+
+  @override
+  String get checkoutPayAtCounterButton => 'Pay at counter';
+
+  @override
   String get statusTitle => 'Your preorder';
 
   @override
@@ -502,6 +508,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String statusTotalPayAtPickup(String total) {
     return 'Total $total — pay at pickup';
   }
+
+  @override
+  String statusPaidOnline(String total) {
+    return 'Paid online — $total';
+  }
+
+  @override
+  String get statusPayNow => 'Pay now';
 
   @override
   String get statusBackToMenu => 'Back to menu';

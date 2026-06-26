@@ -4,6 +4,7 @@ import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 import 'package:restaurant_ui/restaurant_ui.dart';
 
 import '../../../core/l10n_ext.dart';
+import '../../cart/data/pay_online.dart';
 import '../application/providers.dart';
 import '../drivers/supabase_storefront.dart';
 
@@ -27,6 +28,13 @@ class StatusScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(_stateProvider(orderId)).value;
     final status = state?.status;
+    final paidOnline = state?.paymentStatus == 'paid';
+    final storefrontUrl = ref.watch(storefrontConfigProvider).url;
+    // Show "Pay now" only while unpaid and the merchant accepts online payment.
+    final canPayOnline =
+        !paidOnline &&
+        storefrontUrl != null &&
+        (ref.watch(menuProvider).value?.acceptsOnlinePayment ?? false);
 
     return Scaffold(
       appBar: AppBar(
@@ -54,9 +62,21 @@ class StatusScreen extends ConsumerWidget {
               ],
               const SizedBox(height: 24),
               Text(
-                context.l10n.statusTotalPayAtPickup(total.format()),
-                style: Theme.of(context).textTheme.titleMedium,
+                paidOnline
+                    ? context.l10n.statusPaidOnline(total.format())
+                    : context.l10n.statusTotalPayAtPickup(total.format()),
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: paidOnline ? context.posStatus.success : null,
+                ),
               ),
+              if (canPayOnline) ...[
+                const SizedBox(height: 12),
+                FilledButton.icon(
+                  onPressed: () => launchPayOnline(storefrontUrl, orderId),
+                  icon: const Icon(Icons.lock_outline),
+                  label: Text(context.l10n.statusPayNow),
+                ),
+              ],
               const SizedBox(height: 32),
               OutlinedButton(
                 onPressed: () =>

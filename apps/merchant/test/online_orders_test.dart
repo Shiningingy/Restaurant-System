@@ -8,6 +8,7 @@ import 'package:merchant/features/online_orders/application/inbox_service.dart';
 import 'package:merchant/features/online_orders/data/menu_publisher.dart';
 import 'package:merchant/features/online_orders/drivers/supabase_online_order_channel.dart';
 import 'package:merchant/features/orders/data/order_repository.dart';
+import 'package:merchant/features/payments/data/payment_repository.dart';
 import 'package:merchant/core/settings/settings_repository.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -39,6 +40,14 @@ class FakeSupabase {
     final res = req.response;
     if (req.headers.value('apikey') != apiKey) {
       res.statusCode = HttpStatus.unauthorized;
+      await res.close();
+      return;
+    }
+    // Emulated pay-online Edge Function: pretend the refund succeeded.
+    if (req.uri.path.contains('functions/v1/pay-online')) {
+      res.statusCode = HttpStatus.ok;
+      res.headers.contentType = ContentType.json;
+      res.write(jsonEncode({'refunded': true}));
       await res.close();
       return;
     }
@@ -108,8 +117,14 @@ void main() {
   });
   tearDown(() => server.stop());
 
-  /// Simulates the customer app submitting a preorder.
-  Future<String> submitPreorder(domain.PreorderSubmission sub) async {
+  /// Simulates the customer app submitting a preorder. [paymentStatus] +
+  /// [processorRef] mimic an order the pay-online Edge Function already marked
+  /// paid.
+  Future<String> submitPreorder(
+    domain.PreorderSubmission sub, {
+    String paymentStatus = 'unpaid',
+    String? processorRef,
+  }) async {
     final id = domain.newId();
     await http.post(
       Uri.parse('${server.baseUrl}/rest/v1/online_orders'),
@@ -123,6 +138,8 @@ void main() {
           'requested_pickup_at': sub.requestedPickupAt.toIso8601String(),
           'submitted_at': DateTime.utc(2026, 6, 1, 11).toIso8601String(),
           'status': 'submitted',
+          'payment_status': paymentStatus,
+          'processor_ref': processorRef,
         },
       ]),
     );
@@ -143,6 +160,7 @@ void main() {
         anonKey: server.apiKey,
       ),
       orders: OrderRepository(db),
+      payments: PaymentRepository(db),
       settings: settings,
       publisher: MenuPublisher(menu: menu, settings: settings),
     );
@@ -274,6 +292,87 @@ void main() {
 
       // A second claim loses — it's no longer 'submitted' (no double-build).
       expect(await inbox.channel.claimForAccept(pending.single.id), isFalse);
+    },
+  );
+
+  test('a paid online order is accepted as paid (service fee waived) and '
+      'can be refunded', () async {
+    final inbox = await buildInbox();
+    // A service fee that must NOT apply to an online-paid order (the customer
+    // was charged subtotal + tax only).
+    await inbox.settings.setServiceFeeBp(500);
+
+    final onlineId = await submitPreorder(
+      domain.PreorderSubmission(
+        customerName: 'Mia',
+        requestedPickupAt: DateTime.utc(2026, 6, 1, 12),
+        lines: [
+          domain.PreorderLine(
+            itemId: 'i1',
+            nameSnapshot: 'Burger',
+            priceSnapshot: const domain.Money(1000),
+            qty: 2,
+          ),
+        ],
+      ),
+      paymentStatus: 'paid',
+      processorRef: 'mtxn-123',
+    );
+
+    final pending = await inbox.currentPending();
+    expect(pending.single.isPaidOnline, isTrue);
+
+    final localId = (await inbox.accept(pending.single))!;
+    // The local order reuses the cloud id, so the two are linkable for refund.
+    expect(localId, onlineId);
+
+    final order = (await inbox.orders.getOrder(localId))!;
+    expect(order.status, domain.OrderStatus.paid);
+    // 2000 subtotal + 13% tax (260) = 2260; the 5% service fee is waived.
+    expect(order.serviceFee, domain.Money.zero);
+    expect(order.total, const domain.Money(2260));
+
+    final pays = await inbox.payments.paymentsForOrder(localId);
+    expect(pays.single.method, domain.PaymentMethod.online);
+    expect(pays.single.status, domain.PaymentStatus.approved);
+    expect(pays.single.amount, const domain.Money(2260));
+    expect(pays.single.terminalRef, 'mtxn-123');
+
+    // Refund reverses the payment and voids the order.
+    expect(await inbox.refundOnline(localId), isTrue);
+    final after = (await inbox.orders.getOrder(localId))!;
+    expect(after.status, domain.OrderStatus.voided);
+    final paysAfter = await inbox.payments.paymentsForOrder(localId);
+    expect(paysAfter.single.status, domain.PaymentStatus.reversed);
+  });
+
+  test(
+    'a paid online order auto-accepts even when it is not a kiosk order',
+    () async {
+      final inbox = await buildInbox();
+      await submitPreorder(
+        domain.PreorderSubmission(
+          customerName: 'Remote Pat',
+          requestedPickupAt: DateTime.utc(2026, 6, 1, 12),
+          lines: [
+            domain.PreorderLine(
+              itemId: 'i1',
+              nameSnapshot: 'Tea',
+              priceSnapshot: const domain.Money(300),
+              qty: 1,
+            ),
+          ],
+        ),
+        paymentStatus: 'paid',
+        processorRef: 'mtxn-9',
+      );
+      final pending = await inbox.currentPending();
+      expect(pending.single.kiosk, isFalse);
+      await inbox.autoAcceptKiosk(pending);
+      final board = await inbox.orders.watchOpenOrders().first;
+      final online = board.where((o) => o.type == domain.OrderType.online);
+      expect(online, hasLength(1));
+      expect(online.single.status, domain.OrderStatus.paid);
     },
   );
 

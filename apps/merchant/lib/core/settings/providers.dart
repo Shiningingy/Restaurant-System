@@ -334,11 +334,13 @@ class OnlineOrderSettings {
   final int pickupLeadMinutes;
   final bool newOrderSound;
   final bool autoAcceptKiosk;
+  final bool acceptsOnlinePayment;
 
   const OnlineOrderSettings({
     required this.pickupLeadMinutes,
     required this.newOrderSound,
     required this.autoAcceptKiosk,
+    required this.acceptsOnlinePayment,
   });
 }
 
@@ -350,6 +352,7 @@ class OnlineOrderSettingsNotifier extends Notifier<OnlineOrderSettings> {
       pickupLeadMinutes: r.pickupLeadMinutes,
       newOrderSound: r.newOrderSound,
       autoAcceptKiosk: r.autoAcceptKiosk,
+      acceptsOnlinePayment: r.acceptsOnlinePayment,
     );
   }
 
@@ -365,6 +368,11 @@ class OnlineOrderSettingsNotifier extends Notifier<OnlineOrderSettings> {
 
   Future<void> setAutoAcceptKiosk(bool on) async {
     await ref.read(settingsRepositoryProvider).setAutoAcceptKiosk(on);
+    ref.invalidateSelf();
+  }
+
+  Future<void> setAcceptsOnlinePayment(bool on) async {
+    await ref.read(settingsRepositoryProvider).setAcceptsOnlinePayment(on);
     ref.invalidateSelf();
   }
 }
