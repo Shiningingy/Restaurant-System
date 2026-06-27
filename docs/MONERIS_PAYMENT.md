@@ -57,36 +57,33 @@ restaurant's login, and it only ever writes paid after verifying with Moneris.
 
 ## 3. Set your Moneris secrets
 
-From the Moneris developer portal (use the **sandbox** first). Auth can be your
-**Subscriptions API key** *or* an **OAuth2 client** — set whichever you have; the
-function prefers the API key if `MONERIS_API_KEY` is set, else uses OAuth2.
+Hosted Tokenization is a **classic Moneris Gateway** product, so the charge uses
+the classic **`store_id` + `api_token`** — for the **same store that owns your HT
+profile**. Find them in the Merchant Resource Center (sandbox first) under
+**Admin → Store Settings / API Token**. These are *not* the new-API key or OAuth2
+client (those can't charge an HT token — the new REST `/payments` endpoint
+returns a blank 500 for it).
 
 ```sh
-# Common to both:
 supabase secrets set \
-  MONERIS_MERCHANT_ID=<your 13-char merchant id> \
+  MONERIS_STORE_ID=<classic store_id, e.g. monca00392> \
+  MONERIS_API_TOKEN=<classic api_token for that store> \
   MONERIS_HT_PROFILE_ID=<your Hosted Tokenization profile id> \
   MONERIS_ENV=qa \
   --project-ref <your-ref>
-
-# Option A — API key (simplest; needs its Subscription to include Payments+Refunds):
-supabase secrets set MONERIS_API_KEY=<your primary api key> --project-ref <your-ref>
-
-# Option B — OAuth2 client (scopes payment.* + refund.*; secret expires, so rotate it):
-supabase secrets set \
-  MONERIS_CLIENT_ID=<client id> MONERIS_CLIENT_SECRET=<client secret> \
-  --project-ref <your-ref>
 ```
 
-Switch `MONERIS_ENV=prod` when you go live. `SUPABASE_URL`,
+`MONERIS_CRYPT_TYPE` is optional (defaults to `7`); set it only if Moneris asks
+you to use a different value. Switch `MONERIS_ENV=prod` when you go live.
+`SUPABASE_URL`,
 `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` are injected automatically —
 you don't set those. **Secrets never go in the app or this repo.**
 
 > The **HT Profile ID** is created in the Merchant Resource Center → Hosted
-> Tokenization / Hosted Solutions Configuration on a **real store** — it is **not
-> available in the developer sandbox**. So the hosted card-entry frame can only
-> be tested once you've onboarded a Moneris store; until then, validate the
-> charge/refund API with the sandbox script below.
+> Tokenization / Hosted Solutions Configuration. The **sandbox has its own MRC**,
+> so you can create an HT profile there and test the full card-entry frame →
+> token → charge flow without onboarding a live store. The profile's store is the
+> one whose `store_id`/`api_token` you set above.
 
 ## 4. Turn it on in the POS
 
