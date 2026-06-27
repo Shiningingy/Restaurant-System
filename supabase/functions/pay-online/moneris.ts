@@ -3,18 +3,20 @@
 // enters it in Moneris's Hosted Tokenization iframe, which returns a temporary
 // token; we charge that token via /payments.
 //
-// ⚠️ THE COMBO THAT WORKS (after a long 500 hunt):
+// ⚠️ THE COMBO THAT WORKS (after a long hunt):
 //   • iframe  : esqa.moneris.com/HPPtoken (QA). The new-API HT host
 //               mpg1t.moneris.io just 301s to esqa in the sandbox, and embedding
 //               mpg1t makes the redirect 404 the profile — so embed esqa.
 //   • charge  : new REST POST /payments with
-//               paymentMethodData.paymentMethodType = "TEMPORARY_TOKEN".
-//               NOT paymentMethod/paymentMethodSource (a legacy doc variant that
-//               400s/500s — Moneris ships several doc versions side by side).
-// The token from esqa IS chargeable on /payments with the account's API key —
-// PROVIDED the HT profile's store and the API key's merchant are the SAME Moneris
-// account. (The earlier blank 500 was the wrong field name + the mpg1t/esqa mixup,
-// not a "two products" wall.)
+//               paymentMethod.paymentMethodSource = "TEMPORARY_TOKEN".
+//               The createPaymentRequest schema for Api-Version 2025-08-14 names
+//               this field `paymentMethod` (the diag proved it: a paymentMethodData
+//               body 400s with "Required properties are missing: paymentMethod").
+//               `paymentMethodData/paymentMethodType` is a DIFFERENT api version's
+//               doc — Moneris ships several side by side. Same shape as our
+//               proven CARD charge (paymentMethod + paymentMethodSource).
+// Auth (API key + merchant id) is confirmed VALID by the diag (authOk + a 400
+// schema error, not a 401) — same Moneris account, no two-portals wall.
 //
 // Auth is EITHER the Subscriptions API key (X-Api-Key) OR OAuth2
 // client-credentials. If MONERIS_API_KEY is set we use it, else OAuth2.
@@ -119,10 +121,9 @@ export async function purchaseWithToken(
     idempotencyKey: string;
   },
 ): Promise<PurchaseResult> {
-  // Per the Hosted Tokenization scenario, a temporary-token charge is:
-  //   paymentMethodData: { paymentMethodType: "TEMPORARY_TOKEN", temporaryToken }
-  // (the dataKey the mpg1t iframe returned). NOT paymentMethod/paymentMethodSource
-  // (that's the legacy doc variant and 400s/500s here).
+  // Api-Version 2025-08-14 schema (createPaymentRequest) requires `paymentMethod`
+  // with a `paymentMethodSource` discriminator — the same shape as a CARD charge:
+  //   paymentMethod: { paymentMethodSource: "TEMPORARY_TOKEN", temporaryToken }
   const resp = await fetch(`${apiHost(cfg.env)}/payments`, {
     method: "POST",
     headers: await headers(cfg, args.idempotencyKey),
@@ -130,8 +131,8 @@ export async function purchaseWithToken(
       idempotencyKey: args.idempotencyKey,
       orderId: args.orderId,
       amount: { amount: args.amountCents, currency: "CAD" },
-      paymentMethodData: {
-        paymentMethodType: "TEMPORARY_TOKEN",
+      paymentMethod: {
+        paymentMethodSource: "TEMPORARY_TOKEN",
         temporaryToken: args.token,
       },
     }),
@@ -200,8 +201,8 @@ export async function diagnose(
       idempotencyKey: idem,
       orderId: idem,
       amount: { amount: 100, currency: "CAD" },
-      paymentMethodData: {
-        paymentMethodType: "TEMPORARY_TOKEN",
+      paymentMethod: {
+        paymentMethodSource: "TEMPORARY_TOKEN",
         temporaryToken: token ?? "ot-DIAGNOSTIC-PLACEHOLDER",
       },
     }),
