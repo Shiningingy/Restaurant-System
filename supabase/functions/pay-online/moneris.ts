@@ -3,20 +3,18 @@
 // enters it in Moneris's Hosted Tokenization iframe, which returns a temporary
 // token; we charge that token via /payments.
 //
-// ⚠️ THE TWO THINGS THAT MUST MATCH (this was the long-standing 500):
-// Hosted Tokenization comes in two flavours that are NOT interchangeable:
-//   • classic HT  : iframe at esqa/www3.moneris.com  → charge via the classic
-//                    Gateway (res_purchase_cc / data_key).
-//   • new-API HT  : iframe at **mpg1t.moneris.io** (QA) → charge via the new REST
-//                    /payments with paymentMethodData.paymentMethodType =
-//                    "TEMPORARY_TOKEN".
-// We use the NEW-API flavour (the account has an API key + merchant id, not a
-// classic store_id/api_token). Generating the token from the classic esqa host
-// and charging it on /payments is exactly what returned a blank 500 — a raw card
-// on /payments worked because the card isn't tied to an HT product. So: iframe =
-// mpg1t.moneris.io, charge = paymentMethodData/TEMPORARY_TOKEN. (Moneris ships
-// several doc versions with legacy field names side by side — paymentMethodData/
-// paymentMethodType is the one the Hosted Tokenization scenario specifies.)
+// ⚠️ THE COMBO THAT WORKS (after a long 500 hunt):
+//   • iframe  : esqa.moneris.com/HPPtoken (QA). The new-API HT host
+//               mpg1t.moneris.io just 301s to esqa in the sandbox, and embedding
+//               mpg1t makes the redirect 404 the profile — so embed esqa.
+//   • charge  : new REST POST /payments with
+//               paymentMethodData.paymentMethodType = "TEMPORARY_TOKEN".
+//               NOT paymentMethod/paymentMethodSource (a legacy doc variant that
+//               400s/500s — Moneris ships several doc versions side by side).
+// The token from esqa IS chargeable on /payments with the account's API key —
+// PROVIDED the HT profile's store and the API key's merchant are the SAME Moneris
+// account. (The earlier blank 500 was the wrong field name + the mpg1t/esqa mixup,
+// not a "two products" wall.)
 //
 // Auth is EITHER the Subscriptions API key (X-Api-Key) OR OAuth2
 // client-credentials. If MONERIS_API_KEY is set we use it, else OAuth2.
@@ -36,14 +34,18 @@ function apiHost(env: string): string {
   return env === "prod" ? "https://api.moneris.io" : "https://api.sb.moneris.io";
 }
 
-/// Hosted Tokenization iframe host (the card-entry frame). The NEW-API HT host
-/// is mpg1t.moneris.io in QA (NOT the classic esqa.moneris.com). Overridable via
-/// MONERIS_HT_HOST for prod / if Moneris assigns a different host.
+/// Hosted Tokenization iframe host (the card-entry frame). In the QA sandbox
+/// the new-API HT host `mpg1t.moneris.io` simply 301-redirects to
+/// `esqa.moneris.com` — and pointing the iframe at mpg1t makes that redirect
+/// mangle the profile URL inside the frame (Moneris' "page doesn't exist" 404).
+/// So embed esqa directly (where the profile renders); the token it returns is
+/// still charged on the new REST /payments. Overridable via MONERIS_HT_HOST
+/// (e.g. for production, once Moneris confirms the live HT host).
 function htHost(cfg: MonerisConfig): string {
   if (cfg.htHost) return cfg.htHost;
   return cfg.env === "prod"
-    ? "https://gateway.moneris.io"
-    : "https://mpg1t.moneris.io";
+    ? "https://www3.moneris.com"
+    : "https://esqa.moneris.com";
 }
 
 /// The iframe src that renders Moneris's hosted card field for this profile.
