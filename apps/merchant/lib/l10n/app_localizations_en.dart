@@ -542,6 +542,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get inboxMenuPublished => 'Menu published to your storefront.';
 
   @override
+  String inboxMenuPublishedPhotoWarning(int count) {
+    return 'Menu published, but $count item photo(s) couldn\'t be uploaded. Check that the menu-photos storage bucket exists and you\'re signed in.';
+  }
+
+  @override
   String inboxPublishFailed(String error) {
     return 'Publish failed: $error';
   }

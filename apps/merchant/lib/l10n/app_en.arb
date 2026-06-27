@@ -244,6 +244,10 @@
   "inboxPreparing": "Preparing",
   "inboxNothingInProgress": "Nothing in progress.",
   "inboxMenuPublished": "Menu published to your storefront.",
+  "inboxMenuPublishedPhotoWarning": "Menu published, but {count} item photo(s) couldn't be uploaded. Check that the menu-photos storage bucket exists and you're signed in.",
+  "@inboxMenuPublishedPhotoWarning": {
+    "placeholders": { "count": { "type": "int" } }
+  },
   "inboxPublishFailed": "Publish failed: {error}",
   "@inboxPublishFailed": {
     "placeholders": { "error": { "type": "String" } }

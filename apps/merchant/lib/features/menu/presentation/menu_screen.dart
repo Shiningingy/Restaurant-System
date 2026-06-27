@@ -86,8 +86,16 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     try {
-      await ref.read(inboxServiceProvider).publishMenu();
-      messenger.showSnackBar(SnackBar(content: Text(l10n.inboxMenuPublished)));
+      final photoErrors = await ref.read(inboxServiceProvider).publishMenu();
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            photoErrors.isEmpty
+                ? l10n.inboxMenuPublished
+                : l10n.inboxMenuPublishedPhotoWarning(photoErrors.length),
+          ),
+        ),
+      );
     } on Object catch (e) {
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.inboxPublishFailed('$e'))),

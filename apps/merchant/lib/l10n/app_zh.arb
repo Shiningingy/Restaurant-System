@@ -181,6 +181,7 @@
   "inboxPreparing": "准备中",
   "inboxNothingInProgress": "暂无进行中的订单。",
   "inboxMenuPublished": "菜单已发布到您的店铺。",
+  "inboxMenuPublishedPhotoWarning": "菜单已发布，但有 {count} 张菜品图片未能上传。请确认 menu-photos 存储桶已创建并且您已登录。",
   "inboxPublishFailed": "发布失败：{error}",
   "inboxError": "错误：{error}",
   "inboxCustomerPickup": "{name} · 取餐时间 {time}",

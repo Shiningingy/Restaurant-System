@@ -530,6 +530,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get inboxMenuPublished => '菜单已发布到您的店铺。';
 
   @override
+  String inboxMenuPublishedPhotoWarning(int count) {
+    return '菜单已发布，但有 $count 张菜品图片未能上传。请确认 menu-photos 存储桶已创建并且您已登录。';
+  }
+
+  @override
   String inboxPublishFailed(String error) {
     return '发布失败：$error';
   }

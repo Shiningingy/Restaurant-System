@@ -1016,6 +1016,12 @@ abstract class AppLocalizations {
   /// **'Menu published to your storefront.'**
   String get inboxMenuPublished;
 
+  /// No description provided for @inboxMenuPublishedPhotoWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Menu published, but {count} item photo(s) couldn\'t be uploaded. Check that the menu-photos storage bucket exists and you\'re signed in.'**
+  String inboxMenuPublishedPhotoWarning(int count);
+
   /// No description provided for @inboxPublishFailed.
   ///
   /// In en, this message translates to:

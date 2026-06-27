@@ -47,10 +47,14 @@ class InboxService {
   Future<List<domain.IncomingOnlineOrder>> currentPending() =>
       currentByStatus(domain.OnlineOrderStatus.submitted);
 
-  /// Publishes the current menu so the customer app can browse it.
-  Future<void> publishMenu() async {
+  /// Publishes the current menu so the customer app can browse it. Returns the
+  /// list of item photos that couldn't be uploaded (empty on a clean publish) —
+  /// the menu itself still publishes regardless, so the caller can warn without
+  /// blocking.
+  Future<List<String>> publishMenu() async {
     final menu = await publisher.build();
     await channel.publishMenu(jsonEncode(menu.toJson()));
+    return List.unmodifiable(publisher.photoErrors);
   }
 
   /// Turns a preorder into a normal local order (type=online). **Claims the
