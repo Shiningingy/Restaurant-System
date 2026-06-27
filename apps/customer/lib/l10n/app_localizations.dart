@@ -854,6 +854,36 @@ abstract class AppLocalizations {
   /// **'Pay at counter'**
   String get checkoutPayAtCounterButton;
 
+  /// No description provided for @checkoutAwaitingPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Finishing payment…'**
+  String get checkoutAwaitingPayment;
+
+  /// No description provided for @checkoutAwaitingPaymentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete your payment in the browser. This updates automatically once it\'s done.'**
+  String get checkoutAwaitingPaymentBody;
+
+  /// No description provided for @checkoutReopenPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen payment page'**
+  String get checkoutReopenPayment;
+
+  /// No description provided for @checkoutCancelPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel payment'**
+  String get checkoutCancelPayment;
+
+  /// No description provided for @checkoutPaymentNotCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment wasn\'t completed. Your cart is saved — you can try again.'**
+  String get checkoutPaymentNotCompleted;
+
   /// No description provided for @statusTitle.
   ///
   /// In en, this message translates to:

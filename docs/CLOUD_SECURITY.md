@@ -165,6 +165,15 @@ create policy oo_customer_read_own on online_orders for select
   to authenticated
   using (customer_uid = auth.uid());
 
+-- Customer: delete their OWN order only while it's still submitted + unpaid
+-- (an abandoned online payment), so nothing lingers. Once paid/accepted the
+-- customer can't delete it — only the restaurant manages it from there.
+create policy oo_customer_delete_unpaid on online_orders for delete
+  to authenticated
+  using (customer_uid = auth.uid()
+         and status = 'submitted'
+         and payment_status = 'unpaid');
+
 -- Restaurant: read and update everything (accept/reject/ready/picked up).
 create policy oo_restaurant_all on online_orders for all
   to authenticated
@@ -267,6 +276,16 @@ drop trigger if exists oo_guard_customer_update on online_orders;
 create trigger oo_guard_customer_update
   before update on online_orders
   for each row execute function oo_guard_customer_update();
+
+-- Lets the customer delete their OWN order while it's still submitted + unpaid,
+-- so an abandoned online payment is cleaned up (the checkout deletes it on
+-- cancel/timeout). Paid/accepted orders are never customer-deletable.
+drop policy if exists oo_customer_delete_unpaid on online_orders;
+create policy oo_customer_delete_unpaid on online_orders for delete
+  to authenticated
+  using (customer_uid = auth.uid()
+         and status = 'submitted'
+         and payment_status = 'unpaid');
 ```
 
 Without this, the Approve/Decline and customer-side "Picked up" buttons return a

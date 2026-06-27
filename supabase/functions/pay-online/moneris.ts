@@ -95,6 +95,10 @@ export async function purchaseWithToken(
     idempotencyKey: string;
   },
 ): Promise<PurchaseResult> {
+  // Per the Moneris Purchase API, a temporary-token charge is exactly:
+  //   paymentMethod: { paymentMethodSource: "TEMPORARY_TOKEN", temporaryToken }
+  // (a plain string token). NO `storePaymentMethod` — that's only for cards and
+  // makes Moneris 500 on a token.
   const resp = await fetch(`${apiHost(cfg.env)}/payments`, {
     method: "POST",
     headers: await headers(cfg, args.idempotencyKey),
@@ -105,6 +109,43 @@ export async function purchaseWithToken(
       paymentMethod: {
         paymentMethodSource: "TEMPORARY_TOKEN",
         temporaryToken: args.token,
+      },
+    }),
+  });
+  const json = await resp.json().catch(() => ({})) as Record<string, unknown>;
+  const status = `${json.paymentStatus ?? ""}`.toUpperCase();
+  const amt = (json.amount as Record<string, unknown>)?.amount;
+  return {
+    approved: resp.ok && status === "SUCCEEDED",
+    paymentId: (json.paymentId as string) ?? null,
+    amountCents: typeof amt === "number" ? amt : null,
+    raw: json,
+  };
+}
+
+/// DEBUG (remove after diagnosis): charges a fixed sandbox test card via the
+/// SAME endpoint/headers/orderId as the token path, to isolate whether a 500 is
+/// the token (a Moneris-side config issue) or our request mechanics.
+export async function purchaseWithCard(
+  cfg: MonerisConfig,
+  args: { amountCents: number; orderId: string; idempotencyKey: string },
+): Promise<PurchaseResult> {
+  const resp = await fetch(`${apiHost(cfg.env)}/payments`, {
+    method: "POST",
+    headers: await headers(cfg, args.idempotencyKey),
+    body: JSON.stringify({
+      idempotencyKey: args.idempotencyKey,
+      orderId: args.orderId,
+      amount: { amount: args.amountCents, currency: "CAD" },
+      paymentMethod: {
+        paymentMethodSource: "CARD",
+        card: {
+          cardNumber: "4242424242424242",
+          expiryMonth: 12,
+          expiryYear: 2027,
+          cardSecurityCode: "123",
+        },
+        cardholderInformation: { cardholderName: "Test Buyer" },
         storePaymentMethod: "DO_NOT_STORE",
       },
     }),

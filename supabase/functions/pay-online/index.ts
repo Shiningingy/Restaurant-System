@@ -25,6 +25,7 @@ import {
   htIframeSrc,
   htOrigin,
   MonerisConfig,
+  purchaseWithCard,
   purchaseWithToken,
   refundPayment,
 } from "./moneris.ts";
@@ -59,16 +60,22 @@ const CORS = {
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 
+function headersWith(contentType: string): Headers {
+  const h = new Headers(CORS);
+  h.set("Content-Type", contentType);
+  return h;
+}
+
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
-    headers: { "Content-Type": "application/json", ...CORS },
+    headers: headersWith("application/json; charset=utf-8"),
   });
 
 const html = (body: string, status = 200) =>
   new Response(body, {
     status,
-    headers: { "Content-Type": "text/html; charset=utf-8", ...CORS },
+    headers: headersWith("text/html; charset=utf-8"),
   });
 
 // --- Supabase REST (service role: bypasses RLS to read orders / write paid) ---
@@ -108,11 +115,13 @@ async function patchOrder(orderId: string, patch: Record<string, unknown>) {
   });
 }
 
-/// Tax rate (basis points) from the latest published menu — the same value the
-/// apps use, so the charge matches the order total the merchant records.
+/// Tax rate (basis points) from the published menu — the SAME canonical row the
+/// customer app reads (`id = 'menu'`), so the charge's tax matches the total the
+/// customer saw at checkout. (Reading the newest row by `published_at` could
+/// pick a stray row whose taxRateBp is 0 — the cause of tax-less charges.)
 async function publishedTaxRateBp(): Promise<number> {
   const resp = await fetch(
-    `${SUPABASE_URL}/rest/v1/published_menu?select=menu&order=published_at.desc&limit=1`,
+    `${SUPABASE_URL}/rest/v1/published_menu?select=menu&id=eq.menu&limit=1`,
     { headers: restHeaders() },
   );
   if (!resp.ok) return 0;
@@ -138,6 +147,17 @@ function chargeCents(lines: unknown[], taxRateBp: number): number {
   return subtotal + tax;
 }
 
+/// The amount to charge for an order. Honors MONERIS_TEST_AMOUNT_CENTS when set
+/// — a SANDBOX-ONLY override, because the QA Penny-Value Simulator picks the
+/// response from the amount's cents (so a real total like $15.81 can hit an
+/// "error" penny). Set it to a known-approved amount (e.g. 100) to test the
+/// wiring end-to-end, then UNSET it for real charges.
+async function effectiveCents(order: OrderRow): Promise<number> {
+  const override = Number(env("MONERIS_TEST_AMOUNT_CENTS"));
+  if (Number.isFinite(override) && override > 0) return override;
+  return chargeCents(order.lines, await publishedTaxRateBp());
+}
+
 // --- Auth (refund is restaurant-only) ---
 
 async function isRestaurant(token: string | null): Promise<boolean> {
@@ -157,7 +177,12 @@ function bearer(req: Request): string | null {
 
 // --- Hosted Tokenization page ---
 
-function checkoutPage(orderId: string, cfg: MonerisConfig): string {
+function checkoutPage(
+  orderId: string,
+  cfg: MonerisConfig,
+  amountCents: number,
+): string {
+  const amount = `$${(amountCents / 100).toFixed(2)}`;
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -175,8 +200,9 @@ function checkoutPage(orderId: string, cfg: MonerisConfig): string {
 </head>
 <body>
   <div id="pay">
+    <h2 style="margin:0 0 12px">Pay ${amount}</h2>
     <iframe id="ht" src="${htIframeSrc(cfg)}"></iframe>
-    <button id="btn" type="button">Pay</button>
+    <button id="btn" type="button">Pay ${amount}</button>
     <div id="msg"></div>
   </div>
   <div id="done"><h1>✅ Payment complete</h1><p>You can return to the app.</p></div>
@@ -210,9 +236,11 @@ function checkoutPage(orderId: string, cfg: MonerisConfig): string {
           document.getElementById('pay').style.display = 'none';
           document.getElementById('done').style.display = 'block';
         } else {
-          msg.textContent = 'Payment failed (' + ((out && out.reason) || 'declined') + ').';
+          var d = out && out.detail ? ' — ' + JSON.stringify(out.detail) : '';
+          msg.textContent = 'Payment failed: ' + ((out && out.reason) || 'declined') + d
+            + ' [HT token = ' + data.dataKey + ']';
         }
-      }).catch(function () { msg.textContent = 'Payment could not be completed.'; });
+      }).catch(function (e) { msg.textContent = 'Payment could not be completed: ' + e; });
     });
   </script>
 </body>
@@ -227,9 +255,9 @@ async function handleGet(orderId: string): Promise<Response> {
   if (order.payment_status === "paid") {
     return html("<h1>Already paid</h1><p>You can return to the app.</p>");
   }
-  const cents = chargeCents(order.lines, await publishedTaxRateBp());
+  const cents = await effectiveCents(order);
   if (cents <= 0) return html("<h1>Nothing to pay</h1>", 400);
-  return html(checkoutPage(orderId, monerisConfig()));
+  return html(checkoutPage(orderId, monerisConfig(), cents));
 }
 
 async function handleVerify(req: Request): Promise<Response> {
@@ -239,14 +267,24 @@ async function handleVerify(req: Request): Promise<Response> {
   if (!order) return json({ error: "not found" }, 404);
   if (order.payment_status === "paid") return json({ paid: true }); // idempotent
 
-  const expected = chargeCents(order.lines, await publishedTaxRateBp());
-  const r = await purchaseWithToken(monerisConfig(), {
-    token,
-    amountCents: expected,
-    orderId: order_id,
-    idempotencyKey: idemKey(order_id, "p"),
-  });
-  if (!r.approved) return json({ paid: false, reason: "declined" }, 402);
+  const expected = await effectiveCents(order);
+  let r;
+  try {
+    r = await purchaseWithToken(monerisConfig(), {
+      token,
+      amountCents: expected,
+      orderId: order_id,
+      idempotencyKey: idemKey(order_id, "p"),
+    });
+  } catch (e) {
+    // Surface the real cause (e.g. an expired OAuth2 secret) instead of a blank
+    // 500 the client can't read.
+    const msg = e instanceof Error ? e.message : String(e);
+    return json({ paid: false, reason: `charge_error: ${msg}` }, 502);
+  }
+  if (!r.approved) {
+    return json({ paid: false, reason: "declined", detail: r.raw }, 402);
+  }
   // We compute `expected` from the order and send it as the charge amount, so
   // the charge IS the expected amount by construction. This is a belt-and-braces
   // echo check — only enforced when Moneris returns the amount (don't block a
@@ -273,7 +311,7 @@ async function handleRefund(req: Request): Promise<Response> {
   if (order.payment_status !== "paid" || !order.processor_ref) {
     return json({ error: "not refundable" }, 409);
   }
-  const cents = chargeCents(order.lines, await publishedTaxRateBp());
+  const cents = await effectiveCents(order);
   const result = await refundPayment(monerisConfig(), {
     paymentId: order.processor_ref,
     amountCents: cents,
@@ -291,12 +329,40 @@ Deno.serve(async (req) => {
   const url = new URL(req.url);
   const action = url.searchParams.get("action");
 
-  if (req.method === "GET") {
-    const orderId = url.searchParams.get("order_id");
-    if (!orderId) return html("<h1>Missing order_id</h1>", 400);
-    return handleGet(orderId);
+  try {
+    // DEBUG: GET ?action=testcard charges a $1 direct test card through the same
+    // path/headers as the token. Pass &order_id=<uuid> to also test the long
+    // orderId. Isolates token (Moneris config) vs our request mechanics.
+    if (req.method === "GET" && action === "testcard") {
+      const orderId = url.searchParams.get("order_id") ?? `tc-${Date.now()}`;
+      const r = await purchaseWithCard(monerisConfig(), {
+        amountCents: 100,
+        orderId,
+        idempotencyKey: `tc-${Date.now()}`,
+      });
+      return json({
+        testcard: true,
+        orderId,
+        approved: r.approved,
+        paymentId: r.paymentId,
+        raw: r.raw,
+      });
+    }
+    if (req.method === "GET") {
+      const orderId = url.searchParams.get("order_id");
+      if (!orderId) return html("<h1>Missing order_id</h1>", 400);
+      return await handleGet(orderId);
+    }
+    if (req.method === "POST" && action === "verify") {
+      return await handleVerify(req);
+    }
+    if (req.method === "POST" && action === "refund") {
+      return await handleRefund(req);
+    }
+    return json({ error: "not found" }, 404);
+  } catch (e) {
+    // Never return a bare 500 the client can't parse — always JSON with a reason.
+    const msg = e instanceof Error ? e.message : String(e);
+    return json({ paid: false, reason: `server_error: ${msg}` }, 500);
   }
-  if (req.method === "POST" && action === "verify") return handleVerify(req);
-  if (req.method === "POST" && action === "refund") return handleRefund(req);
-  return json({ error: "not found" }, 404);
 });

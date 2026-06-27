@@ -455,6 +455,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checkoutPayAtCounterButton => 'Pay at counter';
 
   @override
+  String get checkoutAwaitingPayment => 'Finishing payment…';
+
+  @override
+  String get checkoutAwaitingPaymentBody =>
+      'Complete your payment in the browser. This updates automatically once it\'s done.';
+
+  @override
+  String get checkoutReopenPayment => 'Reopen payment page';
+
+  @override
+  String get checkoutCancelPayment => 'Cancel payment';
+
+  @override
+  String get checkoutPaymentNotCompleted =>
+      'Payment wasn\'t completed. Your cart is saved — you can try again.';
+
+  @override
   String get statusTitle => 'Your preorder';
 
   @override

@@ -143,6 +143,11 @@
   "checkoutPlacePreorder": "提交预订单",
   "checkoutPayOnline": "在线支付",
   "checkoutPayAtCounterButton": "柜台支付",
+  "checkoutAwaitingPayment": "正在完成支付…",
+  "checkoutAwaitingPaymentBody": "请在浏览器中完成支付。支付完成后此页面会自动更新。",
+  "checkoutReopenPayment": "重新打开支付页面",
+  "checkoutCancelPayment": "取消支付",
+  "checkoutPaymentNotCompleted": "支付未完成。您的购物车已保留——可以重试。",
 
   "statusTitle": "您的预订单",
   "statusSendingHeadline": "正在提交您的订单…",

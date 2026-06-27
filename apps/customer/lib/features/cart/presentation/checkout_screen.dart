@@ -10,7 +10,7 @@ import '../../orders/data/order_history.dart';
 import '../../storefront/application/providers.dart';
 import '../../storefront/presentation/status_screen.dart';
 import '../cart.dart';
-import '../data/pay_online.dart';
+import 'payment_webview.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({super.key});
@@ -137,47 +137,34 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         submission,
         customerUid: ref.read(storefrontConfigProvider).customerUid,
       );
-      // A shared kiosk keeps no per-device history and doesn't remember the
-      // customer (privacy between customers); it confirms and resets instead.
-      if (!kiosk) {
-        final active = ref.read(walletProvider).active;
-        if (active != null) {
-          await ref
-              .read(orderHistoryProvider.notifier)
-              .add(
-                PlacedOrder(
-                  orderId: orderId,
-                  storefrontId: active.id,
-                  restaurantLabel: active.label,
-                  totalCents: submission.total.cents,
-                  placedAt: DateTime.now(),
-                  status: domain.OnlineOrderStatus.submitted,
-                ),
-              );
-        }
-        await ref
-            .read(walletProvider.notifier)
-            .rememberCustomer(
-              name: _name.text.trim(),
-              phone: _phone.text.trim(),
-            );
-      }
-      ref.read(cartProvider.notifier).clear();
-      // Pay online: open Moneris's hosted checkout in the browser. The status
-      // screen polls and flips to "Paid online" once the Edge Function verifies
-      // the charge; a customer who cancels can still pay from there or at pickup.
+
+      // Pay online: open Moneris's hosted page IN-APP. The webview renders it
+      // with our Supabase origin (which Moneris's iframe requires) and pops back
+      // `true` once the charge lands. The order isn't "placed" until paid — on
+      // success we finalize; if the customer backs out we delete the still-unpaid
+      // order so it never reaches the merchant, and the cart is kept.
       final url = ref.read(storefrontConfigProvider).url;
       if (payOnline && url != null) {
-        await launchPayOnline(url, orderId);
+        if (!mounted) return;
+        setState(() => _busy = false);
+        final paid = await Navigator.of(context).push<bool>(
+          MaterialPageRoute<bool>(
+            builder: (_) => PaymentWebView(
+              pageUrl: '$url/functions/v1/pay-online?order_id=$orderId',
+              orderId: orderId,
+            ),
+          ),
+        );
+        if (!mounted) return;
+        if (paid == true) {
+          await _finalizePlaced(orderId, submission, paidOnline: true);
+        } else {
+          await _cancelUnpaid(orderId);
+        }
+        return;
       }
-      if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(
-          builder: (_) => kiosk
-              ? const KioskThankYouScreen()
-              : StatusScreen(orderId: orderId, total: submission.total),
-        ),
-      );
+
+      await _finalizePlaced(orderId, submission);
     } on Object catch (e) {
       if (mounted) {
         setState(() {
@@ -186,6 +173,61 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         });
       }
     }
+  }
+
+  /// The order is real (placed or paid): record history, remember the customer,
+  /// clear the cart, and move to the status screen.
+  Future<void> _finalizePlaced(
+    String orderId,
+    domain.PreorderSubmission submission, {
+    bool paidOnline = false,
+  }) async {
+    final kiosk = ref.read(kioskModeProvider);
+    // A shared kiosk keeps no per-device history and doesn't remember the
+    // customer (privacy between customers); it confirms and resets instead.
+    if (!kiosk) {
+      final active = ref.read(walletProvider).active;
+      if (active != null) {
+        await ref
+            .read(orderHistoryProvider.notifier)
+            .add(
+              PlacedOrder(
+                orderId: orderId,
+                storefrontId: active.id,
+                restaurantLabel: active.label,
+                totalCents: submission.total.cents,
+                placedAt: DateTime.now(),
+                status: domain.OnlineOrderStatus.submitted,
+              ),
+            );
+      }
+      await ref
+          .read(walletProvider.notifier)
+          .rememberCustomer(name: _name.text.trim(), phone: _phone.text.trim());
+    }
+    ref.read(cartProvider.notifier).clear();
+    if (!mounted) return;
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute<void>(
+        builder: (_) => kiosk
+            ? const KioskThankYouScreen()
+            : StatusScreen(orderId: orderId, total: submission.total),
+      ),
+    );
+  }
+
+  /// The customer backed out of payment: delete the still-unpaid order (so it
+  /// never reaches the merchant) and surface a message. The cart is untouched,
+  /// so they can try again.
+  Future<void> _cancelUnpaid(String orderId) async {
+    try {
+      await ref.read(storefrontProvider)?.cancelUnpaidOrder(orderId);
+    } on Object {
+      // Best-effort — RLS or the row being gone is fine; the merchant won't act
+      // on an unpaid order anyway.
+    }
+    if (!mounted) return;
+    setState(() => _error = context.l10n.checkoutPaymentNotCompleted);
   }
 
   @override
@@ -265,18 +307,17 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           const SizedBox(height: 24),
           if (_busy)
             const Center(child: CircularProgressIndicator())
-          else if (payOnlineAvailable) ...[
+          // When the merchant accepts online payment, the customer pays online —
+          // there is no pay-at-counter option (that's reserved for whitelisted
+          // regulars, not built yet). Otherwise it's a normal pay-at-counter
+          // preorder.
+          else if (payOnlineAvailable)
             FilledButton.icon(
               onPressed: () => _place(payOnline: true),
               icon: const Icon(Icons.lock_outline),
               label: Text(context.l10n.checkoutPayOnline),
-            ),
-            const SizedBox(height: 8),
-            OutlinedButton(
-              onPressed: () => _place(),
-              child: Text(context.l10n.checkoutPayAtCounterButton),
-            ),
-          ] else
+            )
+          else
             FilledButton(
               onPressed: () => _place(),
               child: Text(context.l10n.checkoutPlacePreorder),

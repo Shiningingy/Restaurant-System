@@ -438,6 +438,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get checkoutPayAtCounterButton => '柜台支付';
 
   @override
+  String get checkoutAwaitingPayment => '正在完成支付…';
+
+  @override
+  String get checkoutAwaitingPaymentBody => '请在浏览器中完成支付。支付完成后此页面会自动更新。';
+
+  @override
+  String get checkoutReopenPayment => '重新打开支付页面';
+
+  @override
+  String get checkoutCancelPayment => '取消支付';
+
+  @override
+  String get checkoutPaymentNotCompleted => '支付未完成。您的购物车已保留——可以重试。';
+
+  @override
   String get statusTitle => '您的预订单';
 
   @override
