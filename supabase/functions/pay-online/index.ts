@@ -24,6 +24,7 @@
 //   POST ?action=refund {order_id}         → restaurant-authenticated refund
 
 import {
+  diagnose,
   htIframeSrc,
   htOrigin,
   MonerisConfig,
@@ -285,7 +286,10 @@ async function handleVerify(req: Request): Promise<Response> {
     return json({ paid: false, reason: `charge_error: ${msg}` }, 502);
   }
   if (!r.approved) {
-    return json({ paid: false, reason: "declined", detail: r.raw }, 402);
+    return json(
+      { paid: false, reason: "declined", httpStatus: r.httpStatus, detail: r.raw },
+      402,
+    );
   }
   // We compute `expected` from the order and send it as the charge amount, so
   // the charge IS the expected amount by construction. This is a belt-and-braces
@@ -332,6 +336,14 @@ Deno.serve(async (req) => {
   const action = url.searchParams.get("action");
 
   try {
+    // DEBUG: GET ?action=diag dumps the full Moneris exchange (auth method,
+    // masked creds, the exact /payments status + headers + raw body) so a
+    // credentials/charge failure can be read in full. Optional &token=<ot-…> to
+    // test a real token (else a placeholder, which still surfaces auth errors).
+    if (req.method === "GET" && action === "diag") {
+      const token = url.searchParams.get("token");
+      return json(await diagnose(monerisConfig(), token));
+    }
     if (req.method === "GET") {
       const orderId = url.searchParams.get("order_id");
       if (!orderId) return html("<h1>Missing order_id</h1>", 400);

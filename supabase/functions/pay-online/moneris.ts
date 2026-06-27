@@ -98,7 +98,14 @@ export interface PurchaseResult {
   approved: boolean;
   paymentId: string | null;
   amountCents: number | null;
-  raw: unknown;
+  httpStatus: number;
+  raw: unknown; // the FULL response body text (so failures are diagnosable)
+}
+
+/// Masks a secret for safe echoing in diagnostics: length + last 4 chars only.
+function mask(s: string): string {
+  if (!s) return "(unset)";
+  return `len=${s.length} …${s.slice(-4)}`;
 }
 
 /// Charges a Hosted-Tokenization temporary token. Amount is in minor units
@@ -129,15 +136,81 @@ export async function purchaseWithToken(
       },
     }),
   });
-  const json = await resp.json().catch(() => ({})) as Record<string, unknown>;
+  const text = await resp.text();
+  let json: Record<string, unknown> = {};
+  try {
+    json = JSON.parse(text);
+  } catch { /* non-JSON body (e.g. an auth/HTML error) — keep the raw text */ }
   const status = `${json.paymentStatus ?? ""}`.toUpperCase();
   const amt = (json.amount as Record<string, unknown>)?.amount;
   return {
     approved: resp.ok && status === "SUCCEEDED",
     paymentId: (json.paymentId as string) ?? null,
     amountCents: typeof amt === "number" ? amt : null,
-    raw: json,
+    httpStatus: resp.status,
+    raw: text,
   };
+}
+
+/// DEBUG: runs the full charge path and returns EVERYTHING (auth method, masked
+/// creds, the exact /payments HTTP status + headers + raw body) so a failure
+/// like "invalid credentials" can be read in full. Uses [token] if given, else a
+/// placeholder (an auth/credentials error surfaces regardless of token validity).
+export async function diagnose(
+  cfg: MonerisConfig,
+  token: string | null,
+): Promise<unknown> {
+  const out: Record<string, unknown> = {
+    env: cfg.env,
+    apiHost: apiHost(cfg.env),
+    htHost: htHost(cfg),
+    htIframeSrc: htIframeSrc(cfg),
+    authMethod: cfg.apiKey ? "X-Api-Key" : "OAuth2 client-credentials",
+    apiKey: mask(cfg.apiKey),
+    clientId: mask(cfg.clientId),
+    clientSecret: mask(cfg.clientSecret),
+    merchantId: mask(cfg.merchantId),
+    htProfileId: cfg.htProfileId || "(unset)",
+    apiVersion: cfg.apiVersion,
+  };
+
+  // 1. Auth: if OAuth2, the token fetch itself may be the failure point.
+  let authHeaders: Record<string, string>;
+  try {
+    authHeaders = await authHeader(cfg);
+    out.authOk = true;
+  } catch (e) {
+    out.authOk = false;
+    out.authError = e instanceof Error ? e.message : String(e);
+    return out; // can't call /payments without auth
+  }
+
+  // 2. Raw /payments call — capture status, headers, and the full body text.
+  const idem = `diag${Date.now()}`;
+  const resp = await fetch(`${apiHost(cfg.env)}/payments`, {
+    method: "POST",
+    headers: {
+      ...authHeaders,
+      "X-Merchant-Id": cfg.merchantId,
+      "Api-Version": cfg.apiVersion,
+      "Idempotency-Key": idem,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      idempotencyKey: idem,
+      orderId: idem,
+      amount: { amount: 100, currency: "CAD" },
+      paymentMethodData: {
+        paymentMethodType: "TEMPORARY_TOKEN",
+        temporaryToken: token ?? "ot-DIAGNOSTIC-PLACEHOLDER",
+      },
+    }),
+  });
+  out.paymentsStatus = resp.status;
+  out.paymentsHeaders = Object.fromEntries(resp.headers.entries());
+  out.paymentsBody = await resp.text();
+  out.tokenUsed = token ? `…${token.slice(-6)}` : "(placeholder)";
+  return out;
 }
 
 /// Refunds a completed payment by its [paymentId] (a "matching refund").
