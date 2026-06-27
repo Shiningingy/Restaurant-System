@@ -135,6 +135,11 @@ export async function purchaseWithToken(
       paymentMethod: {
         paymentMethodSource: "TEMPORARY_TOKEN",
         temporaryToken: args.token,
+        // The successful CARD charge included storePaymentMethod; the token
+        // charge omitting it is the one structural difference, and a blank 500
+        // (vs a 400) is Moneris' tell for a missing required field. We never
+        // vault the card here, so DO_NOT_STORE.
+        storePaymentMethod: "DO_NOT_STORE",
       },
     }),
   });
@@ -206,6 +211,7 @@ export async function diagnose(
       paymentMethod: {
         paymentMethodSource: "TEMPORARY_TOKEN",
         temporaryToken: token ?? "ot-DIAGNOSTIC-PLACEHOLDER",
+        storePaymentMethod: "DO_NOT_STORE",
       },
     }),
   });
