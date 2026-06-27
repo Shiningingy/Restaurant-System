@@ -1,152 +1,158 @@
-// Moneris **classic Gateway** (XML) server-to-server calls — the ONLY place the
-// Moneris wire format lives. Card data never reaches here: the customer enters
-// it in Moneris's Hosted Tokenization iframe (HPPtoken), which returns a
-// temporary token (the "data key", e.g. `ot-…`); we charge that token.
+// Moneris **new REST API** (api.moneris.io) server-to-server calls — the ONLY
+// place the Moneris wire format lives. Card data never reaches here: the customer
+// enters it in Moneris's Hosted Tokenization iframe, which returns a temporary
+// token; we charge that token via /payments.
 //
-// ⚠️ WHY THE CLASSIC GATEWAY (not the new REST API at api.moneris.io):
-// Hosted Tokenization (the `HPPtoken/index.php` iframe) is a CLASSIC-Gateway
-// product, and its temporary token is charged with the classic `res_purchase_cc`
-// transaction (data_key) — NOT the new REST `/payments` endpoint. Feeding an HT
-// token to the new API's `TEMPORARY_TOKEN` source returns a blank 500 (that
-// source expects the new API's own tokenizer, a different token). A raw card on
-// `/payments` works, which is exactly why a card succeeded while the HT token
-// 500'd. Reference: Moneris/Gateway-HostedSolutions demo (res_purchase_cc +
-// data_key over https://esqa.moneris.com/gateway2/servlet/MpgRequest).
+// ⚠️ THE TWO THINGS THAT MUST MATCH (this was the long-standing 500):
+// Hosted Tokenization comes in two flavours that are NOT interchangeable:
+//   • classic HT  : iframe at esqa/www3.moneris.com  → charge via the classic
+//                    Gateway (res_purchase_cc / data_key).
+//   • new-API HT  : iframe at **mpg1t.moneris.io** (QA) → charge via the new REST
+//                    /payments with paymentMethodData.paymentMethodType =
+//                    "TEMPORARY_TOKEN".
+// We use the NEW-API flavour (the account has an API key + merchant id, not a
+// classic store_id/api_token). Generating the token from the classic esqa host
+// and charging it on /payments is exactly what returned a blank 500 — a raw card
+// on /payments worked because the card isn't tied to an HT product. So: iframe =
+// mpg1t.moneris.io, charge = paymentMethodData/TEMPORARY_TOKEN. (Moneris ships
+// several doc versions with legacy field names side by side — paymentMethodData/
+// paymentMethodType is the one the Hosted Tokenization scenario specifies.)
 //
-// Auth is the classic **store_id + api_token** for the SAME store that owns the
-// HT profile. Charge = `res_purchase_cc`; refund = `refund`. Amounts are decimal
-// dollars ("50.00"); the response is a flat XML `<receipt>`.
+// Auth is EITHER the Subscriptions API key (X-Api-Key) OR OAuth2
+// client-credentials. If MONERIS_API_KEY is set we use it, else OAuth2.
 
 export interface MonerisConfig {
-  storeId: string; // classic Gateway store_id (the HT profile's store)
-  apiToken: string; // classic Gateway api_token (same store)
+  apiKey: string; // Subscriptions API key -> X-Api-Key (preferred if set)
+  clientId: string; // OAuth2 client-credentials (fallback)
+  clientSecret: string;
+  merchantId: string; // 13-char -> X-Merchant-Id
   htProfileId: string; // Hosted Tokenization profile id (the iframe)
+  htHost: string; // HT iframe host override (else the env default)
   env: "qa" | "prod";
-  cryptType: string; // res_purchase_cc/refund crypt_type (default "7")
+  apiVersion: string; // e.g. "2025-08-14"
 }
 
-/// The classic Gateway endpoint (XML over HTTPS).
-function gatewayUrl(env: string): string {
-  const host = env === "prod"
-    ? "https://www3.moneris.com"
-    : "https://esqa.moneris.com";
-  return `${host}/gateway2/servlet/MpgRequest`;
+function apiHost(env: string): string {
+  return env === "prod" ? "https://api.moneris.io" : "https://api.sb.moneris.io";
 }
 
-/// Hosted Tokenization iframe host (the card-entry frame).
-function htHost(env: string): string {
-  return env === "prod"
-    ? "https://www3.moneris.com"
-    : "https://esqa.moneris.com";
+/// Hosted Tokenization iframe host (the card-entry frame). The NEW-API HT host
+/// is mpg1t.moneris.io in QA (NOT the classic esqa.moneris.com). Overridable via
+/// MONERIS_HT_HOST for prod / if Moneris assigns a different host.
+function htHost(cfg: MonerisConfig): string {
+  if (cfg.htHost) return cfg.htHost;
+  return cfg.env === "prod"
+    ? "https://gateway.moneris.io"
+    : "https://mpg1t.moneris.io";
 }
 
 /// The iframe src that renders Moneris's hosted card field for this profile.
 export function htIframeSrc(cfg: MonerisConfig): string {
-  return `${htHost(cfg.env)}/HPPtoken/index.php` +
+  return `${htHost(cfg)}/HPPtoken/index.php` +
     `?id=${encodeURIComponent(cfg.htProfileId)}&pmmsg=true`;
 }
 
 /// The origin the iframe posts its result from (for postMessage checks).
 export function htOrigin(cfg: MonerisConfig): string {
-  return htHost(cfg.env);
+  return htHost(cfg);
 }
 
-// --- XML helpers (Moneris receipts are flat, so regex extraction is enough) ---
-
-function xmlEscape(s: string): string {
-  return s
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&apos;");
-}
-
-/// First `<name>…</name>` value in [xml], trimmed, or null.
-function tag(xml: string, name: string): string | null {
-  const m = xml.match(new RegExp(`<${name}>([\\s\\S]*?)</${name}>`, "i"));
-  return m ? m[1].trim() : null;
-}
-
-/// Moneris approves on a numeric ResponseCode 0–49 (50+ = declined; absent/
-/// "null" = a transaction error).
-function approvedCode(code: string | null): boolean {
-  return code != null && /^\d+$/.test(code) && Number(code) < 50;
-}
-
-async function postXml(cfg: MonerisConfig, body: string): Promise<string> {
-  const resp = await fetch(gatewayUrl(cfg.env), {
+/// The auth header: the API key when present, else an OAuth2 bearer obtained
+/// via client-credentials (scopes payment/refund). A fresh token per call keeps
+/// the function stateless; tokens are good for ~1h so this is cheap at our rate.
+async function authHeader(cfg: MonerisConfig): Promise<Record<string, string>> {
+  if (cfg.apiKey) return { "X-Api-Key": cfg.apiKey };
+  const resp = await fetch(`${apiHost(cfg.env)}/oauth2/token`, {
     method: "POST",
-    headers: { "Content-Type": "text/xml; charset=utf-8" },
-    body,
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "client_credentials",
+      client_id: cfg.clientId,
+      client_secret: cfg.clientSecret,
+      scope: "payment.write payment.read refund.write refund.read",
+    }),
   });
-  const text = await resp.text();
-  if (!resp.ok && !text.includes("<receipt>")) {
-    throw new Error(`gateway HTTP ${resp.status}: ${text.slice(0, 300)}`);
+  const j = await resp.json().catch(() => ({}));
+  if (!resp.ok || !j.access_token) {
+    throw new Error(`oauth token failed: ${resp.status} ${JSON.stringify(j)}`);
   }
-  return text;
+  return { Authorization: `Bearer ${j.access_token}` };
+}
+
+async function headers(
+  cfg: MonerisConfig,
+  idempotencyKey: string,
+): Promise<Record<string, string>> {
+  return {
+    ...await authHeader(cfg),
+    "X-Merchant-Id": cfg.merchantId,
+    "Api-Version": cfg.apiVersion,
+    "Idempotency-Key": idempotencyKey,
+    "Content-Type": "application/json",
+  };
 }
 
 export interface PurchaseResult {
   approved: boolean;
-  paymentId: string | null; // classic txn_number, for a later refund
+  paymentId: string | null;
   amountCents: number | null;
-  message: string | null; // Moneris Message (approval/decline text)
   raw: unknown;
 }
 
-/// Charges a Hosted-Tokenization temporary token via the classic Gateway's
-/// `res_purchase_cc` (the token rides in `<data_key>`). [orderId] doubles as
-/// Moneris's idempotency key — the Gateway rejects a duplicate order_id, so a
-/// retried verify can't double-charge.
+/// Charges a Hosted-Tokenization temporary token. Amount is in minor units
+/// (cents). [idempotencyKey] makes a retried verify safe (no double charge).
 export async function purchaseWithToken(
   cfg: MonerisConfig,
-  args: { token: string; amountCents: number; orderId: string },
+  args: {
+    token: string;
+    amountCents: number;
+    orderId: string;
+    idempotencyKey: string;
+  },
 ): Promise<PurchaseResult> {
-  const amount = (args.amountCents / 100).toFixed(2);
-  const body = `<?xml version="1.0"?>
-<request>
-<store_id>${xmlEscape(cfg.storeId)}</store_id>
-<api_token>${xmlEscape(cfg.apiToken)}</api_token>
-<res_purchase_cc>
-<data_key>${xmlEscape(args.token)}</data_key>
-<order_id>${xmlEscape(args.orderId)}</order_id>
-<amount>${amount}</amount>
-<crypt_type>${xmlEscape(cfg.cryptType)}</crypt_type>
-</res_purchase_cc>
-</request>`;
-  const text = await postXml(cfg, body);
-  const transAmount = tag(text, "TransAmount");
+  // Per the Hosted Tokenization scenario, a temporary-token charge is:
+  //   paymentMethodData: { paymentMethodType: "TEMPORARY_TOKEN", temporaryToken }
+  // (the dataKey the mpg1t iframe returned). NOT paymentMethod/paymentMethodSource
+  // (that's the legacy doc variant and 400s/500s here).
+  const resp = await fetch(`${apiHost(cfg.env)}/payments`, {
+    method: "POST",
+    headers: await headers(cfg, args.idempotencyKey),
+    body: JSON.stringify({
+      idempotencyKey: args.idempotencyKey,
+      orderId: args.orderId,
+      amount: { amount: args.amountCents, currency: "CAD" },
+      paymentMethodData: {
+        paymentMethodType: "TEMPORARY_TOKEN",
+        temporaryToken: args.token,
+      },
+    }),
+  });
+  const json = await resp.json().catch(() => ({})) as Record<string, unknown>;
+  const status = `${json.paymentStatus ?? ""}`.toUpperCase();
+  const amt = (json.amount as Record<string, unknown>)?.amount;
   return {
-    approved: approvedCode(tag(text, "ResponseCode")),
-    // Moneris' follow-on transactions key off the txn number (getTxnNumber()).
-    paymentId: tag(text, "TransID") ?? tag(text, "ReferenceNum"),
-    amountCents: transAmount != null
-      ? Math.round(Number(transAmount) * 100)
-      : null,
-    message: tag(text, "Message"),
-    raw: text,
+    approved: resp.ok && status === "SUCCEEDED",
+    paymentId: (json.paymentId as string) ?? null,
+    amountCents: typeof amt === "number" ? amt : null,
+    raw: json,
   };
 }
 
-/// Refunds a completed purchase via the classic Gateway's `refund` — matched to
-/// the original by its [orderId] + [txnNumber] (the purchase's `paymentId`).
+/// Refunds a completed payment by its [paymentId] (a "matching refund").
 export async function refundPayment(
   cfg: MonerisConfig,
-  args: { orderId: string; txnNumber: string; amountCents: number },
+  args: { paymentId: string; amountCents: number; idempotencyKey: string },
 ): Promise<{ success: boolean; raw: unknown }> {
-  const amount = (args.amountCents / 100).toFixed(2);
-  const body = `<?xml version="1.0"?>
-<request>
-<store_id>${xmlEscape(cfg.storeId)}</store_id>
-<api_token>${xmlEscape(cfg.apiToken)}</api_token>
-<refund>
-<order_id>${xmlEscape(args.orderId)}</order_id>
-<amount>${amount}</amount>
-<txn_number>${xmlEscape(args.txnNumber)}</txn_number>
-<crypt_type>${xmlEscape(cfg.cryptType)}</crypt_type>
-</refund>
-</request>`;
-  const text = await postXml(cfg, body);
-  return { success: approvedCode(tag(text, "ResponseCode")), raw: text };
+  const resp = await fetch(`${apiHost(cfg.env)}/refunds`, {
+    method: "POST",
+    headers: await headers(cfg, args.idempotencyKey),
+    body: JSON.stringify({
+      idempotencyKey: args.idempotencyKey,
+      paymentId: args.paymentId,
+      refundAmount: { amount: args.amountCents, currency: "CAD" },
+    }),
+  });
+  const json = await resp.json().catch(() => ({})) as Record<string, unknown>;
+  const status = `${json.refundStatus ?? ""}`.toUpperCase();
+  return { success: resp.ok && status === "SUCCEEDED", raw: json };
 }

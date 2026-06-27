@@ -57,25 +57,35 @@ restaurant's login, and it only ever writes paid after verifying with Moneris.
 
 ## 3. Set your Moneris secrets
 
-Hosted Tokenization is a **classic Moneris Gateway** product, so the charge uses
-the classic **`store_id` + `api_token`** — for the **same store that owns your HT
-profile**. Find them in the Merchant Resource Center (sandbox first) under
-**Admin → Store Settings / API Token**. These are *not* the new-API key or OAuth2
-client (those can't charge an HT token — the new REST `/payments` endpoint
-returns a blank 500 for it).
+This uses the **new-API Hosted Tokenization**: the iframe is served from
+`mpg1t.moneris.io` (QA) and the token is charged on the new REST `/payments`
+with the **same API key + merchant id as a direct card** — so no classic
+`store_id`/`api_token` is needed. (Charging a `mpg1t` token requires the
+`paymentMethodData`/`paymentMethodType` shape; the classic `esqa` HT iframe is a
+*different* product and its token won't charge here — that mismatch is what
+returned a blank 500.) Auth can be your **Subscriptions API key** *or* an
+**OAuth2 client**.
 
 ```sh
+# Common:
 supabase secrets set \
-  MONERIS_STORE_ID=<classic store_id, e.g. monca00392> \
-  MONERIS_API_TOKEN=<classic api_token for that store> \
+  MONERIS_MERCHANT_ID=<your 13-char merchant id> \
   MONERIS_HT_PROFILE_ID=<your Hosted Tokenization profile id> \
   MONERIS_ENV=qa \
   --project-ref <your-ref>
+
+# Option A — API key (simplest):
+supabase secrets set MONERIS_API_KEY=<your primary api key> --project-ref <your-ref>
+
+# Option B — OAuth2 client (scopes payment.* + refund.*; secret expires):
+supabase secrets set \
+  MONERIS_CLIENT_ID=<client id> MONERIS_CLIENT_SECRET=<client secret> \
+  --project-ref <your-ref>
 ```
 
-`MONERIS_CRYPT_TYPE` is optional (defaults to `7`); set it only if Moneris asks
-you to use a different value. Switch `MONERIS_ENV=prod` when you go live.
-`SUPABASE_URL`,
+`MONERIS_HT_HOST` is optional — set it only if Moneris assigns you a different
+Hosted Tokenization host (the QA default is `https://mpg1t.moneris.io`). Switch
+`MONERIS_ENV=prod` when you go live. `SUPABASE_URL`,
 `SUPABASE_ANON_KEY`, and `SUPABASE_SERVICE_ROLE_KEY` are injected automatically —
 you don't set those. **Secrets never go in the app or this repo.**
 

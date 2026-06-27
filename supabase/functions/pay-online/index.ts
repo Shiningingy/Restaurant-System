@@ -13,10 +13,10 @@
 // Deploy WITHOUT JWT verification (the customer's browser opens the GET with no
 // token); this function does its own auth for refunds. See docs/MONERIS_PAYMENT.md:
 //   supabase functions deploy pay-online --no-verify-jwt
-//   supabase secrets set MONERIS_STORE_ID=... MONERIS_API_TOKEN=... \
+//   supabase secrets set MONERIS_API_KEY=... MONERIS_MERCHANT_ID=... \
 //                        MONERIS_HT_PROFILE_ID=... MONERIS_ENV=qa
-//   (STORE_ID + API_TOKEN are the CLASSIC Gateway credentials for the same store
-//    that owns the HT profile — Hosted Tokenization is a classic-Gateway product.)
+//   (new-API Hosted Tokenization: the iframe is mpg1t.moneris.io and the charge
+//    uses the same API key + merchant id as a direct card.)
 //
 // Routes:
 //   GET  ?order_id=<uuid>                  → serve the Hosted Tokenization page
@@ -39,13 +39,22 @@ const ANON_KEY = env("SUPABASE_ANON_KEY");
 
 function monerisConfig(): MonerisConfig {
   return {
-    storeId: env("MONERIS_STORE_ID"),
-    apiToken: env("MONERIS_API_TOKEN"),
+    apiKey: env("MONERIS_API_KEY"),
+    clientId: env("MONERIS_CLIENT_ID"),
+    clientSecret: env("MONERIS_CLIENT_SECRET"),
+    merchantId: env("MONERIS_MERCHANT_ID"),
     htProfileId: env("MONERIS_HT_PROFILE_ID"),
+    htHost: env("MONERIS_HT_HOST"),
     env: env("MONERIS_ENV") === "prod" ? "prod" : "qa",
-    cryptType: env("MONERIS_CRYPT_TYPE") || "7",
+    apiVersion: env("MONERIS_API_VERSION") || "2025-08-14",
   };
 }
+
+/// A <=36-char idempotency key per (order, operation) so a retried call can't
+/// double-charge or double-refund. The order id is a 36-char uuid → strip the
+/// dashes (32) and add a one-char suffix.
+const idemKey = (orderId: string, suffix: string) =>
+  `${orderId.replaceAll("-", "")}${suffix}`;
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -267,18 +276,16 @@ async function handleVerify(req: Request): Promise<Response> {
       token,
       amountCents: expected,
       orderId: order_id,
+      idempotencyKey: idemKey(order_id, "p"),
     });
   } catch (e) {
-    // Surface the real cause (e.g. a gateway/credentials error) instead of a
-    // blank 500 the client can't read.
+    // Surface the real cause (e.g. an expired OAuth2 secret) instead of a blank
+    // 500 the client can't read.
     const msg = e instanceof Error ? e.message : String(e);
     return json({ paid: false, reason: `charge_error: ${msg}` }, 502);
   }
   if (!r.approved) {
-    return json(
-      { paid: false, reason: r.message ?? "declined", detail: r.raw },
-      402,
-    );
+    return json({ paid: false, reason: "declined", detail: r.raw }, 402);
   }
   // We compute `expected` from the order and send it as the charge amount, so
   // the charge IS the expected amount by construction. This is a belt-and-braces
@@ -308,9 +315,9 @@ async function handleRefund(req: Request): Promise<Response> {
   }
   const cents = await effectiveCents(order);
   const result = await refundPayment(monerisConfig(), {
-    orderId: order_id,
-    txnNumber: order.processor_ref,
+    paymentId: order.processor_ref,
     amountCents: cents,
+    idempotencyKey: idemKey(order_id, "r"),
   });
   if (!result.success) {
     return json({ refunded: false, detail: result.raw }, 502);
