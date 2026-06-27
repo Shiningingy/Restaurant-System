@@ -245,8 +245,9 @@ function checkoutPage(
           document.getElementById('done').style.display = 'block';
         } else {
           var d = out && out.detail ? ' — ' + JSON.stringify(out.detail) : '';
+          var cid = out && out.correlationId ? ' [corr=' + out.correlationId + ']' : '';
           msg.textContent = 'Payment failed: ' + ((out && out.reason) || 'declined') + d
-            + ' [HT token = ' + data.dataKey + ']';
+            + cid + ' [HT token = ' + data.dataKey + ']';
         }
       }).catch(function (e) { msg.textContent = 'Payment could not be completed: ' + e; });
     });
@@ -292,7 +293,13 @@ async function handleVerify(req: Request): Promise<Response> {
   }
   if (!r.approved) {
     return json(
-      { paid: false, reason: "declined", httpStatus: r.httpStatus, detail: r.raw },
+      {
+        paid: false,
+        reason: "declined",
+        httpStatus: r.httpStatus,
+        correlationId: r.correlationId,
+        detail: r.raw,
+      },
       402,
     );
   }

@@ -101,6 +101,7 @@ export interface PurchaseResult {
   paymentId: string | null;
   amountCents: number | null;
   httpStatus: number;
+  correlationId: string | null; // Moneris x-correlation-id, for support on a 500
   raw: unknown; // the FULL response body text (so failures are diagnosable)
 }
 
@@ -149,6 +150,7 @@ export async function purchaseWithToken(
     paymentId: (json.paymentId as string) ?? null,
     amountCents: typeof amt === "number" ? amt : null,
     httpStatus: resp.status,
+    correlationId: resp.headers.get("x-correlation-id"),
     raw: text,
   };
 }
