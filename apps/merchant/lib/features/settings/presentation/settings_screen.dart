@@ -25,6 +25,7 @@ import '../../printing/application/providers.dart';
 import '../../printing/data/printer_discovery.dart';
 import '../../printing/drivers/windows_printers.dart';
 import '../../sync/application/providers.dart';
+import '../../sync/application/sync_service.dart';
 import '../../sync/data/sync_settings.dart';
 import 'storefront_qr_dialog.dart';
 
@@ -2008,28 +2009,28 @@ class _CloudSyncSectionState extends ConsumerState<_CloudSyncSection> {
     final l10n = context.l10n;
     final svc = ref.read(syncServiceProvider);
     // A push of local changes can overwrite cloud data (last-write-wins), so
-    // confirm before a sync that has anything to upload. A pull-only sync
+    // confirm before a sync that has anything to upload — and let the user pick
+    // exactly which changes go up (the cloud has no backups). A pull-only sync
     // (nothing pending) is safe and skips the prompt.
     final pending = await svc.pendingPush();
     if (!mounted) return;
+    Set<String>? pushIds; // null = push everything (the no-prompt path)
     if (!pending.isEmpty) {
       final firstSync = ref.read(syncSettingsProvider).lastSyncedAt == null;
-      final choice = await _confirmSync(
-        pending.total,
-        pending.deletes,
-        firstSync,
-      );
-      if (choice == _SyncChoice.cancel) return;
-      if (choice == _SyncChoice.restore) {
+      final result = await _confirmSync(pending, firstSync);
+      if (!mounted) return;
+      if (result.choice == _SyncChoice.cancel) return;
+      if (result.choice == _SyncChoice.restore) {
         await _restore();
         return;
       }
+      pushIds = result.ids; // may be empty → pull only, push nothing
     }
     setState(() {
       _busy = true;
       _message = null;
     });
-    final outcome = await svc.syncNow();
+    final outcome = await svc.syncNow(pushIds: pushIds);
     if (!mounted) return;
     setState(() {
       _busy = false;
@@ -2039,53 +2040,128 @@ class _CloudSyncSectionState extends ConsumerState<_CloudSyncSection> {
     });
   }
 
-  /// Confirms a "Sync now" that will upload local changes. On a first sync to
-  /// this backend it warns harder and offers Restore instead — the safe action
-  /// when the cloud may already hold the real data.
-  Future<_SyncChoice> _confirmSync(
-    int total,
-    int deletes,
+  /// Confirms a "Sync now" that will upload local changes, showing each change
+  /// with a checkbox so the user uploads only what they intend (unchecked stays
+  /// local). On a first sync it warns harder and offers Restore instead — the
+  /// safe action when the cloud may already hold the real data.
+  Future<({_SyncChoice choice, Set<String> ids})> _confirmSync(
+    PendingPush pending,
     bool firstSync,
   ) async {
-    final l10n = context.l10n;
-    final lines = <String>[
-      l10n.setSyncConfirmBody(total),
-      if (deletes > 0) l10n.setSyncConfirmDeletes(deletes),
-      if (firstSync) l10n.setSyncFirstWarning,
-    ];
-    final choice = await showDialog<_SyncChoice>(
+    final selected = {for (final c in pending.changes) c.id};
+    final result = await showDialog<({_SyncChoice choice, Set<String> ids})>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.setSyncConfirmTitle),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            for (final t in lines)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Text(t),
+      builder: (context) {
+        final l10n = context.l10n;
+        final cs = Theme.of(context).colorScheme;
+        return StatefulBuilder(
+          builder: (context, setLocal) => AlertDialog(
+            title: Text(l10n.setSyncConfirmTitle),
+            content: SizedBox(
+              width: 400,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.setSyncSelectBody),
+                  if (firstSync)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        l10n.setSyncFirstWarning,
+                        style: TextStyle(color: cs.error),
+                      ),
+                    ),
+                  Row(
+                    children: [
+                      TextButton(
+                        onPressed: () => setLocal(
+                          () => selected
+                            ..clear()
+                            ..addAll(pending.changes.map((c) => c.id)),
+                        ),
+                        child: Text(l10n.setSyncSelectAll),
+                      ),
+                      TextButton(
+                        onPressed: () => setLocal(selected.clear),
+                        child: Text(l10n.setSyncSelectNone),
+                      ),
+                    ],
+                  ),
+                  Flexible(
+                    child: ListView(
+                      shrinkWrap: true,
+                      children: [
+                        for (final c in pending.changes)
+                          CheckboxListTile(
+                            dense: true,
+                            controlAffinity: ListTileControlAffinity.leading,
+                            value: selected.contains(c.id),
+                            onChanged: (v) => setLocal(
+                              () => v == true
+                                  ? selected.add(c.id)
+                                  : selected.remove(c.id),
+                            ),
+                            secondary: c.isDelete
+                                ? Icon(Icons.delete_outline, color: cs.error)
+                                : const Icon(Icons.edit_outlined),
+                            title: Text(_changeTitle(context, c)),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, _SyncChoice.cancel),
-            child: Text(l10n.commonCancel),
-          ),
-          if (firstSync)
-            TextButton(
-              onPressed: () => Navigator.pop(context, _SyncChoice.restore),
-              child: Text(l10n.setRestoreFromCloud),
             ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, _SyncChoice.sync),
-            child: Text(firstSync ? l10n.setSyncAnyway : l10n.setSyncNow),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, (
+                  choice: _SyncChoice.cancel,
+                  ids: <String>{},
+                )),
+                child: Text(l10n.commonCancel),
+              ),
+              if (firstSync)
+                TextButton(
+                  onPressed: () => Navigator.pop(context, (
+                    choice: _SyncChoice.restore,
+                    ids: <String>{},
+                  )),
+                  child: Text(l10n.setRestoreFromCloud),
+                ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, (
+                  choice: _SyncChoice.sync,
+                  ids: {...selected},
+                )),
+                child: Text(l10n.setSyncUploadSelected(selected.length)),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
-    return choice ?? _SyncChoice.cancel;
+    return result ?? (choice: _SyncChoice.cancel, ids: <String>{});
+  }
+
+  /// A one-line label for a pending change: "Delete · Item · Beef Noodle".
+  String _changeTitle(BuildContext context, PendingChange c) {
+    final l10n = context.l10n;
+    final op = c.isDelete ? l10n.setSyncOpDelete : l10n.setSyncOpUpdate;
+    final type = switch (c.entity) {
+      'category' => l10n.setSyncEntityCategory,
+      'menu_item' => l10n.setSyncEntityItem,
+      'modifier' => l10n.setSyncEntityModifier,
+      'modifier_group' => l10n.setSyncEntityModifierGroup,
+      'dining_table' => l10n.setSyncEntityTable,
+      'order' => l10n.setSyncEntityOrder,
+      'payment' => l10n.setSyncEntityPayment,
+      _ => c.entity,
+    };
+    final name = c.name;
+    return name != null && name.isNotEmpty
+        ? '$op · $type · $name'
+        : '$op · $type';
   }
 
   Future<void> _restore() async {

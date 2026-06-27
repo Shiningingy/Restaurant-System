@@ -2168,6 +2168,84 @@ abstract class AppLocalizations {
   /// **'This device hasn\'t synced with this cloud yet — uploading may overwrite data already there. If the cloud already has your real data, choose Restore from cloud instead.'**
   String get setSyncFirstWarning;
 
+  /// No description provided for @setSyncSelectBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose which changes to upload to the cloud. Unchecked changes stay on this device for now.'**
+  String get setSyncSelectBody;
+
+  /// No description provided for @setSyncSelectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get setSyncSelectAll;
+
+  /// No description provided for @setSyncSelectNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get setSyncSelectNone;
+
+  /// No description provided for @setSyncUploadSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload {count} selected'**
+  String setSyncUploadSelected(int count);
+
+  /// No description provided for @setSyncOpDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get setSyncOpDelete;
+
+  /// No description provided for @setSyncOpUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Update'**
+  String get setSyncOpUpdate;
+
+  /// No description provided for @setSyncEntityCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get setSyncEntityCategory;
+
+  /// No description provided for @setSyncEntityItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Item'**
+  String get setSyncEntityItem;
+
+  /// No description provided for @setSyncEntityModifier.
+  ///
+  /// In en, this message translates to:
+  /// **'Option'**
+  String get setSyncEntityModifier;
+
+  /// No description provided for @setSyncEntityModifierGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Option group'**
+  String get setSyncEntityModifierGroup;
+
+  /// No description provided for @setSyncEntityTable.
+  ///
+  /// In en, this message translates to:
+  /// **'Table'**
+  String get setSyncEntityTable;
+
+  /// No description provided for @setSyncEntityOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Order'**
+  String get setSyncEntityOrder;
+
+  /// No description provided for @setSyncEntityPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment'**
+  String get setSyncEntityPayment;
+
   /// No description provided for @setSyncAnyway.
   ///
   /// In en, this message translates to:

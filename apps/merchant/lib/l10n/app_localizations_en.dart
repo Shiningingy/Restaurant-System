@@ -1210,6 +1210,48 @@ class AppLocalizationsEn extends AppLocalizations {
       'This device hasn\'t synced with this cloud yet — uploading may overwrite data already there. If the cloud already has your real data, choose Restore from cloud instead.';
 
   @override
+  String get setSyncSelectBody =>
+      'Choose which changes to upload to the cloud. Unchecked changes stay on this device for now.';
+
+  @override
+  String get setSyncSelectAll => 'Select all';
+
+  @override
+  String get setSyncSelectNone => 'Clear all';
+
+  @override
+  String setSyncUploadSelected(int count) {
+    return 'Upload $count selected';
+  }
+
+  @override
+  String get setSyncOpDelete => 'Delete';
+
+  @override
+  String get setSyncOpUpdate => 'Update';
+
+  @override
+  String get setSyncEntityCategory => 'Category';
+
+  @override
+  String get setSyncEntityItem => 'Item';
+
+  @override
+  String get setSyncEntityModifier => 'Option';
+
+  @override
+  String get setSyncEntityModifierGroup => 'Option group';
+
+  @override
+  String get setSyncEntityTable => 'Table';
+
+  @override
+  String get setSyncEntityOrder => 'Order';
+
+  @override
+  String get setSyncEntityPayment => 'Payment';
+
+  @override
   String get setSyncAnyway => 'Sync anyway';
 
   @override

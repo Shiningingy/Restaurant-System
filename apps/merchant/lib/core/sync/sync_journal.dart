@@ -80,6 +80,24 @@ class SyncJournal {
     );
   }
 
+  /// The most recent non-null payload recorded for a row (synced or not). A
+  /// delete's own entry has no payload, so this recovers the row's last known
+  /// state — e.g. to label a pending delete by the name it used to have.
+  Future<String?> latestPayloadFor(String entity, String entityId) async {
+    final row =
+        await (db.select(db.syncLog)
+              ..where(
+                (t) =>
+                    t.entity.equals(entity) &
+                    t.entityId.equals(entityId) &
+                    t.payload.isNotNull(),
+              )
+              ..orderBy([(t) => OrderingTerm.desc(t.occurredAtUs)])
+              ..limit(1))
+            .getSingleOrNull();
+    return row?.payload;
+  }
+
   /// Newest local change time for an entity row that hasn't been pushed
   /// yet — used to avoid clobbering an unsynced local edit with an older
   /// incoming remote one (last-write-wins).
