@@ -249,25 +249,41 @@ class _NewOrderCard extends ConsumerWidget {
       picked.minute,
     );
     if (when.isBefore(now)) when = when.add(const Duration(days: 1));
-    await ref.read(inboxServiceProvider).proposePickupTime(order.id, when);
-    ref.invalidate(onlineOrdersByStatusProvider);
-    messenger.showSnackBar(SnackBar(content: Text(l10n.inboxTimeProposed)));
+    try {
+      await ref.read(inboxServiceProvider).proposePickupTime(order.id, when);
+      ref.invalidate(onlineOrdersByStatusProvider);
+      messenger.showSnackBar(SnackBar(content: Text(l10n.inboxTimeProposed)));
+    } on Object catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.inboxError('$e'))));
+    }
   }
 
   Future<void> _accept(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
-    await ref.read(inboxServiceProvider).accept(order);
-    ref.invalidate(onlineOrdersByStatusProvider);
-    messenger.showSnackBar(SnackBar(content: Text(l10n.inboxAcceptedAdded)));
+    try {
+      await ref.read(inboxServiceProvider).accept(order);
+      ref.invalidate(onlineOrdersByStatusProvider);
+      messenger.showSnackBar(SnackBar(content: Text(l10n.inboxAcceptedAdded)));
+    } on Object catch (e) {
+      // Surface the failure — a swallowed error would leave the order stuck in
+      // the cloud at `submitted` with no hint why.
+      messenger.showSnackBar(SnackBar(content: Text(l10n.inboxError('$e'))));
+    }
   }
 
   Future<void> _reject(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
-    await ref.read(inboxServiceProvider).reject(order.id);
-    ref.invalidate(onlineOrdersByStatusProvider);
-    messenger.showSnackBar(SnackBar(content: Text(l10n.inboxPreorderRejected)));
+    try {
+      await ref.read(inboxServiceProvider).reject(order.id);
+      ref.invalidate(onlineOrdersByStatusProvider);
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.inboxPreorderRejected)),
+      );
+    } on Object catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.inboxError('$e'))));
+    }
   }
 }
 
@@ -332,11 +348,17 @@ class _PreparingCard extends ConsumerWidget {
                 onPressed: () async {
                   final messenger = ScaffoldMessenger.of(context);
                   final l10n = context.l10n;
-                  await ref.read(inboxServiceProvider).markReady(order.id);
-                  ref.invalidate(onlineOrdersByStatusProvider);
-                  messenger.showSnackBar(
-                    SnackBar(content: Text(l10n.inboxCustomerNotifiedReady)),
-                  );
+                  try {
+                    await ref.read(inboxServiceProvider).markReady(order.id);
+                    ref.invalidate(onlineOrdersByStatusProvider);
+                    messenger.showSnackBar(
+                      SnackBar(content: Text(l10n.inboxCustomerNotifiedReady)),
+                    );
+                  } on Object catch (e) {
+                    messenger.showSnackBar(
+                      SnackBar(content: Text(l10n.inboxError('$e'))),
+                    );
+                  }
                 },
                 icon: const Icon(Icons.notifications_active_outlined),
                 label: Text(context.l10n.inboxMarkReady),
@@ -372,11 +394,17 @@ class _ReadyCard extends ConsumerWidget {
                 onPressed: () async {
                   final messenger = ScaffoldMessenger.of(context);
                   final l10n = context.l10n;
-                  await ref.read(inboxServiceProvider).markPickedUp(order.id);
-                  ref.invalidate(onlineOrdersByStatusProvider);
-                  messenger.showSnackBar(
-                    SnackBar(content: Text(l10n.inboxMarkedPickedUp)),
-                  );
+                  try {
+                    await ref.read(inboxServiceProvider).markPickedUp(order.id);
+                    ref.invalidate(onlineOrdersByStatusProvider);
+                    messenger.showSnackBar(
+                      SnackBar(content: Text(l10n.inboxMarkedPickedUp)),
+                    );
+                  } on Object catch (e) {
+                    messenger.showSnackBar(
+                      SnackBar(content: Text(l10n.inboxError('$e'))),
+                    );
+                  }
                 },
                 icon: const Icon(Icons.check_circle_outline),
                 label: Text(context.l10n.inboxMarkPickedUp),
