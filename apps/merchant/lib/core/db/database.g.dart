@@ -6266,6 +6266,24 @@ class $MenuItemImagesTable extends MenuItemImages
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _shaMeta = const VerificationMeta('sha');
+  @override
+  late final GeneratedColumn<String> sha = GeneratedColumn<String>(
+    'sha',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _extMeta = const VerificationMeta('ext');
+  @override
+  late final GeneratedColumn<String> ext = GeneratedColumn<String>(
+    'ext',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _sortOrderMeta = const VerificationMeta(
     'sortOrder',
   );
@@ -6279,7 +6297,15 @@ class $MenuItemImagesTable extends MenuItemImages
     defaultValue: const Constant(0),
   );
   @override
-  List<GeneratedColumn> get $columns => [id, itemId, label, path, sortOrder];
+  List<GeneratedColumn> get $columns => [
+    id,
+    itemId,
+    label,
+    path,
+    sha,
+    ext,
+    sortOrder,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -6321,6 +6347,18 @@ class $MenuItemImagesTable extends MenuItemImages
     } else if (isInserting) {
       context.missing(_pathMeta);
     }
+    if (data.containsKey('sha')) {
+      context.handle(
+        _shaMeta,
+        sha.isAcceptableOrUnknown(data['sha']!, _shaMeta),
+      );
+    }
+    if (data.containsKey('ext')) {
+      context.handle(
+        _extMeta,
+        ext.isAcceptableOrUnknown(data['ext']!, _extMeta),
+      );
+    }
     if (data.containsKey('sort_order')) {
       context.handle(
         _sortOrderMeta,
@@ -6352,6 +6390,14 @@ class $MenuItemImagesTable extends MenuItemImages
         DriftSqlType.string,
         data['${effectivePrefix}path'],
       )!,
+      sha: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sha'],
+      ),
+      ext: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}ext'],
+      ),
       sortOrder: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}sort_order'],
@@ -6371,12 +6417,16 @@ class MenuItemImageRow extends DataClass
   final String itemId;
   final String label;
   final String path;
+  final String? sha;
+  final String? ext;
   final int sortOrder;
   const MenuItemImageRow({
     required this.id,
     required this.itemId,
     required this.label,
     required this.path,
+    this.sha,
+    this.ext,
     required this.sortOrder,
   });
   @override
@@ -6386,6 +6436,12 @@ class MenuItemImageRow extends DataClass
     map['item_id'] = Variable<String>(itemId);
     map['label'] = Variable<String>(label);
     map['path'] = Variable<String>(path);
+    if (!nullToAbsent || sha != null) {
+      map['sha'] = Variable<String>(sha);
+    }
+    if (!nullToAbsent || ext != null) {
+      map['ext'] = Variable<String>(ext);
+    }
     map['sort_order'] = Variable<int>(sortOrder);
     return map;
   }
@@ -6396,6 +6452,8 @@ class MenuItemImageRow extends DataClass
       itemId: Value(itemId),
       label: Value(label),
       path: Value(path),
+      sha: sha == null && nullToAbsent ? const Value.absent() : Value(sha),
+      ext: ext == null && nullToAbsent ? const Value.absent() : Value(ext),
       sortOrder: Value(sortOrder),
     );
   }
@@ -6410,6 +6468,8 @@ class MenuItemImageRow extends DataClass
       itemId: serializer.fromJson<String>(json['itemId']),
       label: serializer.fromJson<String>(json['label']),
       path: serializer.fromJson<String>(json['path']),
+      sha: serializer.fromJson<String?>(json['sha']),
+      ext: serializer.fromJson<String?>(json['ext']),
       sortOrder: serializer.fromJson<int>(json['sortOrder']),
     );
   }
@@ -6421,6 +6481,8 @@ class MenuItemImageRow extends DataClass
       'itemId': serializer.toJson<String>(itemId),
       'label': serializer.toJson<String>(label),
       'path': serializer.toJson<String>(path),
+      'sha': serializer.toJson<String?>(sha),
+      'ext': serializer.toJson<String?>(ext),
       'sortOrder': serializer.toJson<int>(sortOrder),
     };
   }
@@ -6430,12 +6492,16 @@ class MenuItemImageRow extends DataClass
     String? itemId,
     String? label,
     String? path,
+    Value<String?> sha = const Value.absent(),
+    Value<String?> ext = const Value.absent(),
     int? sortOrder,
   }) => MenuItemImageRow(
     id: id ?? this.id,
     itemId: itemId ?? this.itemId,
     label: label ?? this.label,
     path: path ?? this.path,
+    sha: sha.present ? sha.value : this.sha,
+    ext: ext.present ? ext.value : this.ext,
     sortOrder: sortOrder ?? this.sortOrder,
   );
   MenuItemImageRow copyWithCompanion(MenuItemImagesCompanion data) {
@@ -6444,6 +6510,8 @@ class MenuItemImageRow extends DataClass
       itemId: data.itemId.present ? data.itemId.value : this.itemId,
       label: data.label.present ? data.label.value : this.label,
       path: data.path.present ? data.path.value : this.path,
+      sha: data.sha.present ? data.sha.value : this.sha,
+      ext: data.ext.present ? data.ext.value : this.ext,
       sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
     );
   }
@@ -6455,13 +6523,15 @@ class MenuItemImageRow extends DataClass
           ..write('itemId: $itemId, ')
           ..write('label: $label, ')
           ..write('path: $path, ')
+          ..write('sha: $sha, ')
+          ..write('ext: $ext, ')
           ..write('sortOrder: $sortOrder')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, itemId, label, path, sortOrder);
+  int get hashCode => Object.hash(id, itemId, label, path, sha, ext, sortOrder);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -6470,6 +6540,8 @@ class MenuItemImageRow extends DataClass
           other.itemId == this.itemId &&
           other.label == this.label &&
           other.path == this.path &&
+          other.sha == this.sha &&
+          other.ext == this.ext &&
           other.sortOrder == this.sortOrder);
 }
 
@@ -6478,6 +6550,8 @@ class MenuItemImagesCompanion extends UpdateCompanion<MenuItemImageRow> {
   final Value<String> itemId;
   final Value<String> label;
   final Value<String> path;
+  final Value<String?> sha;
+  final Value<String?> ext;
   final Value<int> sortOrder;
   final Value<int> rowid;
   const MenuItemImagesCompanion({
@@ -6485,6 +6559,8 @@ class MenuItemImagesCompanion extends UpdateCompanion<MenuItemImageRow> {
     this.itemId = const Value.absent(),
     this.label = const Value.absent(),
     this.path = const Value.absent(),
+    this.sha = const Value.absent(),
+    this.ext = const Value.absent(),
     this.sortOrder = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -6493,6 +6569,8 @@ class MenuItemImagesCompanion extends UpdateCompanion<MenuItemImageRow> {
     required String itemId,
     required String label,
     required String path,
+    this.sha = const Value.absent(),
+    this.ext = const Value.absent(),
     this.sortOrder = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -6504,6 +6582,8 @@ class MenuItemImagesCompanion extends UpdateCompanion<MenuItemImageRow> {
     Expression<String>? itemId,
     Expression<String>? label,
     Expression<String>? path,
+    Expression<String>? sha,
+    Expression<String>? ext,
     Expression<int>? sortOrder,
     Expression<int>? rowid,
   }) {
@@ -6512,6 +6592,8 @@ class MenuItemImagesCompanion extends UpdateCompanion<MenuItemImageRow> {
       if (itemId != null) 'item_id': itemId,
       if (label != null) 'label': label,
       if (path != null) 'path': path,
+      if (sha != null) 'sha': sha,
+      if (ext != null) 'ext': ext,
       if (sortOrder != null) 'sort_order': sortOrder,
       if (rowid != null) 'rowid': rowid,
     });
@@ -6522,6 +6604,8 @@ class MenuItemImagesCompanion extends UpdateCompanion<MenuItemImageRow> {
     Value<String>? itemId,
     Value<String>? label,
     Value<String>? path,
+    Value<String?>? sha,
+    Value<String?>? ext,
     Value<int>? sortOrder,
     Value<int>? rowid,
   }) {
@@ -6530,6 +6614,8 @@ class MenuItemImagesCompanion extends UpdateCompanion<MenuItemImageRow> {
       itemId: itemId ?? this.itemId,
       label: label ?? this.label,
       path: path ?? this.path,
+      sha: sha ?? this.sha,
+      ext: ext ?? this.ext,
       sortOrder: sortOrder ?? this.sortOrder,
       rowid: rowid ?? this.rowid,
     );
@@ -6550,6 +6636,12 @@ class MenuItemImagesCompanion extends UpdateCompanion<MenuItemImageRow> {
     if (path.present) {
       map['path'] = Variable<String>(path.value);
     }
+    if (sha.present) {
+      map['sha'] = Variable<String>(sha.value);
+    }
+    if (ext.present) {
+      map['ext'] = Variable<String>(ext.value);
+    }
     if (sortOrder.present) {
       map['sort_order'] = Variable<int>(sortOrder.value);
     }
@@ -6566,6 +6658,8 @@ class MenuItemImagesCompanion extends UpdateCompanion<MenuItemImageRow> {
           ..write('itemId: $itemId, ')
           ..write('label: $label, ')
           ..write('path: $path, ')
+          ..write('sha: $sha, ')
+          ..write('ext: $ext, ')
           ..write('sortOrder: $sortOrder, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -11984,6 +12078,8 @@ typedef $$MenuItemImagesTableCreateCompanionBuilder =
       required String itemId,
       required String label,
       required String path,
+      Value<String?> sha,
+      Value<String?> ext,
       Value<int> sortOrder,
       Value<int> rowid,
     });
@@ -11993,6 +12089,8 @@ typedef $$MenuItemImagesTableUpdateCompanionBuilder =
       Value<String> itemId,
       Value<String> label,
       Value<String> path,
+      Value<String?> sha,
+      Value<String?> ext,
       Value<int> sortOrder,
       Value<int> rowid,
     });
@@ -12045,6 +12143,16 @@ class $$MenuItemImagesTableFilterComposer
 
   ColumnFilters<String> get path => $composableBuilder(
     column: $table.path,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sha => $composableBuilder(
+    column: $table.sha,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ext => $composableBuilder(
+    column: $table.ext,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -12101,6 +12209,16 @@ class $$MenuItemImagesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get sha => $composableBuilder(
+    column: $table.sha,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ext => $composableBuilder(
+    column: $table.ext,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get sortOrder => $composableBuilder(
     column: $table.sortOrder,
     builder: (column) => ColumnOrderings(column),
@@ -12147,6 +12265,12 @@ class $$MenuItemImagesTableAnnotationComposer
 
   GeneratedColumn<String> get path =>
       $composableBuilder(column: $table.path, builder: (column) => column);
+
+  GeneratedColumn<String> get sha =>
+      $composableBuilder(column: $table.sha, builder: (column) => column);
+
+  GeneratedColumn<String> get ext =>
+      $composableBuilder(column: $table.ext, builder: (column) => column);
 
   GeneratedColumn<int> get sortOrder =>
       $composableBuilder(column: $table.sortOrder, builder: (column) => column);
@@ -12209,6 +12333,8 @@ class $$MenuItemImagesTableTableManager
                 Value<String> itemId = const Value.absent(),
                 Value<String> label = const Value.absent(),
                 Value<String> path = const Value.absent(),
+                Value<String?> sha = const Value.absent(),
+                Value<String?> ext = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MenuItemImagesCompanion(
@@ -12216,6 +12342,8 @@ class $$MenuItemImagesTableTableManager
                 itemId: itemId,
                 label: label,
                 path: path,
+                sha: sha,
+                ext: ext,
                 sortOrder: sortOrder,
                 rowid: rowid,
               ),
@@ -12225,6 +12353,8 @@ class $$MenuItemImagesTableTableManager
                 required String itemId,
                 required String label,
                 required String path,
+                Value<String?> sha = const Value.absent(),
+                Value<String?> ext = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MenuItemImagesCompanion.insert(
@@ -12232,6 +12362,8 @@ class $$MenuItemImagesTableTableManager
                 itemId: itemId,
                 label: label,
                 path: path,
+                sha: sha,
+                ext: ext,
                 sortOrder: sortOrder,
                 rowid: rowid,
               ),

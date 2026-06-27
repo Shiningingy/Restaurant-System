@@ -3,6 +3,7 @@ import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../../core/providers.dart';
 import '../../../core/sync/providers.dart';
+import '../../sync/application/providers.dart';
 import '../data/item_image_repository.dart';
 import '../data/menu_repository.dart';
 
@@ -14,7 +15,10 @@ final menuRepositoryProvider = Provider<MenuRepository>(
 );
 
 final itemImageRepositoryProvider = Provider<ItemImageRepository>(
-  (ref) => ItemImageRepository(ref.watch(databaseProvider)),
+  (ref) => ItemImageRepository(
+    ref.watch(databaseProvider),
+    objectStore: ref.watch(menuPhotoStoreProvider),
+  ),
 );
 
 /// Live images for one item — used by the item editor.

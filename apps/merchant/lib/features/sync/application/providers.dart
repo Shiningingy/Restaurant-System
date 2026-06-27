@@ -11,6 +11,7 @@ import '../../../core/sync/providers.dart';
 import '../../customer_display/application/customer_display.dart';
 import '../../customer_display/application/promo_sync.dart';
 import '../../customer_display/data/promo_image_store.dart';
+import '../../menu/data/item_image_repository.dart';
 import '../data/sync_settings.dart';
 import '../drivers/noop_object_store.dart';
 import '../drivers/noop_sync_backend.dart';
@@ -72,6 +73,20 @@ final objectStoreProvider = Provider<domain.ObjectStore>((ref) {
   );
 });
 
+/// The public `menu-photos` bucket — item photos the customer app reads by URL
+/// AND the shop's own devices sync between themselves (bytes keyed `<sha><ext>`).
+/// Null when the cloud isn't configured, so item photos stay purely local.
+final menuPhotoStoreProvider = Provider<domain.ObjectStore?>((ref) {
+  final config = ref.watch(syncSettingsProvider).config;
+  if (!config.isConfigured) return null;
+  return SupabaseObjectStore(
+    url: config.url!,
+    anonKey: config.anonKey!,
+    bucket: 'menu-photos',
+    accessToken: _bearer(ref.read(supabaseAuthProvider)),
+  );
+});
+
 /// Syncs customer-display promo photos via Storage (bytes) + a manifest (set).
 /// `publish()` after the owner edits the photos; `pull()` on each sync cycle.
 final promoSyncProvider = Provider<PromoSyncService>((ref) {
@@ -125,6 +140,15 @@ final syncServiceProvider = Provider<SyncService>((ref) {
     // Best-effort: download promo photos + the brand logo published by another
     // device, and (if the set changed) refresh an open display live.
     reconcileAssets: () async {
+      // Item photos: upload any our device has but the bucket is missing, and
+      // download any that arrived via the feed but whose bytes we don't have.
+      final menuPhotos = ref.read(menuPhotoStoreProvider);
+      if (menuPhotos != null) {
+        await ItemImageRepository(
+          ref.read(databaseProvider),
+          objectStore: menuPhotos,
+        ).reconcile();
+      }
       final applied = await ref.read(promoSyncProvider).pull();
       if (applied != null) {
         await ref.read(customerDisplayProvider).pushCurrentPromo();
