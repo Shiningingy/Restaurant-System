@@ -226,8 +226,13 @@ function checkoutPage(
       try { data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data; }
       catch (_) { return; }
       // Moneris HT returns { responseCode:[...], dataKey, errorMessage, bin }.
+      // No dataKey = the IFRAME (Hosted Tokenization) rejected the card — this is
+      // a profile/source-domain config issue, NOT the /payments charge. Label it
+      // so it can't be confused with a charge/credentials failure.
       if (!data || !data.dataKey) {
-        msg.textContent = (data && data.errorMessage) || 'Card was not accepted.';
+        msg.textContent = 'Tokenization failed in the Moneris card frame (not the '
+          + 'charge): ' + ((data && data.errorMessage) || 'no message')
+          + ' [responseCode=' + (data ? JSON.stringify(data.responseCode) : '?') + ']';
         return;
       }
       fetch(location.pathname + location.search + '&action=verify', {
