@@ -1100,6 +1100,12 @@ abstract class AppLocalizations {
   /// **'Total {total} — pay at pickup'**
   String inboxTotalPayAtPickup(String total);
 
+  /// No description provided for @inboxCustomerTip.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer tip {amount} — add at the counter'**
+  String inboxCustomerTip(String amount);
+
   /// No description provided for @inboxReject.
   ///
   /// In en, this message translates to:

@@ -44,6 +44,11 @@ mixin _$Order {
   Money get serviceFee;
   Money get tax;
   Money get total;
+
+  /// A tip the customer chose at the kiosk / online checkout, carried onto the
+  /// local order so staff see it and the payment sheet pre-fills it at
+  /// settlement. Not part of [total] (the tip rides on top of the payment).
+  Money get requestedTip;
   String? get note;
 
   /// Create a copy of Order
@@ -79,6 +84,8 @@ mixin _$Order {
                 other.serviceFee == serviceFee) &&
             (identical(other.tax, tax) || other.tax == tax) &&
             (identical(other.total, total) || other.total == total) &&
+            (identical(other.requestedTip, requestedTip) ||
+                other.requestedTip == requestedTip) &&
             (identical(other.note, note) || other.note == note));
   }
 
@@ -99,11 +106,12 @@ mixin _$Order {
       serviceFee,
       tax,
       total,
+      requestedTip,
       note);
 
   @override
   String toString() {
-    return 'Order(id: $id, type: $type, status: $status, createdAt: $createdAt, taxRateBp: $taxRateBp, serviceFeeBp: $serviceFeeBp, tableId: $tableId, paidAt: $paidAt, closedAt: $closedAt, subtotal: $subtotal, discount: $discount, serviceFee: $serviceFee, tax: $tax, total: $total, note: $note)';
+    return 'Order(id: $id, type: $type, status: $status, createdAt: $createdAt, taxRateBp: $taxRateBp, serviceFeeBp: $serviceFeeBp, tableId: $tableId, paidAt: $paidAt, closedAt: $closedAt, subtotal: $subtotal, discount: $discount, serviceFee: $serviceFee, tax: $tax, total: $total, requestedTip: $requestedTip, note: $note)';
   }
 }
 
@@ -127,6 +135,7 @@ abstract mixin class $OrderCopyWith<$Res> {
       Money serviceFee,
       Money tax,
       Money total,
+      Money requestedTip,
       String? note});
 }
 
@@ -156,6 +165,7 @@ class _$OrderCopyWithImpl<$Res> implements $OrderCopyWith<$Res> {
     Object? serviceFee = null,
     Object? tax = null,
     Object? total = null,
+    Object? requestedTip = null,
     Object? note = freezed,
   }) {
     return _then(_self.copyWith(
@@ -214,6 +224,10 @@ class _$OrderCopyWithImpl<$Res> implements $OrderCopyWith<$Res> {
       total: null == total
           ? _self.total
           : total // ignore: cast_nullable_to_non_nullable
+              as Money,
+      requestedTip: null == requestedTip
+          ? _self.requestedTip
+          : requestedTip // ignore: cast_nullable_to_non_nullable
               as Money,
       note: freezed == note
           ? _self.note
@@ -331,6 +345,7 @@ extension OrderPatterns on Order {
             Money serviceFee,
             Money tax,
             Money total,
+            Money requestedTip,
             String? note)?
         $default, {
     required TResult orElse(),
@@ -353,6 +368,7 @@ extension OrderPatterns on Order {
             _that.serviceFee,
             _that.tax,
             _that.total,
+            _that.requestedTip,
             _that.note);
       case _:
         return orElse();
@@ -389,6 +405,7 @@ extension OrderPatterns on Order {
             Money serviceFee,
             Money tax,
             Money total,
+            Money requestedTip,
             String? note)
         $default,
   ) {
@@ -410,6 +427,7 @@ extension OrderPatterns on Order {
             _that.serviceFee,
             _that.tax,
             _that.total,
+            _that.requestedTip,
             _that.note);
       case _:
         throw StateError('Unexpected subclass');
@@ -445,6 +463,7 @@ extension OrderPatterns on Order {
             Money serviceFee,
             Money tax,
             Money total,
+            Money requestedTip,
             String? note)?
         $default,
   ) {
@@ -466,6 +485,7 @@ extension OrderPatterns on Order {
             _that.serviceFee,
             _that.tax,
             _that.total,
+            _that.requestedTip,
             _that.note);
       case _:
         return null;
@@ -491,6 +511,7 @@ class _Order implements Order {
       this.serviceFee = Money.zero,
       this.tax = Money.zero,
       this.total = Money.zero,
+      this.requestedTip = Money.zero,
       this.note});
 
   @override
@@ -543,6 +564,13 @@ class _Order implements Order {
   @override
   @JsonKey()
   final Money total;
+
+  /// A tip the customer chose at the kiosk / online checkout, carried onto the
+  /// local order so staff see it and the payment sheet pre-fills it at
+  /// settlement. Not part of [total] (the tip rides on top of the payment).
+  @override
+  @JsonKey()
+  final Money requestedTip;
   @override
   final String? note;
 
@@ -580,6 +608,8 @@ class _Order implements Order {
                 other.serviceFee == serviceFee) &&
             (identical(other.tax, tax) || other.tax == tax) &&
             (identical(other.total, total) || other.total == total) &&
+            (identical(other.requestedTip, requestedTip) ||
+                other.requestedTip == requestedTip) &&
             (identical(other.note, note) || other.note == note));
   }
 
@@ -600,11 +630,12 @@ class _Order implements Order {
       serviceFee,
       tax,
       total,
+      requestedTip,
       note);
 
   @override
   String toString() {
-    return 'Order(id: $id, type: $type, status: $status, createdAt: $createdAt, taxRateBp: $taxRateBp, serviceFeeBp: $serviceFeeBp, tableId: $tableId, paidAt: $paidAt, closedAt: $closedAt, subtotal: $subtotal, discount: $discount, serviceFee: $serviceFee, tax: $tax, total: $total, note: $note)';
+    return 'Order(id: $id, type: $type, status: $status, createdAt: $createdAt, taxRateBp: $taxRateBp, serviceFeeBp: $serviceFeeBp, tableId: $tableId, paidAt: $paidAt, closedAt: $closedAt, subtotal: $subtotal, discount: $discount, serviceFee: $serviceFee, tax: $tax, total: $total, requestedTip: $requestedTip, note: $note)';
   }
 }
 
@@ -629,6 +660,7 @@ abstract mixin class _$OrderCopyWith<$Res> implements $OrderCopyWith<$Res> {
       Money serviceFee,
       Money tax,
       Money total,
+      Money requestedTip,
       String? note});
 }
 
@@ -658,6 +690,7 @@ class __$OrderCopyWithImpl<$Res> implements _$OrderCopyWith<$Res> {
     Object? serviceFee = null,
     Object? tax = null,
     Object? total = null,
+    Object? requestedTip = null,
     Object? note = freezed,
   }) {
     return _then(_Order(
@@ -716,6 +749,10 @@ class __$OrderCopyWithImpl<$Res> implements _$OrderCopyWith<$Res> {
       total: null == total
           ? _self.total
           : total // ignore: cast_nullable_to_non_nullable
+              as Money,
+      requestedTip: null == requestedTip
+          ? _self.requestedTip
+          : requestedTip // ignore: cast_nullable_to_non_nullable
               as Money,
       note: freezed == note
           ? _self.note

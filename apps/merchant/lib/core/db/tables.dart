@@ -143,6 +143,11 @@ class Orders extends Table {
       integer().map(const MoneyConverter()).withDefault(const Constant(0))();
   IntColumn get tax => integer().map(const MoneyConverter())();
   IntColumn get total => integer().map(const MoneyConverter())();
+
+  /// A tip the customer chose at the kiosk / online checkout, carried for the
+  /// payment sheet to pre-fill at settlement. Not part of [total].
+  IntColumn get requestedTip =>
+      integer().map(const MoneyConverter()).withDefault(const Constant(0))();
   TextColumn get note => text().nullable()();
 
   @override

@@ -187,6 +187,14 @@ class _OrderSummary extends StatelessWidget {
           context.l10n.inboxTotalPayAtPickup(total.format()),
           style: Theme.of(context).textTheme.bodySmall,
         ),
+        if (!order.tip.isZero)
+          Text(
+            context.l10n.inboxCustomerTip(order.tip.format()),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
       ],
     );
   }

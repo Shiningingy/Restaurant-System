@@ -46,6 +46,11 @@ abstract class Order with _$Order {
     @Default(Money.zero) Money serviceFee,
     @Default(Money.zero) Money tax,
     @Default(Money.zero) Money total,
+
+    /// A tip the customer chose at the kiosk / online checkout, carried onto the
+    /// local order so staff see it and the payment sheet pre-fills it at
+    /// settlement. Not part of [total] (the tip rides on top of the payment).
+    @Default(Money.zero) Money requestedTip,
     String? note,
   }) = _Order;
 }

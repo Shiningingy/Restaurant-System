@@ -109,7 +109,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -163,6 +163,11 @@ class AppDatabase extends _$AppDatabase {
         // v11: comped (on-the-house) order lines. Defaults false on every
         // existing line — nothing is retroactively comped.
         await m.addColumn(orderLines, orderLines.comped);
+      }
+      if (from < 12) {
+        // v12: a customer-chosen tip carried onto the local order (kiosk /
+        // online checkout). Defaults 0 on existing orders.
+        await m.addColumn(orders, orders.requestedTip);
       }
     },
   );

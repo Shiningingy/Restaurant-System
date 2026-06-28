@@ -582,6 +582,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String inboxCustomerTip(String amount) {
+    return '顾客小费 $amount · 请在柜台收取';
+  }
+
+  @override
   String get inboxReject => '拒绝';
 
   @override

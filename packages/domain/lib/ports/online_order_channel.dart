@@ -1,3 +1,5 @@
+import '../src/money.dart';
+
 /// Status of an online preorder as it moves through the merchant flow.
 ///
 /// [timeProposed] means the merchant couldn't meet the requested pickup time
@@ -41,6 +43,11 @@ class IncomingOnlineOrder {
   /// recorded against the local payment so a later refund can find it.
   final String? processorRef;
 
+  /// The tip the customer chose at the kiosk / online checkout. Shown to staff
+  /// and carried onto the local order so the payment sheet pre-fills it. Zero
+  /// when none.
+  final Money tip;
+
   const IncomingOnlineOrder({
     required this.id,
     required this.customerName,
@@ -52,6 +59,7 @@ class IncomingOnlineOrder {
     this.kiosk = false,
     this.paymentStatus = 'unpaid',
     this.processorRef,
+    this.tip = Money.zero,
   });
 
   bool get isPaidOnline => paymentStatus == 'paid';

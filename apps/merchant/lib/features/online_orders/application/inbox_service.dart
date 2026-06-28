@@ -80,6 +80,9 @@ class InboxService {
       // A paid online order was charged subtotal+tax only (the customer never
       // saw a service fee), so waive it here to match what they actually paid.
       serviceFeeBp: paidOnline ? 0 : settings.serviceFeeBp,
+      // Carry the customer's chosen tip so staff see it and the payment sheet
+      // pre-fills it (a paid-online order already includes it in the payment).
+      requestedTip: incoming.tip,
       note: 'Online: ${incoming.customerName} - pickup $pickup',
     );
     for (final line in lines) {

@@ -195,6 +195,10 @@
   "inboxError": "错误：{error}",
   "inboxCustomerPickup": "{name} · 取餐时间 {time}",
   "inboxTotalPayAtPickup": "合计 {total} · 取餐时支付",
+  "inboxCustomerTip": "顾客小费 {amount} · 请在柜台收取",
+  "@inboxCustomerTip": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
   "inboxReject": "拒绝",
   "inboxAccept": "接受",
   "inboxProposeTime": "建议时间",

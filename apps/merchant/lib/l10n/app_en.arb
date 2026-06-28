@@ -273,6 +273,10 @@
   "@inboxTotalPayAtPickup": {
     "placeholders": { "total": { "type": "String" } }
   },
+  "inboxCustomerTip": "Customer tip {amount} — add at the counter",
+  "@inboxCustomerTip": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
   "inboxReject": "Reject",
   "inboxAccept": "Accept",
   "inboxProposeTime": "Propose time",
