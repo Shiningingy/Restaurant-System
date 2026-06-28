@@ -471,6 +471,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get pmtCashTendered => '实收现金（可选）';
 
   @override
+  String get pmtTip => '小费（可选）';
+
+  @override
+  String get pmtTipHint => '在金额之外另加；会打印在小票上';
+
+  @override
   String pmtChangeDue(String amount) {
     return '应找零 $amount';
   }

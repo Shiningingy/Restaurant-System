@@ -480,6 +480,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pmtCashTendered => 'Cash tendered (optional)';
 
   @override
+  String get pmtTip => 'Tip (optional)';
+
+  @override
+  String get pmtTipHint => 'On top of the amount; printed on the receipt';
+
+  @override
   String pmtChangeDue(String amount) {
     return 'Change due $amount';
   }

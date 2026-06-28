@@ -217,6 +217,8 @@
   "pmtDeclined": "Declined",
   "pmtApproved": "Approved",
   "pmtCashTendered": "Cash tendered (optional)",
+  "pmtTip": "Tip (optional)",
+  "pmtTipHint": "On top of the amount; printed on the receipt",
   "pmtChangeDue": "Change due {amount}",
   "@pmtChangeDue": {
     "placeholders": { "amount": { "type": "String" } }

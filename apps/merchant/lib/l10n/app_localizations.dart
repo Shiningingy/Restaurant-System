@@ -920,6 +920,18 @@ abstract class AppLocalizations {
   /// **'Cash tendered (optional)'**
   String get pmtCashTendered;
 
+  /// No description provided for @pmtTip.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip (optional)'**
+  String get pmtTip;
+
+  /// No description provided for @pmtTipHint.
+  ///
+  /// In en, this message translates to:
+  /// **'On top of the amount; printed on the receipt'**
+  String get pmtTipHint;
+
   /// No description provided for @pmtChangeDue.
   ///
   /// In en, this message translates to:

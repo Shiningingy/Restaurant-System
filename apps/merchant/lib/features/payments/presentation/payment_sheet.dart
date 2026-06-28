@@ -53,6 +53,10 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
   /// Optional "cash tendered" — only a change-due aid; never the charged
   /// amount, so the balance math stays exact.
   late final TextEditingController _tendered;
+
+  /// Optional tip on top of the amount (cash/keyed card) — recorded and
+  /// printed on the receipt, never reduces the balance.
+  late final TextEditingController _tip;
   String? _error;
   bool _busy = false;
 
@@ -66,14 +70,20 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
       text: (initial.cents / 100).toStringAsFixed(2),
     );
     _tendered = TextEditingController();
+    _tip = TextEditingController();
   }
 
   @override
   void dispose() {
     _amount.dispose();
     _tendered.dispose();
+    _tip.dispose();
     super.dispose();
   }
+
+  /// The entered tip, or zero when blank/invalid.
+  domain.Money get _tipAmount =>
+      domain.Money.tryParse(_tip.text) ?? domain.Money.zero;
 
   /// The amount that will be charged, with no side effects (for the live
   /// change readout). A locked sheet always charges [widget.fixedAmount].
@@ -110,7 +120,7 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
         .takeCash(
           orderId: widget.order.id,
           amount: amount,
-          tip: domain.Money.zero,
+          tip: _tipAmount,
           settleLineIds: widget.settleLineIds,
         );
     if (mounted) Navigator.pop(context, result);
@@ -125,6 +135,7 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
         .takeCard(
           orderId: widget.order.id,
           amount: amount,
+          tip: _tipAmount,
           prompt: _confirmManualCharge,
           settleLineIds: widget.settleLineIds,
         );
@@ -179,11 +190,14 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
         domain.Money.tryParse(_amount.text) != widget.balance &&
         domain.Money.tryParse(_amount.text) != null;
 
-    // Live change-due: tendered minus the amount being charged.
+    // Live change-due: tendered minus what the customer owes in cash —
+    // the charged amount plus any tip they're handing over.
     final charge = _chargeAmount;
+    final cashNeeded = charge == null ? null : charge + _tipAmount;
     final tendered = domain.Money.tryParse(_tendered.text);
-    final change = (charge != null && tendered != null && tendered >= charge)
-        ? tendered - charge
+    final change =
+        (cashNeeded != null && tendered != null && tendered >= cashNeeded)
+        ? tendered - cashNeeded
         : null;
 
     return AlertDialog(
@@ -219,6 +233,19 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
                 decimal: true,
               ),
               onChanged: (_) => setState(() => _error = null),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _tip,
+              decoration: InputDecoration(
+                labelText: l10n.pmtTip,
+                prefixText: r'$',
+                helperText: l10n.pmtTipHint,
+              ),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 12),
             TextField(
