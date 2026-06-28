@@ -64,6 +64,10 @@ enum AppPermission {
   /// Apply a discount above the threshold staff may grant on their own.
   largeDiscount,
 
+  /// Comp (give free) an item beyond what the manager's comp policy lets staff
+  /// grant on their own — the allowed-items list or the per-order amount cap.
+  compOverride,
+
   /// Add/edit/delete staff and change roles.
   manageStaff,
 
@@ -77,6 +81,7 @@ StaffRole _minRole(AppPermission permission) => switch (permission) {
   AppPermission.viewReports ||
   AppPermission.refundPaidOrder ||
   AppPermission.largeDiscount ||
+  AppPermission.compOverride ||
   AppPermission.accessAdmin => StaffRole.manager,
 };
 

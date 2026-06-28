@@ -160,6 +160,8 @@ class OrderRepository {
       )..where((t) => t.orderId.equals(orderId))).get();
       for (final line in existing) {
         if (line.status != domain.OrderLineStatus.active) continue;
+        // A comped line is free; never stack a paying item onto it.
+        if (line.comped) continue;
         if (line.menuItemId != item.id) continue;
         final mods = await (db.select(
           db.orderLineModifiers,
@@ -224,6 +226,75 @@ class OrderRepository {
       }
       await _recomputeTotals(orderId);
       await _journalOrder(orderId);
+    });
+  }
+
+  /// Adds [item] to the order as a **comped** (on-the-house) line — a free
+  /// giveaway. Always a fresh line (never stacked onto a paying one); the
+  /// kitchen still makes it and it prints on the receipt, but it costs the
+  /// customer nothing. Caller is responsible for any comp-policy/PIN gate.
+  Future<void> addFreeItem({
+    required String orderId,
+    required domain.MenuItem item,
+    List<domain.Modifier> selectedModifiers = const [],
+    int qty = 1,
+    String? note,
+  }) {
+    return db.transaction(() async {
+      final lineId = domain.newId();
+      final lineTotal = domain.OrderTotals.lineTotal(
+        unitPrice: item.price,
+        modifierDeltas: selectedModifiers.map((m) => m.priceDelta),
+        qty: qty,
+      );
+      await db
+          .into(db.orderLines)
+          .insert(
+            OrderLinesCompanion.insert(
+              id: lineId,
+              orderId: orderId,
+              menuItemId: item.id,
+              nameSnapshot: item.name,
+              priceSnapshot: item.price,
+              qty: qty,
+              lineTotal: lineTotal,
+              status: domain.OrderLineStatus.active,
+              comped: const Value(true),
+              codeSnapshot: Value(item.code),
+              nameSecondarySnapshot: Value(item.nameSecondary),
+              note: Value(note),
+            ),
+          );
+      for (final m in selectedModifiers) {
+        await db
+            .into(db.orderLineModifiers)
+            .insert(
+              OrderLineModifiersCompanion.insert(
+                id: domain.newId(),
+                lineId: lineId,
+                nameSnapshot: m.name,
+                priceDeltaSnapshot: m.priceDelta,
+              ),
+            );
+      }
+      await _recomputeTotals(orderId);
+      await _journalOrder(orderId);
+    });
+  }
+
+  /// Comps or un-comps an existing line (toggles "on the house"). The line
+  /// keeps its price snapshot; the totals math moves its worth between the
+  /// billable subtotal and the comps tally. Caller gates with comp policy/PIN.
+  Future<void> setLineComped(String lineId, bool comped) {
+    return db.transaction(() async {
+      final line = await (db.select(
+        db.orderLines,
+      )..where((t) => t.id.equals(lineId))).getSingle();
+      await (db.update(db.orderLines)..where((t) => t.id.equals(lineId))).write(
+        OrderLinesCompanion(comped: Value(comped)),
+      );
+      await _recomputeTotals(line.orderId);
+      await _journalOrder(line.orderId);
     });
   }
 
@@ -449,6 +520,7 @@ class OrderRepository {
     qty: r.qty,
     lineTotal: r.lineTotal,
     status: r.status,
+    comped: r.comped,
     codeSnapshot: r.codeSnapshot,
     nameSecondarySnapshot: r.nameSecondarySnapshot,
     note: r.note,

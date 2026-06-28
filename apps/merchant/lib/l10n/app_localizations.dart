@@ -476,6 +476,48 @@ abstract class AppLocalizations {
   /// **'Remove'**
   String get ordRemoveDiscount;
 
+  /// No description provided for @ordComps.
+  ///
+  /// In en, this message translates to:
+  /// **'Comps (on the house)'**
+  String get ordComps;
+
+  /// No description provided for @ordFree.
+  ///
+  /// In en, this message translates to:
+  /// **'FREE'**
+  String get ordFree;
+
+  /// No description provided for @ordCompLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Give free'**
+  String get ordCompLine;
+
+  /// No description provided for @ordUncompLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Charge for this'**
+  String get ordUncompLine;
+
+  /// No description provided for @ordFreeItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Free item'**
+  String get ordFreeItem;
+
+  /// No description provided for @ordFreeItemBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Free-item mode — the next items you tap are on the house.'**
+  String get ordFreeItemBanner;
+
+  /// No description provided for @ordFreeItemBannerOff.
+  ///
+  /// In en, this message translates to:
+  /// **'TURN OFF'**
+  String get ordFreeItemBannerOff;
+
   /// No description provided for @ordTotal.
   ///
   /// In en, this message translates to:
@@ -1231,6 +1273,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tips'**
   String get repTips;
+
+  /// No description provided for @repComps.
+  ///
+  /// In en, this message translates to:
+  /// **'Comps'**
+  String get repComps;
 
   /// No description provided for @repPaymentsCount.
   ///
@@ -2677,6 +2725,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Discounts & comps'**
   String get adminDiscounts;
+
+  /// No description provided for @adminDiscountsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Set what staff can give free without a manager'**
+  String get adminDiscountsBody;
+
+  /// No description provided for @compPolicyIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Decide what staff can give away on their own. Ticked items and comps within the amount cap need no approval; anything else asks for a manager PIN at the till.'**
+  String get compPolicyIntro;
+
+  /// No description provided for @compAmountCap.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount cap per order'**
+  String get compAmountCap;
+
+  /// No description provided for @compNoCap.
+  ///
+  /// In en, this message translates to:
+  /// **'No amount allowance — staff can only give the ticked items free'**
+  String get compNoCap;
+
+  /// No description provided for @compCapPerOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to {amount} of comps per order without a manager'**
+  String compCapPerOrder(String amount);
+
+  /// No description provided for @compSetCap.
+  ///
+  /// In en, this message translates to:
+  /// **'Set cap'**
+  String get compSetCap;
+
+  /// No description provided for @compCapDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Comp amount cap'**
+  String get compCapDialogTitle;
+
+  /// No description provided for @compCapHint.
+  ///
+  /// In en, this message translates to:
+  /// **'0 = none'**
+  String get compCapHint;
+
+  /// No description provided for @compAllowedItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Items staff can give free'**
+  String get compAllowedItems;
+
+  /// No description provided for @compAllowedItemsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'These can always be comped without a manager.'**
+  String get compAllowedItemsBody;
+
+  /// No description provided for @compNoMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Add menu items first.'**
+  String get compNoMenu;
 
   /// No description provided for @adminEndOfDay.
   ///

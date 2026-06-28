@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/l10n_ext.dart';
 import '../application/providers.dart';
 import '../domain/staff.dart';
+import 'comp_policy_screen.dart';
 import 'role_labels.dart';
 import 'staff_edit_dialog.dart';
 
@@ -93,9 +94,14 @@ class AdminScreen extends ConsumerWidget {
             title: context.l10n.adminOnlineAuth,
             subtitle: context.l10n.adminOnlineAuthBody,
           ),
-          _PlaceholderTile(
-            icon: Icons.percent_outlined,
-            title: context.l10n.adminDiscounts,
+          ListTile(
+            leading: const Icon(Icons.percent_outlined),
+            title: Text(context.l10n.adminDiscounts),
+            subtitle: Text(context.l10n.adminDiscountsBody),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const CompPolicyScreen())),
           ),
           _PlaceholderTile(
             icon: Icons.point_of_sale_outlined,

@@ -210,6 +210,27 @@ class AppLocalizationsZh extends AppLocalizations {
   String get ordRemoveDiscount => '移除';
 
   @override
+  String get ordComps => '赠送（免单）';
+
+  @override
+  String get ordFree => '免费';
+
+  @override
+  String get ordCompLine => '赠送此项';
+
+  @override
+  String get ordUncompLine => '恢复收费';
+
+  @override
+  String get ordFreeItem => '赠送菜品';
+
+  @override
+  String get ordFreeItemBanner => '赠送模式 — 接下来点选的菜品将免费赠送。';
+
+  @override
+  String get ordFreeItemBannerOff => '关闭';
+
+  @override
   String get ordTotal => '合计';
 
   @override
@@ -654,6 +675,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get repTips => '小费';
+
+  @override
+  String get repComps => '赠送';
 
   @override
   String repPaymentsCount(int count) {
@@ -1449,6 +1473,42 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get adminDiscounts => '折扣与赠送';
+
+  @override
+  String get adminDiscountsBody => '设置员工无需经理即可赠送的范围';
+
+  @override
+  String get compPolicyIntro =>
+      '设定员工可自行赠送的范围。已勾选的菜品，以及在金额上限内的赠送无需审批；其他情况会在收银台要求输入经理 PIN。';
+
+  @override
+  String get compAmountCap => '每单赠送金额上限';
+
+  @override
+  String get compNoCap => '未设金额额度 — 员工只能免费赠送下方勾选的菜品';
+
+  @override
+  String compCapPerOrder(String amount) {
+    return '每单可在无需经理的情况下赠送至多 $amount';
+  }
+
+  @override
+  String get compSetCap => '设置上限';
+
+  @override
+  String get compCapDialogTitle => '赠送金额上限';
+
+  @override
+  String get compCapHint => '0 = 无';
+
+  @override
+  String get compAllowedItems => '员工可赠送的菜品';
+
+  @override
+  String get compAllowedItemsBody => '这些菜品始终可在无需经理的情况下赠送。';
+
+  @override
+  String get compNoMenu => '请先添加菜品。';
 
   @override
   String get adminEndOfDay => '日终现金盘点';

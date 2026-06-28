@@ -109,7 +109,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 10;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -158,6 +158,11 @@ class AppDatabase extends _$AppDatabase {
         // the normal feed; legacy rows backfill their sha from the local file.
         await m.addColumn(menuItemImages, menuItemImages.sha);
         await m.addColumn(menuItemImages, menuItemImages.ext);
+      }
+      if (from < 11) {
+        // v11: comped (on-the-house) order lines. Defaults false on every
+        // existing line — nothing is retroactively comped.
+        await m.addColumn(orderLines, orderLines.comped);
       }
     },
   );

@@ -736,6 +736,13 @@ mixin _$OrderLine {
   Money get lineTotal;
   OrderLineStatus get status;
 
+  /// A comped (on-the-house) line: still active — the kitchen makes it and it
+  /// prints on the receipt — but it costs the customer nothing. Its
+  /// [lineTotal] is kept as the original price so the comp's worth is known
+  /// (reports, the manager's comp cap); the totals math routes it out of the
+  /// billable subtotal into [OrderTotals.comps] instead.
+  bool get comped;
+
   /// Set to the id of the payment that settled this line when the bill is
   /// split by item; null while the line is still unpaid. Purely a record of
   /// which split paid for it — the order still closes on the payment balance.
@@ -774,6 +781,7 @@ mixin _$OrderLine {
             (identical(other.lineTotal, lineTotal) ||
                 other.lineTotal == lineTotal) &&
             (identical(other.status, status) || other.status == status) &&
+            (identical(other.comped, comped) || other.comped == comped) &&
             (identical(other.settledByPaymentId, settledByPaymentId) ||
                 other.settledByPaymentId == settledByPaymentId) &&
             (identical(other.codeSnapshot, codeSnapshot) ||
@@ -795,6 +803,7 @@ mixin _$OrderLine {
       qty,
       lineTotal,
       status,
+      comped,
       settledByPaymentId,
       codeSnapshot,
       nameSecondarySnapshot,
@@ -803,7 +812,7 @@ mixin _$OrderLine {
 
   @override
   String toString() {
-    return 'OrderLine(id: $id, orderId: $orderId, menuItemId: $menuItemId, nameSnapshot: $nameSnapshot, priceSnapshot: $priceSnapshot, qty: $qty, lineTotal: $lineTotal, status: $status, settledByPaymentId: $settledByPaymentId, codeSnapshot: $codeSnapshot, nameSecondarySnapshot: $nameSecondarySnapshot, note: $note, modifiers: $modifiers)';
+    return 'OrderLine(id: $id, orderId: $orderId, menuItemId: $menuItemId, nameSnapshot: $nameSnapshot, priceSnapshot: $priceSnapshot, qty: $qty, lineTotal: $lineTotal, status: $status, comped: $comped, settledByPaymentId: $settledByPaymentId, codeSnapshot: $codeSnapshot, nameSecondarySnapshot: $nameSecondarySnapshot, note: $note, modifiers: $modifiers)';
   }
 }
 
@@ -821,6 +830,7 @@ abstract mixin class $OrderLineCopyWith<$Res> {
       int qty,
       Money lineTotal,
       OrderLineStatus status,
+      bool comped,
       String? settledByPaymentId,
       String? codeSnapshot,
       String? nameSecondarySnapshot,
@@ -848,6 +858,7 @@ class _$OrderLineCopyWithImpl<$Res> implements $OrderLineCopyWith<$Res> {
     Object? qty = null,
     Object? lineTotal = null,
     Object? status = null,
+    Object? comped = null,
     Object? settledByPaymentId = freezed,
     Object? codeSnapshot = freezed,
     Object? nameSecondarySnapshot = freezed,
@@ -887,6 +898,10 @@ class _$OrderLineCopyWithImpl<$Res> implements $OrderLineCopyWith<$Res> {
           ? _self.status
           : status // ignore: cast_nullable_to_non_nullable
               as OrderLineStatus,
+      comped: null == comped
+          ? _self.comped
+          : comped // ignore: cast_nullable_to_non_nullable
+              as bool,
       settledByPaymentId: freezed == settledByPaymentId
           ? _self.settledByPaymentId
           : settledByPaymentId // ignore: cast_nullable_to_non_nullable
@@ -1013,6 +1028,7 @@ extension OrderLinePatterns on OrderLine {
             int qty,
             Money lineTotal,
             OrderLineStatus status,
+            bool comped,
             String? settledByPaymentId,
             String? codeSnapshot,
             String? nameSecondarySnapshot,
@@ -1033,6 +1049,7 @@ extension OrderLinePatterns on OrderLine {
             _that.qty,
             _that.lineTotal,
             _that.status,
+            _that.comped,
             _that.settledByPaymentId,
             _that.codeSnapshot,
             _that.nameSecondarySnapshot,
@@ -1067,6 +1084,7 @@ extension OrderLinePatterns on OrderLine {
             int qty,
             Money lineTotal,
             OrderLineStatus status,
+            bool comped,
             String? settledByPaymentId,
             String? codeSnapshot,
             String? nameSecondarySnapshot,
@@ -1086,6 +1104,7 @@ extension OrderLinePatterns on OrderLine {
             _that.qty,
             _that.lineTotal,
             _that.status,
+            _that.comped,
             _that.settledByPaymentId,
             _that.codeSnapshot,
             _that.nameSecondarySnapshot,
@@ -1119,6 +1138,7 @@ extension OrderLinePatterns on OrderLine {
             int qty,
             Money lineTotal,
             OrderLineStatus status,
+            bool comped,
             String? settledByPaymentId,
             String? codeSnapshot,
             String? nameSecondarySnapshot,
@@ -1138,6 +1158,7 @@ extension OrderLinePatterns on OrderLine {
             _that.qty,
             _that.lineTotal,
             _that.status,
+            _that.comped,
             _that.settledByPaymentId,
             _that.codeSnapshot,
             _that.nameSecondarySnapshot,
@@ -1161,6 +1182,7 @@ class _OrderLine implements OrderLine {
       required this.qty,
       required this.lineTotal,
       this.status = OrderLineStatus.active,
+      this.comped = false,
       this.settledByPaymentId,
       this.codeSnapshot,
       this.nameSecondarySnapshot,
@@ -1185,6 +1207,15 @@ class _OrderLine implements OrderLine {
   @override
   @JsonKey()
   final OrderLineStatus status;
+
+  /// A comped (on-the-house) line: still active — the kitchen makes it and it
+  /// prints on the receipt — but it costs the customer nothing. Its
+  /// [lineTotal] is kept as the original price so the comp's worth is known
+  /// (reports, the manager's comp cap); the totals math routes it out of the
+  /// billable subtotal into [OrderTotals.comps] instead.
+  @override
+  @JsonKey()
+  final bool comped;
 
   /// Set to the id of the payment that settled this line when the bill is
   /// split by item; null while the line is still unpaid. Purely a record of
@@ -1238,6 +1269,7 @@ class _OrderLine implements OrderLine {
             (identical(other.lineTotal, lineTotal) ||
                 other.lineTotal == lineTotal) &&
             (identical(other.status, status) || other.status == status) &&
+            (identical(other.comped, comped) || other.comped == comped) &&
             (identical(other.settledByPaymentId, settledByPaymentId) ||
                 other.settledByPaymentId == settledByPaymentId) &&
             (identical(other.codeSnapshot, codeSnapshot) ||
@@ -1260,6 +1292,7 @@ class _OrderLine implements OrderLine {
       qty,
       lineTotal,
       status,
+      comped,
       settledByPaymentId,
       codeSnapshot,
       nameSecondarySnapshot,
@@ -1268,7 +1301,7 @@ class _OrderLine implements OrderLine {
 
   @override
   String toString() {
-    return 'OrderLine(id: $id, orderId: $orderId, menuItemId: $menuItemId, nameSnapshot: $nameSnapshot, priceSnapshot: $priceSnapshot, qty: $qty, lineTotal: $lineTotal, status: $status, settledByPaymentId: $settledByPaymentId, codeSnapshot: $codeSnapshot, nameSecondarySnapshot: $nameSecondarySnapshot, note: $note, modifiers: $modifiers)';
+    return 'OrderLine(id: $id, orderId: $orderId, menuItemId: $menuItemId, nameSnapshot: $nameSnapshot, priceSnapshot: $priceSnapshot, qty: $qty, lineTotal: $lineTotal, status: $status, comped: $comped, settledByPaymentId: $settledByPaymentId, codeSnapshot: $codeSnapshot, nameSecondarySnapshot: $nameSecondarySnapshot, note: $note, modifiers: $modifiers)';
   }
 }
 
@@ -1289,6 +1322,7 @@ abstract mixin class _$OrderLineCopyWith<$Res>
       int qty,
       Money lineTotal,
       OrderLineStatus status,
+      bool comped,
       String? settledByPaymentId,
       String? codeSnapshot,
       String? nameSecondarySnapshot,
@@ -1316,6 +1350,7 @@ class __$OrderLineCopyWithImpl<$Res> implements _$OrderLineCopyWith<$Res> {
     Object? qty = null,
     Object? lineTotal = null,
     Object? status = null,
+    Object? comped = null,
     Object? settledByPaymentId = freezed,
     Object? codeSnapshot = freezed,
     Object? nameSecondarySnapshot = freezed,
@@ -1355,6 +1390,10 @@ class __$OrderLineCopyWithImpl<$Res> implements _$OrderLineCopyWith<$Res> {
           ? _self.status
           : status // ignore: cast_nullable_to_non_nullable
               as OrderLineStatus,
+      comped: null == comped
+          ? _self.comped
+          : comped // ignore: cast_nullable_to_non_nullable
+              as bool,
       settledByPaymentId: freezed == settledByPaymentId
           ? _self.settledByPaymentId
           : settledByPaymentId // ignore: cast_nullable_to_non_nullable
