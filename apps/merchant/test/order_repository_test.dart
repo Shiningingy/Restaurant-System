@@ -401,4 +401,77 @@ void main() {
       expect(await orders.getOrder(withItem), isNotNull);
     });
   });
+
+  group('comps (free items)', () {
+    test('setLineComped frees a line: out of the total, worth kept', () async {
+      final orderId = await orders.createOrder(
+        type: OrderType.takeout,
+        taxRateBp: 1300,
+      );
+      await orders.addLine(orderId: orderId, item: burger); // $10.00
+      await orders.addLine(orderId: orderId, item: fries); //  $3.50
+
+      final friesLine = (await orders.watchLines(orderId).first).firstWhere(
+        (l) => l.nameSnapshot == 'Fries',
+      );
+      await orders.setLineComped(friesLine.id, true);
+
+      final fl = (await orders.watchLines(orderId).first).firstWhere(
+        (l) => l.id == friesLine.id,
+      );
+      expect(fl.comped, isTrue);
+      expect(fl.lineTotal, const Money(350)); // worth preserved
+      expect(fl.status, OrderLineStatus.active); // still made & on the receipt
+
+      final order = (await orders.watchOrder(orderId).first)!;
+      // Only the burger bills: subtotal 10.00, 13% tax 1.30, total 11.30.
+      expect(order.subtotal, const Money(1000));
+      expect(order.tax, const Money(130));
+      expect(order.total, const Money(1130));
+
+      // Un-comp restores it to the bill.
+      await orders.setLineComped(friesLine.id, false);
+      expect(
+        (await orders.watchOrder(orderId).first)!.subtotal,
+        const Money(1350),
+      );
+    });
+
+    test('addFreeItem adds a comped line that never bills or stacks', () async {
+      final orderId = await orders.createOrder(
+        type: OrderType.takeout,
+        taxRateBp: 0,
+      );
+      await orders.addLine(orderId: orderId, item: fries); // paid $3.50
+      await orders.addFreeItem(orderId: orderId, item: fries); // free
+
+      final lines = await orders.watchLines(orderId).first;
+      // A giveaway never merges with the paid line of the same item.
+      expect(lines, hasLength(2));
+      expect(lines.firstWhere((l) => l.comped).lineTotal, const Money(350));
+
+      final order = (await orders.watchOrder(orderId).first)!;
+      expect(order.subtotal, const Money(350)); // only the paid fries
+      expect(order.total, const Money(350));
+    });
+
+    test('a new paid add never stacks onto a comped line', () async {
+      final orderId = await orders.createOrder(
+        type: OrderType.takeout,
+        taxRateBp: 0,
+      );
+      await orders.addFreeItem(orderId: orderId, item: fries); // free
+      await orders.addLine(orderId: orderId, item: fries); // paid
+
+      final lines = await orders.watchLines(orderId).first;
+      expect(lines, hasLength(2));
+      expect(lines.where((l) => l.comped), hasLength(1));
+      expect(lines.where((l) => !l.comped), hasLength(1));
+
+      expect(
+        (await orders.watchOrder(orderId).first)!.subtotal,
+        const Money(350), // only the paid one
+      );
+    });
+  });
 }

@@ -54,6 +54,28 @@ void main() {
     ),
   ];
 
+  final compedLines = [
+    const OrderLine(
+      id: 'l1',
+      orderId: 'o1',
+      menuItemId: 'm1',
+      nameSnapshot: 'Ramen',
+      priceSnapshot: Money(1200),
+      qty: 1,
+      lineTotal: Money(1200),
+    ),
+    const OrderLine(
+      id: 'l2',
+      orderId: 'o1',
+      menuItemId: 'm2',
+      nameSnapshot: 'Miso Soup',
+      priceSnapshot: Money(300),
+      qty: 1,
+      lineTotal: Money(300),
+      comped: true,
+    ),
+  ];
+
   String render(TicketDoc doc) => EscPos.renderPlainText(doc, widthChars: 48);
 
   test('orderRef is short and stable', () {
@@ -77,6 +99,14 @@ void main() {
     test('skips voided lines', () {
       final text = render(buildKitchenTicket(order: order, lines: lines));
       expect(text, isNot(contains('Voided Pop')));
+    });
+
+    test('tags comped lines (FREE) but still prints them to cook', () {
+      final text = render(
+        buildKitchenTicket(order: order, lines: compedLines),
+      );
+      expect(text, contains('1 x Miso Soup  (FREE)'));
+      expect(text, contains('1 x Ramen'));
     });
 
     test('shows item code and a stacked second name line', () {
@@ -283,6 +313,18 @@ void main() {
       // declined attempt is audit data, not receipt data).
       expect(text, isNot(contains('BALANCE DUE')));
       expect('Card (keyed)'.allMatches(text), hasLength(1));
+    });
+
+    test('comped lines print FREE with an on-the-house savings line', () {
+      final text = render(
+        buildCustomerReceipt(order: order, lines: compedLines, config: config),
+      );
+      expect(text, contains('Ramen'));
+      expect(text, contains(r'$12.00'));
+      expect(text, contains('Miso Soup'));
+      expect(text, contains('FREE'));
+      expect(text, contains('Comps (on the house)'));
+      expect(text, contains(r'-$3.00'));
     });
 
     test('partial payment prints the remaining balance', () {
