@@ -84,4 +84,56 @@ void main() {
       expect(PublishedMenu.fromJson(legacy).acceptsOnlinePayment, isFalse);
     });
   });
+
+  group('PublishedMenu tip presets', () {
+    test('default empty is omitted from JSON', () {
+      const menu = PublishedMenu(restaurantName: 'Diner', categories: []);
+      expect(menu.tipPresetsBp, isEmpty);
+      expect(menu.toJson().containsKey('tipPresetsBp'), isFalse);
+    });
+
+    test('round-trips the presets', () {
+      const menu = PublishedMenu(
+        restaurantName: 'Diner',
+        categories: [],
+        tipPresetsBp: [0, 1000, 1500, 2000],
+      );
+      expect(
+        PublishedMenu.fromJson(menu.toJson()).tipPresetsBp,
+        [0, 1000, 1500, 2000],
+      );
+    });
+  });
+
+  group('PreorderSubmission tip', () {
+    final base = PreorderSubmission(
+      customerName: 'Sam',
+      requestedPickupAt: DateTime.utc(2026, 6, 28, 18),
+      lines: const [
+        PreorderLine(
+          itemId: 'i1',
+          nameSnapshot: 'Ramen',
+          priceSnapshot: Money(1200),
+          qty: 1,
+        ),
+      ],
+    );
+
+    test('defaults to zero and is omitted from JSON', () {
+      expect(base.tip, Money.zero);
+      expect(base.toJson().containsKey('tip'), isFalse);
+    });
+
+    test('round-trips a chosen tip in cents', () {
+      final back = PreorderSubmission.fromJson(
+        PreorderSubmission(
+          customerName: base.customerName,
+          requestedPickupAt: base.requestedPickupAt,
+          lines: base.lines,
+          tip: const Money(300),
+        ).toJson(),
+      );
+      expect(back.tip, const Money(300));
+    });
+  });
 }
