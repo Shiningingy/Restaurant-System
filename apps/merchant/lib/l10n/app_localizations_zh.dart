@@ -775,6 +775,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get setDiscountThresholdHint => '更大的折扣需要经理 PIN。';
 
   @override
+  String get setCashRounding => '现金抹零';
+
+  @override
+  String get setCashRoundingHint => '将现金总额抹成整数（差额显示为折扣）。刷卡/在线按实际总额支付。';
+
+  @override
+  String get setCashRoundingOff => '关闭';
+
+  @override
   String get setOnlineOrdering => '在线点餐';
 
   @override

@@ -305,10 +305,14 @@ class CheckoutPricing {
   final List<int> discountPresetsBp;
   final int discountThresholdBp;
 
+  /// Cash-rounding increment in cents (0 = off, e.g. 5/10/25).
+  final int cashRoundingCents;
+
   const CheckoutPricing({
     required this.serviceFeeBp,
     required this.discountPresetsBp,
     required this.discountThresholdBp,
+    required this.cashRoundingCents,
   });
 }
 
@@ -320,7 +324,13 @@ class CheckoutPricingNotifier extends Notifier<CheckoutPricing> {
       serviceFeeBp: r.serviceFeeBp,
       discountPresetsBp: r.discountPresetsBp,
       discountThresholdBp: r.discountThresholdBp,
+      cashRoundingCents: r.cashRoundingCents,
     );
+  }
+
+  Future<void> setCashRoundingCents(int cents) async {
+    await ref.read(settingsRepositoryProvider).setCashRoundingCents(cents);
+    ref.invalidateSelf();
   }
 
   Future<void> setServiceFeeBp(int bp) async {

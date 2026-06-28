@@ -792,6 +792,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setDiscountThresholdHint => 'Larger discounts need a manager PIN.';
 
   @override
+  String get setCashRounding => 'Cash rounding';
+
+  @override
+  String get setCashRoundingHint =>
+      'Round a cash total to a clean amount (the difference shows as a discount). Card/online pay the exact total.';
+
+  @override
+  String get setCashRoundingOff => 'Off';
+
+  @override
   String get setOnlineOrdering => 'Online ordering';
 
   @override

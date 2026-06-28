@@ -1442,6 +1442,24 @@ abstract class AppLocalizations {
   /// **'Larger discounts need a manager PIN.'**
   String get setDiscountThresholdHint;
 
+  /// No description provided for @setCashRounding.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash rounding'**
+  String get setCashRounding;
+
+  /// No description provided for @setCashRoundingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Round a cash total to a clean amount (the difference shows as a discount). Card/online pay the exact total.'**
+  String get setCashRoundingHint;
+
+  /// No description provided for @setCashRoundingOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get setCashRoundingOff;
+
   /// No description provided for @setOnlineOrdering.
   ///
   /// In en, this message translates to:

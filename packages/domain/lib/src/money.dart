@@ -40,6 +40,30 @@ class Money implements Comparable<Money> {
   /// are deterministic and auditable (e.g. 13% HST on $9.99).
   Money percent(double rate) => Money((cents * rate / 100).round());
 
+  // --- Cash rounding (to a 5/10/25-cent increment) ---
+  // For non-negative amounts; [incrementCents] <= 1 returns this unchanged.
+
+  /// Largest multiple of [incrementCents] that is <= this (the customer-happy
+  /// direction — they pay a little less).
+  Money roundedDownTo(int incrementCents) => incrementCents <= 1
+      ? this
+      : Money((cents ~/ incrementCents) * incrementCents);
+
+  /// Smallest multiple of [incrementCents] that is >= this.
+  Money roundedUpTo(int incrementCents) => incrementCents <= 1
+      ? this
+      : Money(
+          ((cents + incrementCents - 1) ~/ incrementCents) * incrementCents,
+        );
+
+  /// Nearest multiple of [incrementCents]; an exact tie rounds up.
+  Money roundedToNearest(int incrementCents) {
+    if (incrementCents <= 1) return this;
+    final down = roundedDownTo(incrementCents);
+    final up = roundedUpTo(incrementCents);
+    return (cents - down.cents) < (up.cents - cents) ? down : up;
+  }
+
   /// Formats as currency, default Canadian dollars: "$12.34".
   String format({String locale = 'en_CA', String symbol = r'$'}) {
     final f =

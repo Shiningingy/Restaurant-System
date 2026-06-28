@@ -1463,8 +1463,49 @@ class _CheckoutPricingSection extends ConsumerWidget {
                 .setDiscountThresholdBp(bp),
           ),
         ),
+        ListTile(
+          leading: const Icon(Icons.savings_outlined),
+          title: Text(context.l10n.setCashRounding),
+          subtitle: Text(context.l10n.setCashRoundingHint),
+          trailing: Text(
+            pricing.cashRoundingCents == 0
+                ? context.l10n.setCashRoundingOff
+                : domain.Money(pricing.cashRoundingCents).format(),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          onTap: () => _editCashRounding(context, ref),
+        ),
       ],
     );
+  }
+
+  Future<void> _editCashRounding(BuildContext context, WidgetRef ref) async {
+    const choices = [0, 5, 10, 25];
+    final picked = await showDialog<int>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text(context.l10n.setCashRounding),
+        children: [
+          for (final c in choices)
+            ListTile(
+              title: Text(
+                c == 0
+                    ? context.l10n.setCashRoundingOff
+                    : domain.Money(c).format(),
+              ),
+              trailing: c == pricing.cashRoundingCents
+                  ? const Icon(Icons.check)
+                  : null,
+              onTap: () => Navigator.pop(context, c),
+            ),
+        ],
+      ),
+    );
+    if (picked != null) {
+      await ref
+          .read(checkoutPricingProvider.notifier)
+          .setCashRoundingCents(picked);
+    }
   }
 
   Future<void> _editPercent(
