@@ -57,8 +57,9 @@ class _SplitBillSheetState extends ConsumerState<_SplitBillSheet> {
     }
 
     final balance = domain.balanceDue(total: order.total, payments: payments);
+    // Comped lines are free — they're never part of a split (nothing to pay).
     final active = lines
-        .where((l) => l.status == domain.OrderLineStatus.active)
+        .where((l) => l.status == domain.OrderLineStatus.active && !l.comped)
         .toList();
     final unpaid = active.where((l) => l.settledByPaymentId == null).toList();
     final paid = active.where((l) => l.settledByPaymentId != null).toList();

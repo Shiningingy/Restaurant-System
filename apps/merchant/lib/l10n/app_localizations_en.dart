@@ -212,6 +212,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ordRemoveDiscount => 'Remove';
 
   @override
+  String get ordComps => 'Comps (on the house)';
+
+  @override
+  String get ordFree => 'FREE';
+
+  @override
+  String get ordCompLine => 'Give free';
+
+  @override
+  String get ordUncompLine => 'Charge for this';
+
+  @override
+  String get ordFreeItem => 'Free item';
+
+  @override
+  String get ordFreeItemBanner =>
+      'Free-item mode — the next items you tap are on the house.';
+
+  @override
+  String get ordFreeItemBannerOff => 'TURN OFF';
+
+  @override
   String get ordTotal => 'Total';
 
   @override

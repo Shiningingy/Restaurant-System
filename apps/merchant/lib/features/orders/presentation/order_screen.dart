@@ -33,6 +33,11 @@ class OrderScreen extends ConsumerStatefulWidget {
 class _OrderScreenState extends ConsumerState<OrderScreen> {
   String? _selectedCategoryId;
 
+  /// While on, tapping a menu item adds it as a **free** (comped) line instead
+  /// of a paid one. A sticky toggle (banner over the picker) so staff can add
+  /// several giveaways; each add is still gated by the comp policy.
+  bool _freeItemMode = false;
+
   /// Held so [dispose] can reach it without `ref` (the container may already be
   /// torn down by then).
   CustomerDisplayController? _display;
@@ -73,7 +78,7 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
           {
             'qty': l.qty,
             'name': l.nameSnapshot,
-            'amount': l.lineTotal.format(),
+            'amount': (l.comped ? domain.Money.zero : l.lineTotal).format(),
           },
       ],
       // Full breakdown so the customer sees how the total is reached, not just
@@ -130,6 +135,23 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
               icon: const Icon(Icons.delete_outline),
               label: Text(context.l10n.ordVoidOrder),
             ),
+          // Free-item (comp) mode: the next items tapped go on the house.
+          if (order != null && isOpen)
+            TextButton.icon(
+              onPressed: () =>
+                  setState(() => _freeItemMode = !_freeItemMode),
+              icon: Icon(
+                _freeItemMode
+                    ? Icons.card_giftcard
+                    : Icons.card_giftcard_outlined,
+              ),
+              label: Text(context.l10n.ordFreeItem),
+              style: _freeItemMode
+                  ? TextButton.styleFrom(
+                      foregroundColor: context.posStatus.success,
+                    )
+                  : null,
+            ),
           if (canRefund)
             TextButton.icon(
               onPressed: () => _refundOnline(context),
@@ -161,12 +183,19 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
               children: [
                 Expanded(
                   flex: 3,
-                  child: _MenuPicker(
-                    enabled: isOpen,
-                    selectedCategoryId: _selectedCategoryId,
-                    onCategorySelected: (id) =>
-                        setState(() => _selectedCategoryId = id),
-                    onItemTapped: _addItem,
+                  child: Column(
+                    children: [
+                      if (_freeItemMode) _freeItemBanner(context),
+                      Expanded(
+                        child: _MenuPicker(
+                          enabled: isOpen,
+                          selectedCategoryId: _selectedCategoryId,
+                          onCategorySelected: (id) =>
+                              setState(() => _selectedCategoryId = id),
+                          onItemTapped: _addItem,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const VerticalDivider(width: 1),
@@ -184,6 +213,42 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
     );
   }
 
+  /// A loud strip over the menu picker while free-item mode is on, so staff
+  /// can't forget the next tap is a giveaway.
+  Widget _freeItemBanner(BuildContext context) {
+    final green = context.posStatus.success;
+    return Material(
+      color: green.withValues(alpha: 0.14),
+      child: InkWell(
+        onTap: () => setState(() => _freeItemMode = false),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            children: [
+              Icon(Icons.card_giftcard, color: green),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  context.l10n.ordFreeItemBanner,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: green,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Text(
+                context.l10n.ordFreeItemBannerOff,
+                style: Theme.of(
+                  context,
+                ).textTheme.labelLarge?.copyWith(color: green),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   String _title(BuildContext context, domain.Order? order) =>
       switch (order?.type) {
         domain.OrderType.dineIn => context.l10n.ordDineInTitle,
@@ -193,6 +258,10 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
       };
 
   Future<void> _addItem(domain.MenuItem item) async {
+    if (_freeItemMode) {
+      await _addFreeItem(item);
+      return;
+    }
     final menuRepo = ref.read(menuRepositoryProvider);
     final orderRepo = ref.read(orderRepositoryProvider);
     final groups = await menuRepo.getModifierGroupsForItem(item.id);
@@ -213,6 +282,32 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
       item: item,
       selectedModifiers: selected,
     );
+  }
+
+  /// Adds [item] as a free (on-the-house) line. Gated by the manager's comp
+  /// policy: within the allowed-items list / amount cap any staff may add it;
+  /// beyond that it needs a manager (PIN). Modifiers are skipped — a giveaway is
+  /// a plain item (add it normally then comp the line if you need modifiers).
+  Future<void> _addFreeItem(domain.MenuItem item) async {
+    final orderRepo = ref.read(orderRepositoryProvider);
+    final policy = ref.read(compPolicyProvider);
+    final lines =
+        ref.read(orderLinesProvider(widget.orderId)).value ?? const [];
+    final compsBefore = lines
+        .where((l) => l.status == domain.OrderLineStatus.active && l.comped)
+        .fold(domain.Money.zero, (s, l) => s + l.lineTotal);
+    if (!policy.allowsWithoutApproval(
+      itemId: item.id,
+      orderCompTotalAfter: compsBefore + item.price,
+    )) {
+      final ok = await requirePermission(
+        context,
+        ref,
+        AppPermission.compOverride,
+      );
+      if (!ok) return;
+    }
+    await orderRepo.addFreeItem(orderId: widget.orderId, item: item);
   }
 
   Future<void> _voidOrder(BuildContext context) async {
@@ -590,6 +685,11 @@ class _Ticket extends ConsumerWidget {
     final visibleLines = lines
         .where((l) => l.status == domain.OrderLineStatus.active)
         .toList();
+    // Worth of the on-the-house lines — shown as an info row and used to gate
+    // each further comp against the manager's amount cap.
+    final compsTotal = visibleLines
+        .where((l) => l.comped)
+        .fold(domain.Money.zero, (s, l) => s + l.lineTotal);
     final payments = ref.watch(orderPaymentsProvider(order.id)).value ?? [];
     final settled = domain.settledPayments(payments).toList();
     final balance = domain.balanceDue(total: order.total, payments: payments);
@@ -668,13 +768,65 @@ class _Ticket extends ConsumerWidget {
                               onPressed: () =>
                                   repo.setLineQty(line.id, line.qty + 1),
                             ),
+                          // Comp toggle: make this line on-the-house (or undo).
+                          if (isOpen)
+                            IconButton(
+                              icon: Icon(
+                                line.comped
+                                    ? Icons.card_giftcard
+                                    : Icons.card_giftcard_outlined,
+                              ),
+                              color: line.comped
+                                  ? context.posStatus.success
+                                  : null,
+                              tooltip: line.comped
+                                  ? context.l10n.ordUncompLine
+                                  : context.l10n.ordCompLine,
+                              visualDensity: VisualDensity.compact,
+                              onPressed: () => _toggleLineComp(
+                                context,
+                                ref,
+                                line,
+                                compsTotal,
+                              ),
+                            ),
                           SizedBox(
                             width: 64,
-                            child: Text(
-                              line.lineTotal.format(),
-                              textAlign: TextAlign.right,
-                              style: Theme.of(context).textTheme.bodyLarge,
-                            ),
+                            child: line.comped
+                                ? Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        line.lineTotal.format(),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              decoration:
+                                                  TextDecoration.lineThrough,
+                                              color: cs.outline,
+                                            ),
+                                      ),
+                                      Text(
+                                        context.l10n.ordFree,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyLarge
+                                            ?.copyWith(
+                                              color: context.posStatus.success,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                      ),
+                                    ],
+                                  )
+                                : Text(
+                                    line.lineTotal.format(),
+                                    textAlign: TextAlign.right,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodyLarge,
+                                  ),
                           ),
                         ],
                       ),
@@ -691,6 +843,15 @@ class _Ticket extends ConsumerWidget {
               // Discount lives inline now: an "Add discount" button when none,
               // or the applied discount (green) with a one-tap remove.
               if (isOpen) _discountControl(context, ref),
+              // Comps are informational — their worth never reaches the total,
+              // but staff (and the kitchen) should see what's on the house.
+              if (compsTotal.cents > 0)
+                _totalRow(
+                  context,
+                  context.l10n.ordComps,
+                  compsTotal,
+                  valueColor: context.posStatus.success,
+                ),
               if (!order.serviceFee.isZero)
                 _totalRow(
                   context,
@@ -849,6 +1010,7 @@ class _Ticket extends ConsumerWidget {
     String label,
     domain.Money amount, {
     bool emphasized = false,
+    Color? valueColor,
   }) {
     final style = emphasized
         ? Theme.of(context).textTheme.titleLarge
@@ -856,10 +1018,40 @@ class _Ticket extends ConsumerWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: style),
-        Text(amount.format(), style: style),
+        Text(label, style: style?.copyWith(color: valueColor)),
+        Text(amount.format(), style: style?.copyWith(color: valueColor)),
       ],
     );
+  }
+
+  /// Comps/un-comps an existing line, gated by the manager's comp policy. The
+  /// [compsTotal] is the order's comp worth *before* this line — comping pushes
+  /// it to `compsTotal + line.lineTotal`. Un-comping (making the customer pay)
+  /// is always allowed.
+  Future<void> _toggleLineComp(
+    BuildContext context,
+    WidgetRef ref,
+    domain.OrderLine line,
+    domain.Money compsTotal,
+  ) async {
+    final repo = ref.read(orderRepositoryProvider);
+    if (line.comped) {
+      await repo.setLineComped(line.id, false);
+      return;
+    }
+    final policy = ref.read(compPolicyProvider);
+    if (!policy.allowsWithoutApproval(
+      itemId: line.menuItemId,
+      orderCompTotalAfter: compsTotal + line.lineTotal,
+    )) {
+      final ok = await requirePermission(
+        context,
+        ref,
+        AppPermission.compOverride,
+      );
+      if (!ok) return;
+    }
+    await repo.setLineComped(line.id, true);
   }
 
   Future<void> _sendToKitchen(BuildContext context, WidgetRef ref) async {

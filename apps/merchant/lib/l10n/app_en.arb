@@ -89,6 +89,13 @@
   "ordEditDiscount": "Edit discount",
   "ordCategoryLayout": "Category layout",
   "ordRemoveDiscount": "Remove",
+  "ordComps": "Comps (on the house)",
+  "ordFree": "FREE",
+  "ordCompLine": "Give free",
+  "ordUncompLine": "Charge for this",
+  "ordFreeItem": "Free item",
+  "ordFreeItemBanner": "Free-item mode — the next items you tap are on the house.",
+  "ordFreeItemBannerOff": "TURN OFF",
   "ordTotal": "Total",
   "ordPaidMethod": "Paid — {method}",
   "@ordPaidMethod": {

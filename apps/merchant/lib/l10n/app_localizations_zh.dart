@@ -210,6 +210,27 @@ class AppLocalizationsZh extends AppLocalizations {
   String get ordRemoveDiscount => '移除';
 
   @override
+  String get ordComps => '赠送（免单）';
+
+  @override
+  String get ordFree => '免费';
+
+  @override
+  String get ordCompLine => '赠送此项';
+
+  @override
+  String get ordUncompLine => '恢复收费';
+
+  @override
+  String get ordFreeItem => '赠送菜品';
+
+  @override
+  String get ordFreeItemBanner => '赠送模式 — 接下来点选的菜品将免费赠送。';
+
+  @override
+  String get ordFreeItemBannerOff => '关闭';
+
+  @override
   String get ordTotal => '合计';
 
   @override

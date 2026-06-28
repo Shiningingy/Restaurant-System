@@ -476,6 +476,48 @@ abstract class AppLocalizations {
   /// **'Remove'**
   String get ordRemoveDiscount;
 
+  /// No description provided for @ordComps.
+  ///
+  /// In en, this message translates to:
+  /// **'Comps (on the house)'**
+  String get ordComps;
+
+  /// No description provided for @ordFree.
+  ///
+  /// In en, this message translates to:
+  /// **'FREE'**
+  String get ordFree;
+
+  /// No description provided for @ordCompLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Give free'**
+  String get ordCompLine;
+
+  /// No description provided for @ordUncompLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Charge for this'**
+  String get ordUncompLine;
+
+  /// No description provided for @ordFreeItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Free item'**
+  String get ordFreeItem;
+
+  /// No description provided for @ordFreeItemBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Free-item mode — the next items you tap are on the house.'**
+  String get ordFreeItemBanner;
+
+  /// No description provided for @ordFreeItemBannerOff.
+  ///
+  /// In en, this message translates to:
+  /// **'TURN OFF'**
+  String get ordFreeItemBannerOff;
+
   /// No description provided for @ordTotal.
   ///
   /// In en, this message translates to:
