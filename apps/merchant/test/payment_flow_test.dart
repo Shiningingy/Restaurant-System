@@ -98,6 +98,31 @@ void main() {
     expect(balanceDue(total: closed.total, payments: recorded), Money.zero);
   });
 
+  test('cash rounding closes the order at the rounded amount', () async {
+    final orderId = await openOrder(); // total $11.30
+    final service = serviceWith(FakeTerminal((_) => fail('not used')));
+
+    // Round $11.30 down to $11.25 — the 5-cent gap is the cash adjustment.
+    final result = await service.takeCash(
+      orderId: orderId,
+      amount: const Money(1125),
+      cashRounding: const Money(-5),
+    );
+    expect(result.orderClosed, isTrue);
+
+    final closed = await order(orderId);
+    expect(closed.status, OrderStatus.paid);
+    expect(closed.cashRounding, const Money(-5));
+    // The bill total is unchanged; what's owed is total + rounding = $11.25.
+    expect(closed.total, const Money(1130));
+    final recorded = await payments.paymentsForOrder(orderId);
+    expect(recorded.single.amount, const Money(1125));
+    expect(
+      balanceDue(total: closed.total + closed.cashRounding, payments: recorded),
+      Money.zero,
+    );
+  });
+
   test('declined card is recorded for audit but never settles', () async {
     final orderId = await openOrder();
     final service = serviceWith(

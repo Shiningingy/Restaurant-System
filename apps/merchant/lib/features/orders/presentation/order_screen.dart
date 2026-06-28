@@ -870,11 +870,18 @@ class _Ticket extends ConsumerWidget {
                 ),
                 order.tax,
               ),
+              if (!order.cashRounding.isZero)
+                _totalRow(
+                  context,
+                  context.l10n.ordRounding,
+                  order.cashRounding,
+                  valueColor: context.posStatus.success,
+                ),
               const SizedBox(height: 4),
               _totalRow(
                 context,
                 context.l10n.ordTotal,
-                order.total,
+                order.total + order.cashRounding,
                 emphasized: true,
               ),
               if (settled.isNotEmpty) ...[

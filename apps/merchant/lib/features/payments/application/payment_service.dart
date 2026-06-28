@@ -44,6 +44,7 @@ class PaymentService {
     required String orderId,
     required domain.Money amount,
     domain.Money tip = domain.Money.zero,
+    domain.Money cashRounding = domain.Money.zero,
     List<String> settleLineIds = const [],
   }) async {
     final closed = await payments.recordApproved(
@@ -51,6 +52,7 @@ class PaymentService {
       method: domain.PaymentMethod.cash,
       amount: amount,
       tip: tip,
+      cashRounding: cashRounding,
       settleLineIds: settleLineIds,
     );
     return PaymentFlowResult(PaymentFlowStatus.approved, orderClosed: closed);

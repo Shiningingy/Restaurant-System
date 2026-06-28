@@ -315,6 +315,42 @@ void main() {
       expect('Card (keyed)'.allMatches(text), hasLength(1));
     });
 
+    test('a cash-rounding adjustment prints and lowers the total', () {
+      final rounded = Order(
+        id: 'abcd1234-0000-0000-0000-000000000000',
+        type: OrderType.takeout,
+        status: OrderStatus.paid,
+        createdAt: DateTime(2026, 6, 28, 12),
+        taxRateBp: 1300,
+        subtotal: const Money(1239),
+        tax: const Money(162),
+        total: const Money(1401),
+        cashRounding: const Money(-1), // rounded $14.01 down to $14.00
+      );
+      final text = render(
+        buildCustomerReceipt(
+          order: rounded,
+          lines: const [
+            OrderLine(
+              id: 'l1',
+              orderId: 'o1',
+              menuItemId: 'm1',
+              nameSnapshot: 'Bento',
+              priceSnapshot: Money(1239),
+              qty: 1,
+              lineTotal: Money(1239),
+            ),
+          ],
+          config: config,
+        ),
+      );
+      expect(text, contains('Rounding'));
+      expect(text, contains(r'-$0.01'));
+      // TOTAL is the rounded amount ($14.00), not the raw $14.01.
+      expect(text, contains(r'$14.00'));
+      expect(text, isNot(contains(r'$14.01')));
+    });
+
     test('comped lines print FREE with an on-the-house savings line', () {
       final text = render(
         buildCustomerReceipt(order: order, lines: compedLines, config: config),

@@ -518,6 +518,12 @@ abstract class AppLocalizations {
   /// **'TURN OFF'**
   String get ordFreeItemBannerOff;
 
+  /// No description provided for @ordRounding.
+  ///
+  /// In en, this message translates to:
+  /// **'Rounding'**
+  String get ordRounding;
+
   /// No description provided for @ordTotal.
   ///
   /// In en, this message translates to:
@@ -973,6 +979,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'On top of the amount; printed on the receipt'**
   String get pmtTipHint;
+
+  /// No description provided for @pmtCashRounding.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash rounding'**
+  String get pmtCashRounding;
+
+  /// No description provided for @pmtRoundExact.
+  ///
+  /// In en, this message translates to:
+  /// **'Exact {amount}'**
+  String pmtRoundExact(String amount);
+
+  /// No description provided for @pmtRoundingAdjust.
+  ///
+  /// In en, this message translates to:
+  /// **'Rounding {amount} — shows as a discount'**
+  String pmtRoundingAdjust(String amount);
 
   /// No description provided for @pmtChangeDue.
   ///

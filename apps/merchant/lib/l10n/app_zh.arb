@@ -75,6 +75,7 @@
   "ordFreeItem": "赠送菜品",
   "ordFreeItemBanner": "赠送模式 — 接下来点选的菜品将免费赠送。",
   "ordFreeItemBannerOff": "关闭",
+  "ordRounding": "抹零",
   "ordTotal": "合计",
   "ordPaidMethod": "已付 — {method}",
   "ordTipSuffix": "（小费 {tip}）",
@@ -163,6 +164,15 @@
   "pmtCashTendered": "实收现金（可选）",
   "pmtTip": "小费（可选）",
   "pmtTipHint": "在金额之外另加；会打印在小票上",
+  "pmtCashRounding": "现金抹零",
+  "pmtRoundExact": "原价 {amount}",
+  "@pmtRoundExact": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "pmtRoundingAdjust": "抹零 {amount} — 在账单上显示为折扣",
+  "@pmtRoundingAdjust": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
   "pmtChangeDue": "应找零 {amount}",
   "@pmtChangeDue": {
     "placeholders": { "amount": { "type": "String" } }

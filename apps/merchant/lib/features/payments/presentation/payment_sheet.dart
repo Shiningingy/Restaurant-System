@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../../../core/l10n_ext.dart';
+import '../../../core/settings/providers.dart';
 import '../application/payment_service.dart';
 import '../application/providers.dart';
 
@@ -60,6 +61,13 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
   String? _error;
   bool _busy = false;
 
+  /// Manager's cash-rounding increment (0 = off).
+  late final int _roundInc;
+
+  /// The rounded cash amount the staff chose, or null for the exact balance.
+  /// Only meaningful when paying the full balance by cash.
+  domain.Money? _round;
+
   bool get _locked => widget.fixedAmount != null;
 
   @override
@@ -78,6 +86,13 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
           ? (requested.cents / 100).toStringAsFixed(2)
           : '',
     );
+    // Cash rounding: default to the nearest clean amount (the till usually
+    // rounds), unless the balance is already on the increment.
+    _roundInc = ref.read(checkoutPricingProvider).cashRoundingCents;
+    if (!_locked && _roundInc > 0) {
+      final nearest = widget.balance.roundedToNearest(_roundInc);
+      _round = nearest == widget.balance ? null : nearest;
+    }
   }
 
   @override
@@ -118,9 +133,25 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
     return amount;
   }
 
+  /// Whether the amount field still equals the full balance (so cash rounding,
+  /// which rounds the whole-order cash total, applies). A lowered amount is a
+  /// split/partial and isn't rounded.
+  bool get _payingFull =>
+      !_locked && domain.Money.tryParse(_amount.text) == widget.balance;
+
+  bool get _roundingActive => _payingFull && _roundInc > 0 && _round != null;
+
   Future<void> _cash() async {
-    final amount = _validate();
-    if (amount == null) return;
+    domain.Money amount;
+    var rounding = domain.Money.zero;
+    if (_roundingActive) {
+      amount = _round!;
+      rounding = _round! - widget.balance; // signed: negative when rounded down
+    } else {
+      final v = _validate();
+      if (v == null) return;
+      amount = v;
+    }
     setState(() => _busy = true);
     final result = await ref
         .read(paymentServiceProvider)
@@ -128,6 +159,7 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
           orderId: widget.order.id,
           amount: amount,
           tip: _tipAmount,
+          cashRounding: rounding,
           settleLineIds: widget.settleLineIds,
         );
     if (mounted) Navigator.pop(context, result);
@@ -198,9 +230,10 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
         domain.Money.tryParse(_amount.text) != null;
 
     // Live change-due: tendered minus what the customer owes in cash —
-    // the charged amount plus any tip they're handing over.
+    // the charged amount (rounded if cash rounding is active) plus any tip.
     final charge = _chargeAmount;
-    final cashNeeded = charge == null ? null : charge + _tipAmount;
+    final cashCharge = _roundingActive ? _round : charge;
+    final cashNeeded = cashCharge == null ? null : cashCharge + _tipAmount;
     final tendered = domain.Money.tryParse(_tendered.text);
     final change =
         (cashNeeded != null && tendered != null && tendered >= cashNeeded)
@@ -242,6 +275,59 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
               onChanged: (_) => setState(() => _error = null),
             ),
             const SizedBox(height: 12),
+            if (_payingFull &&
+                _roundInc > 0 &&
+                (widget.balance.roundedDownTo(_roundInc) != widget.balance ||
+                    widget.balance.roundedUpTo(_roundInc) !=
+                        widget.balance)) ...[
+              Text(
+                l10n.pmtCashRounding,
+                style: Theme.of(context).textTheme.labelMedium,
+              ),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 8,
+                children: [
+                  ChoiceChip(
+                    label: Text(l10n.pmtRoundExact(widget.balance.format())),
+                    selected: _round == null,
+                    onSelected: (_) => setState(() => _round = null),
+                  ),
+                  if (widget.balance.roundedDownTo(_roundInc) != widget.balance)
+                    ChoiceChip(
+                      label: Text(
+                        widget.balance.roundedDownTo(_roundInc).format(),
+                      ),
+                      selected:
+                          _round == widget.balance.roundedDownTo(_roundInc),
+                      onSelected: (_) => setState(
+                        () => _round = widget.balance.roundedDownTo(_roundInc),
+                      ),
+                    ),
+                  if (widget.balance.roundedUpTo(_roundInc) != widget.balance)
+                    ChoiceChip(
+                      label: Text(
+                        widget.balance.roundedUpTo(_roundInc).format(),
+                      ),
+                      selected: _round == widget.balance.roundedUpTo(_roundInc),
+                      onSelected: (_) => setState(
+                        () => _round = widget.balance.roundedUpTo(_roundInc),
+                      ),
+                    ),
+                ],
+              ),
+              if (_round != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    l10n.pmtRoundingAdjust((_round! - widget.balance).format()),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 12),
+            ],
             TextField(
               controller: _tip,
               decoration: InputDecoration(

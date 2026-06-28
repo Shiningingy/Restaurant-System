@@ -231,6 +231,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get ordFreeItemBannerOff => '关闭';
 
   @override
+  String get ordRounding => '抹零';
+
+  @override
   String get ordTotal => '合计';
 
   @override
@@ -496,6 +499,19 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get pmtTipHint => '在金额之外另加；会打印在小票上';
+
+  @override
+  String get pmtCashRounding => '现金抹零';
+
+  @override
+  String pmtRoundExact(String amount) {
+    return '原价 $amount';
+  }
+
+  @override
+  String pmtRoundingAdjust(String amount) {
+    return '抹零 $amount — 在账单上显示为折扣';
+  }
 
   @override
   String pmtChangeDue(String amount) {
