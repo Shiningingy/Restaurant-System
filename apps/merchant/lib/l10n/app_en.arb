@@ -313,6 +313,7 @@
   },
   "repTax": "Tax",
   "repTips": "Tips",
+  "repComps": "Comps",
   "repPaymentsCount": "{count} payments",
   "@repPaymentsCount": {
     "placeholders": { "count": { "type": "int" } }

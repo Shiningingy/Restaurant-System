@@ -1262,6 +1262,12 @@ abstract class AppLocalizations {
   /// **'Tips'**
   String get repTips;
 
+  /// No description provided for @repComps.
+  ///
+  /// In en, this message translates to:
+  /// **'Comps'**
+  String get repComps;
+
   /// No description provided for @repPaymentsCount.
   ///
   /// In en, this message translates to:

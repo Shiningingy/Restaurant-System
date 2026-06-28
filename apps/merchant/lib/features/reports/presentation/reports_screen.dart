@@ -157,6 +157,8 @@ class _SummaryCards extends StatelessWidget {
         ),
         _card(context, context.l10n.repTax, report.tax.format(), null),
         _card(context, context.l10n.repTips, report.tipsTotal.format(), null),
+        if (report.comps.cents > 0)
+          _card(context, context.l10n.repComps, report.comps.format(), null),
       ],
     );
   }

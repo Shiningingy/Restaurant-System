@@ -226,6 +226,7 @@
   "repSubtotalValue": "小计 {amount}",
   "repTax": "税",
   "repTips": "小费",
+  "repComps": "赠送",
   "repPaymentsCount": "{count} 笔收款",
   "repPaymentsCountTips": "{count} 笔收款 — 小费 {tips}",
   "repTotalCollected": "收款合计",

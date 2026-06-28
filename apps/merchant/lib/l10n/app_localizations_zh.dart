@@ -671,6 +671,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get repTips => '小费';
 
   @override
+  String get repComps => '赠送';
+
+  @override
   String repPaymentsCount(int count) {
     return '$count 笔收款';
   }

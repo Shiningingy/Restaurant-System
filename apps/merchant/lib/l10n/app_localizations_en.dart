@@ -685,6 +685,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get repTips => 'Tips';
 
   @override
+  String get repComps => 'Comps';
+
+  @override
   String repPaymentsCount(int count) {
     return '$count payments';
   }

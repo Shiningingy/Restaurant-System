@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 
 import '../entities/order.dart';
 import '../entities/payment.dart';
+import 'money.dart';
 import 'payment_math.dart';
 import 'ticket.dart';
 
@@ -76,7 +77,8 @@ TicketDoc buildKitchenTicket({
     const TicketDivider(),
     for (final line in active) ...[
       TicketText(
-        '${line.qty} x ${_codePrefix(line)}${line.nameSnapshot}',
+        '${line.qty} x ${_codePrefix(line)}${line.nameSnapshot}'
+        '${line.comped ? '  (FREE)' : ''}',
         style: TicketStyle.big,
       ),
       if (showSecondName &&
@@ -110,6 +112,9 @@ TicketDoc buildCustomerReceipt({
 }) {
   final active =
       lines.where((l) => l.status == OrderLineStatus.active).toList();
+  final comps = active
+      .where((l) => l.comped)
+      .fold(Money.zero, (sum, l) => sum + l.lineTotal);
   final settled = settledPayments(payments).toList();
   final balance = balanceDue(total: order.total, payments: payments);
   final taxLabel = 'Tax (${(order.taxRateBp / 100).toStringAsFixed(2)}%)';
@@ -127,7 +132,7 @@ TicketDoc buildCustomerReceipt({
     for (final line in active) ...[
       TicketRow(
         '${line.qty} x ${_codePrefix(line)}${line.nameSnapshot}',
-        line.lineTotal.format(),
+        line.comped ? 'FREE' : line.lineTotal.format(),
       ),
       if (showSecondName &&
           line.nameSecondarySnapshot != null &&
@@ -145,6 +150,8 @@ TicketDoc buildCustomerReceipt({
     TicketRow('Subtotal', order.subtotal.format()),
     if (!order.discount.isZero)
       TicketRow('Discount', '-${order.discount.format()}'),
+    if (comps.cents > 0)
+      TicketRow('Comps (on the house)', '-${comps.format()}'),
     if (!order.serviceFee.isZero)
       TicketRow(
         'Service fee (${(order.serviceFeeBp / 100).toStringAsFixed(2)}%)',

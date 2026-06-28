@@ -43,6 +43,10 @@ class DailyReport {
   final domain.Money subtotal;
   final domain.Money tax;
 
+  /// Worth of items given away on the house that day — not part of [gross]
+  /// (the customer paid nothing), tracked so giveaways are visible.
+  final domain.Money comps;
+
   /// Drawer side — approved payments *taken* within [day], tips included.
   /// Can differ from the sales side when a split bill straddles midnight.
   final List<MethodTotals> collected;
@@ -56,6 +60,7 @@ class DailyReport {
     required this.gross,
     required this.subtotal,
     required this.tax,
+    required this.comps,
     required this.collected,
     required this.itemSales,
   });
@@ -111,6 +116,7 @@ class ReportsRepository {
       tax += o.tax;
     }
 
+    final paidIds = paid.map((o) => o.id).toList();
     return DailyReport(
       day: from,
       ordersPaid: paid.length,
@@ -118,8 +124,26 @@ class ReportsRepository {
       gross: gross,
       subtotal: subtotal,
       tax: tax,
+      comps: await _comps(paidIds),
       collected: await _collected(from, to),
-      itemSales: await _itemSales(paid.map((o) => o.id).toList()),
+      itemSales: await _itemSales(paidIds),
+    );
+  }
+
+  /// Total worth of comped (on-the-house) lines across the day's paid orders.
+  Future<domain.Money> _comps(List<String> paidOrderIds) async {
+    if (paidOrderIds.isEmpty) return domain.Money.zero;
+    final lines =
+        await (db.select(db.orderLines)..where(
+              (t) =>
+                  t.orderId.isIn(paidOrderIds) &
+                  t.status.equalsValue(domain.OrderLineStatus.active) &
+                  t.comped.equals(true),
+            ))
+            .get();
+    return lines.fold<domain.Money>(
+      domain.Money.zero,
+      (s, l) => s + l.lineTotal,
     );
   }
 
@@ -221,7 +245,8 @@ class ReportsRepository {
           byName[l.nameSnapshot] ?? (qty: 0, revenue: domain.Money.zero);
       byName[l.nameSnapshot] = (
         qty: cur.qty + l.qty,
-        revenue: cur.revenue + l.lineTotal,
+        // A comped line still counts as sold (qty) but earned nothing.
+        revenue: cur.revenue + (l.comped ? domain.Money.zero : l.lineTotal),
       );
     }
     final result = [
