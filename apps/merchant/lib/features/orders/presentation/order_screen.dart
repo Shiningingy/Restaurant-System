@@ -138,8 +138,7 @@ class _OrderScreenState extends ConsumerState<OrderScreen> {
           // Free-item (comp) mode: the next items tapped go on the house.
           if (order != null && isOpen)
             TextButton.icon(
-              onPressed: () =>
-                  setState(() => _freeItemMode = !_freeItemMode),
+              onPressed: () => setState(() => _freeItemMode = !_freeItemMode),
               icon: Icon(
                 _freeItemMode
                     ? Icons.card_giftcard
