@@ -2696,6 +2696,72 @@ abstract class AppLocalizations {
   /// **'Discounts & comps'**
   String get adminDiscounts;
 
+  /// No description provided for @adminDiscountsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Set what staff can give free without a manager'**
+  String get adminDiscountsBody;
+
+  /// No description provided for @compPolicyIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Decide what staff can give away on their own. Ticked items and comps within the amount cap need no approval; anything else asks for a manager PIN at the till.'**
+  String get compPolicyIntro;
+
+  /// No description provided for @compAmountCap.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount cap per order'**
+  String get compAmountCap;
+
+  /// No description provided for @compNoCap.
+  ///
+  /// In en, this message translates to:
+  /// **'No amount allowance — staff can only give the ticked items free'**
+  String get compNoCap;
+
+  /// No description provided for @compCapPerOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to {amount} of comps per order without a manager'**
+  String compCapPerOrder(String amount);
+
+  /// No description provided for @compSetCap.
+  ///
+  /// In en, this message translates to:
+  /// **'Set cap'**
+  String get compSetCap;
+
+  /// No description provided for @compCapDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Comp amount cap'**
+  String get compCapDialogTitle;
+
+  /// No description provided for @compCapHint.
+  ///
+  /// In en, this message translates to:
+  /// **'0 = none'**
+  String get compCapHint;
+
+  /// No description provided for @compAllowedItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Items staff can give free'**
+  String get compAllowedItems;
+
+  /// No description provided for @compAllowedItemsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'These can always be comped without a manager.'**
+  String get compAllowedItemsBody;
+
+  /// No description provided for @compNoMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Add menu items first.'**
+  String get compNoMenu;
+
   /// No description provided for @adminEndOfDay.
   ///
   /// In en, this message translates to:

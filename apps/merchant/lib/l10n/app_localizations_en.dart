@@ -1500,6 +1500,45 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminDiscounts => 'Discounts & comps';
 
   @override
+  String get adminDiscountsBody =>
+      'Set what staff can give free without a manager';
+
+  @override
+  String get compPolicyIntro =>
+      'Decide what staff can give away on their own. Ticked items and comps within the amount cap need no approval; anything else asks for a manager PIN at the till.';
+
+  @override
+  String get compAmountCap => 'Amount cap per order';
+
+  @override
+  String get compNoCap =>
+      'No amount allowance — staff can only give the ticked items free';
+
+  @override
+  String compCapPerOrder(String amount) {
+    return 'Up to $amount of comps per order without a manager';
+  }
+
+  @override
+  String get compSetCap => 'Set cap';
+
+  @override
+  String get compCapDialogTitle => 'Comp amount cap';
+
+  @override
+  String get compCapHint => '0 = none';
+
+  @override
+  String get compAllowedItems => 'Items staff can give free';
+
+  @override
+  String get compAllowedItemsBody =>
+      'These can always be comped without a manager.';
+
+  @override
+  String get compNoMenu => 'Add menu items first.';
+
+  @override
   String get adminEndOfDay => 'End-of-day cash count';
 
   @override
