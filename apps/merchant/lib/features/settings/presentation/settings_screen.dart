@@ -259,6 +259,13 @@ class SettingsScreen extends ConsumerWidget {
               : null,
           onTap: () => _editPrinterConfig(context, ref, role, printers[role]!),
         ),
+      SwitchListTile(
+        secondary: const Icon(Icons.print_outlined),
+        title: Text(context.l10n.setAutoPrintReceipt),
+        subtitle: Text(context.l10n.setAutoPrintReceiptSubtitle),
+        value: ref.watch(autoPrintReceiptProvider),
+        onChanged: (v) => ref.read(autoPrintReceiptProvider.notifier).set(v),
+      ),
       ListTile(
         leading: const Icon(Icons.notes_outlined),
         title: Text(context.l10n.setReceiptFooter),

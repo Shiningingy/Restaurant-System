@@ -471,6 +471,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get pmtCashTendered => '实收现金（可选）';
 
   @override
+  String get pmtTip => '小费（可选）';
+
+  @override
+  String get pmtTipHint => '在金额之外另加；会打印在小票上';
+
+  @override
   String pmtChangeDue(String amount) {
     return '应找零 $amount';
   }
@@ -860,6 +866,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get setReceiptFooter => '小票页脚';
+
+  @override
+  String get setAutoPrintReceipt => '自动打印小票';
+
+  @override
+  String get setAutoPrintReceiptSubtitle => '订单付款后自动打印小票。关闭：仅按需打印（可在报表中重印）。';
 
   @override
   String get setCustomerDisplay => '顾客显示屏（第二屏幕）';

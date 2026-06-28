@@ -480,6 +480,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pmtCashTendered => 'Cash tendered (optional)';
 
   @override
+  String get pmtTip => 'Tip (optional)';
+
+  @override
+  String get pmtTipHint => 'On top of the amount; printed on the receipt';
+
+  @override
   String pmtChangeDue(String amount) {
     return 'Change due $amount';
   }
@@ -881,6 +887,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setReceiptFooter => 'Receipt footer';
+
+  @override
+  String get setAutoPrintReceipt => 'Auto-print receipt';
+
+  @override
+  String get setAutoPrintReceiptSubtitle =>
+      'Print the receipt automatically when an order is paid. Off: print only on demand (reprint from Reports).';
 
   @override
   String get setCustomerDisplay => 'Customer display (second screen)';

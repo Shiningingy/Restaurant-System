@@ -912,7 +912,8 @@ class _Ticket extends ConsumerWidget {
     switch (result.status) {
       case PaymentFlowStatus.approved:
         if (result.orderClosed) {
-          if (ref.read(receiptPrinterReadyProvider)) {
+          if (ref.read(autoPrintReceiptProvider) &&
+              ref.read(receiptPrinterReadyProvider)) {
             await ref.read(printServiceProvider).printCustomerReceipt(order.id);
           }
           if (context.mounted) context.go('/orders');
