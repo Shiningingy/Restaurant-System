@@ -27,6 +27,7 @@ class StatusScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(_stateProvider(orderId)).value;
     final status = state?.status;
+    final paidOnline = state?.paymentStatus == 'paid';
 
     return Scaffold(
       appBar: AppBar(
@@ -54,8 +55,12 @@ class StatusScreen extends ConsumerWidget {
               ],
               const SizedBox(height: 24),
               Text(
-                context.l10n.statusTotalPayAtPickup(total.format()),
-                style: Theme.of(context).textTheme.titleMedium,
+                paidOnline
+                    ? context.l10n.statusPaidOnline(total.format())
+                    : context.l10n.statusTotalPayAtPickup(total.format()),
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: paidOnline ? context.posStatus.success : null,
+                ),
               ),
               const SizedBox(height: 32),
               OutlinedButton(

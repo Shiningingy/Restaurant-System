@@ -46,6 +46,7 @@ String paymentMethodLabel(PaymentMethod method) => switch (method) {
       PaymentMethod.cash => 'Cash',
       PaymentMethod.terminal => 'Card',
       PaymentMethod.manual => 'Card (keyed)',
+      PaymentMethod.online => 'Online',
     };
 
 /// Leading "A01  " label for a line when the item carried a code, else ''.

@@ -224,6 +224,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String kioskAddToOrderTotal(String total) {
+    return 'Add to order  ·  $total';
+  }
+
+  @override
   String kioskOrderName(int number) {
     return 'Kiosk $number';
   }
@@ -444,6 +449,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checkoutPlacePreorder => 'Place preorder';
 
   @override
+  String get checkoutPayOnline => 'Pay online';
+
+  @override
+  String get checkoutPayAtCounterButton => 'Pay at counter';
+
+  @override
+  String get checkoutAwaitingPayment => 'Finishing payment…';
+
+  @override
+  String get checkoutAwaitingPaymentBody =>
+      'Complete your payment in the browser. This updates automatically once it\'s done.';
+
+  @override
+  String get checkoutReopenPayment => 'Reopen payment page';
+
+  @override
+  String get checkoutCancelPayment => 'Cancel payment';
+
+  @override
+  String get checkoutPaymentNotCompleted =>
+      'Payment wasn\'t completed. Your cart is saved — you can try again.';
+
+  @override
   String get statusTitle => 'Your preorder';
 
   @override
@@ -497,6 +525,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String statusTotalPayAtPickup(String total) {
     return 'Total $total — pay at pickup';
   }
+
+  @override
+  String statusPaidOnline(String total) {
+    return 'Paid online — $total';
+  }
+
+  @override
+  String get statusPayNow => 'Pay now';
 
   @override
   String get statusBackToMenu => 'Back to menu';

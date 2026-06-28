@@ -13,7 +13,11 @@ class _FakeImageStore extends ItemImageStore {
   final List<String> deleted = [];
   int _n = 0;
   @override
-  Future<String> import(String sourcePath) async => '/fake/${_n++}.png';
+  Future<StoredImage> import(String sourcePath) async {
+    final n = _n++;
+    return StoredImage(sha: 'fakesha$n', ext: '.png', path: '/fake/$n.png');
+  }
+
   @override
   Future<void> delete(String path) async => deleted.add(path);
 }

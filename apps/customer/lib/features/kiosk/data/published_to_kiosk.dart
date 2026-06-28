@@ -1,6 +1,8 @@
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 import 'package:restaurant_ui/restaurant_ui.dart';
 
+import '../../storefront/data/menu_photo_url.dart';
+
 /// Maps the customer app's [domain.PublishedMenu] into the shared [KioskMenu]
 /// the [KioskSurface] renders — so the tablet kiosk looks identical to the
 /// merchant's. Prices are formatted the same way the merchant's snapshot does
@@ -12,6 +14,7 @@ import 'package:restaurant_ui/restaurant_ui.dart';
 KioskMenu publishedToKioskMenu(
   domain.PublishedMenu menu, {
   required String appLanguageCode,
+  String? storefrontUrl,
 }) {
   return KioskMenu(
     businessName: menu.restaurantName,
@@ -25,14 +28,24 @@ KioskMenu publishedToKioskMenu(
           name: c.name,
           items: [
             for (final it in c.items)
-              _item(it, menu.secondNameLanguage, appLanguageCode),
+              _item(
+                it,
+                menu.secondNameLanguage,
+                appLanguageCode,
+                storefrontUrl,
+              ),
           ],
         ),
     ],
   );
 }
 
-KioskItem _item(domain.PublishedItem it, String? secondLang, String appLang) {
+KioskItem _item(
+  domain.PublishedItem it,
+  String? secondLang,
+  String appLang,
+  String? storefrontUrl,
+) {
   final second = it.nameSecondary;
   // Same rule as the menu list: when the app language matches the merchant's
   // second-name language, show the second name as the primary line.
@@ -50,6 +63,7 @@ KioskItem _item(domain.PublishedItem it, String? secondLang, String appLang) {
     description: it.description,
     priceCents: it.price.cents,
     price: it.price.format(),
+    imageUrl: menuPhotoUrl(storefrontUrl, it),
     modifierGroups: [
       for (final g in it.modifierGroups)
         KioskModifierGroup(

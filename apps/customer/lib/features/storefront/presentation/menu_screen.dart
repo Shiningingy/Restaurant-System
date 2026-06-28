@@ -22,6 +22,7 @@ class MenuScreen extends ConsumerWidget {
     final menuAsync = ref.watch(menuProvider);
     final cart = ref.watch(cartProvider);
     final kiosk = ref.watch(kioskModeProvider);
+    final baseUrl = ref.watch(storefrontConfigProvider).url;
 
     // Once the menu loads, learn the restaurant's name for the wallet if we
     // didn't get one at connect time (idempotent — no-op once set).
@@ -103,9 +104,7 @@ class MenuScreen extends ConsumerWidget {
                   ),
                   for (final item in category.items)
                     ListTile(
-                      isThreeLine:
-                          item.description != null &&
-                          item.description!.isNotEmpty,
+                      leading: _thumb(context, baseUrl, item),
                       title: _itemName(context, menu, item),
                       subtitle: _itemSubtitle(context, item),
                       trailing: Text(
@@ -144,6 +143,39 @@ class MenuScreen extends ConsumerWidget {
     );
   }
 
+  /// A 56×56 rounded item thumbnail. Shows the item photo when it has one,
+  /// otherwise a camera-icon tile so every row keeps an aligned leading column.
+  Widget _thumb(
+    BuildContext context,
+    String? baseUrl,
+    domain.PublishedItem item,
+  ) {
+    final cs = Theme.of(context).colorScheme;
+    final url = menuPhotoUrl(baseUrl, item);
+    final placeholder = Icon(
+      Icons.photo_camera_outlined,
+      size: 24,
+      color: cs.onSurfaceVariant,
+    );
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: SizedBox(
+        width: 56,
+        height: 56,
+        child: ColoredBox(
+          color: cs.surfaceContainerHighest,
+          child: url == null
+              ? Center(child: placeholder)
+              : Image.network(
+                  url,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => Center(child: placeholder),
+                ),
+        ),
+      ),
+    );
+  }
+
   /// Shows the item name, surfacing the second name as the primary line when
   /// the app's language matches the merchant-set second-name language.
   Widget _itemName(
@@ -165,23 +197,14 @@ class MenuScreen extends ConsumerWidget {
     );
   }
 
-  /// The item's description (when present) plus an "options available" hint,
-  /// or null when there's neither.
+  /// An "options available" hint, or null when the item has no options. The
+  /// description is intentionally not shown in the list — it lives in the item
+  /// popup (under the photo) to keep the menu rows compact.
   Widget? _itemSubtitle(BuildContext context, domain.PublishedItem item) {
-    final desc = item.description?.trim();
-    final hasDesc = desc != null && desc.isNotEmpty;
-    final hasOptions = item.modifierGroups.isNotEmpty;
-    if (!hasDesc && !hasOptions) return null;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (hasDesc) Text(desc, maxLines: 2, overflow: TextOverflow.ellipsis),
-        if (hasOptions)
-          Text(
-            context.l10n.menuOptionsAvailable,
-            style: Theme.of(context).textTheme.labelSmall,
-          ),
-      ],
+    if (item.modifierGroups.isEmpty) return null;
+    return Text(
+      context.l10n.menuOptionsAvailable,
+      style: Theme.of(context).textTheme.labelSmall,
     );
   }
 

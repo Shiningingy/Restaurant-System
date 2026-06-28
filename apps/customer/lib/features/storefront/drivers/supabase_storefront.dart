@@ -153,6 +153,7 @@ class SupabaseStorefront {
       return (
         status: domain.OnlineOrderStatus.submitted,
         proposedPickupAt: null,
+        paymentStatus: 'unpaid',
       );
     }
     final row = rows.first;
@@ -162,6 +163,8 @@ class SupabaseStorefront {
       proposedPickupAt: proposed == null
           ? null
           : DateTime.parse(proposed as String).toLocal(),
+      // Optional column (Phase 7); absent on shops without it → unpaid.
+      paymentStatus: row['payment_status'] as String? ?? 'unpaid',
     );
   }
 
@@ -212,6 +215,24 @@ class SupabaseStorefront {
     'status': domain.OnlineOrderStatus.pickedUp.name,
   });
 
+  /// Deletes the customer's own order while it is still submitted + unpaid — an
+  /// abandoned online payment. RLS only permits this for an own, unpaid row
+  /// (docs/CLOUD_SECURITY.md `oo_customer_delete_unpaid`), so a paid/accepted
+  /// order can never be removed this way.
+  Future<void> cancelUnpaidOrder(String orderId) async {
+    final resp = await _client
+        .delete(
+          _rest(domain.OnlineOrderingTables.onlineOrders, {
+            'id': 'eq.$orderId',
+          }),
+          headers: await _authHeaders(),
+        )
+        .timeout(timeout);
+    if (resp.statusCode >= 300) {
+      throw domain.SyncException('cancel order (${resp.statusCode})');
+    }
+  }
+
   Future<void> _patchOwnOrder(String orderId, Map<String, dynamic> body) async {
     final resp = await _client
         .patch(
@@ -232,4 +253,5 @@ class SupabaseStorefront {
 typedef OrderState = ({
   domain.OnlineOrderStatus status,
   DateTime? proposedPickupAt,
+  String paymentStatus,
 });

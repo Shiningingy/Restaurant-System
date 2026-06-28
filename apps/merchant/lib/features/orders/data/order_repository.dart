@@ -26,14 +26,17 @@ class OrderRepository {
     int serviceFeeBp = 0,
     String? tableId,
     String? note,
+    // Online orders reuse their cloud order id as the local id, so the two are
+    // trivially linkable (e.g. for an online refund). Defaults to a fresh id.
+    String? id,
   }) async {
-    final id = domain.newId();
+    final orderId = id ?? domain.newId();
     await db.transaction(() async {
       await db
           .into(db.orders)
           .insert(
             OrdersCompanion.insert(
-              id: id,
+              id: orderId,
               type: type,
               status: domain.OrderStatus.open,
               tableId: Value(tableId),
@@ -46,9 +49,9 @@ class OrderRepository {
               note: Value(note),
             ),
           );
-      await _journalOrder(id);
+      await _journalOrder(orderId);
     });
-    return id;
+    return orderId;
   }
 
   /// Sets the order's discount (off the subtotal, before tax) and recomputes

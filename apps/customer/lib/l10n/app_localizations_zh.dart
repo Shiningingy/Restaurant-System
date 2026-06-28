@@ -218,6 +218,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String kioskAddToOrderTotal(String total) {
+    return '加入订单  ·  $total';
+  }
+
+  @override
   String kioskOrderName(int number) {
     return '自助机 $number';
   }
@@ -427,6 +432,27 @@ class AppLocalizationsZh extends AppLocalizations {
   String get checkoutPlacePreorder => '提交预订单';
 
   @override
+  String get checkoutPayOnline => '在线支付';
+
+  @override
+  String get checkoutPayAtCounterButton => '柜台支付';
+
+  @override
+  String get checkoutAwaitingPayment => '正在完成支付…';
+
+  @override
+  String get checkoutAwaitingPaymentBody => '请在浏览器中完成支付。支付完成后此页面会自动更新。';
+
+  @override
+  String get checkoutReopenPayment => '重新打开支付页面';
+
+  @override
+  String get checkoutCancelPayment => '取消支付';
+
+  @override
+  String get checkoutPaymentNotCompleted => '支付未完成。您的购物车已保留——可以重试。';
+
+  @override
   String get statusTitle => '您的预订单';
 
   @override
@@ -477,6 +503,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String statusTotalPayAtPickup(String total) {
     return '合计 $total — 取餐时支付';
   }
+
+  @override
+  String statusPaidOnline(String total) {
+    return '已在线支付 — $total';
+  }
+
+  @override
+  String get statusPayNow => '立即支付';
 
   @override
   String get statusBackToMenu => '返回菜单';

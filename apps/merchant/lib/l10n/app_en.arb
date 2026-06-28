@@ -31,6 +31,7 @@
   "payCash": "Cash",
   "payCard": "Card",
   "payCardKeyed": "Card (keyed)",
+  "payOnline": "Online",
 
   "ordersTitle": "Open Orders",
   "ordersEmpty": "No open orders — start a dine-in or takeout order.",
@@ -56,6 +57,14 @@
   "ordOrderTitle": "Order",
   "ordVoidConfirmTitle": "Void this order?",
   "ordVoidConfirmBody": "The order is kept in history as voided.",
+  "ordRefundOnline": "Refund",
+  "ordRefundConfirmTitle": "Refund this online payment?",
+  "ordRefundConfirmBody": "This refunds the card payment through Moneris and voids the order. It can't be undone.",
+  "ordRefundDone": "Refund issued.",
+  "ordRefundFailed": "Refund failed: {error}",
+  "@ordRefundFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
   "ordKeep": "Keep",
   "ordNoMenuYet": "No menu yet — add categories and items in Menu.",
   "ordTapToAdd": "Tap menu items to add them.",
@@ -235,6 +244,10 @@
   "inboxPreparing": "Preparing",
   "inboxNothingInProgress": "Nothing in progress.",
   "inboxMenuPublished": "Menu published to your storefront.",
+  "inboxMenuPublishedPhotoWarning": "Menu published, but {count} item photo(s) couldn't be uploaded. Check that the menu-photos storage bucket exists and you're signed in.",
+  "@inboxMenuPublishedPhotoWarning": {
+    "placeholders": { "count": { "type": "int" } }
+  },
   "inboxPublishFailed": "Publish failed: {error}",
   "@inboxPublishFailed": {
     "placeholders": { "error": { "type": "String" } }
@@ -348,6 +361,8 @@
   "setNewOrderSound": "Alert sound on new order",
   "setAutoAcceptKiosk": "Auto-accept kiosk orders",
   "setAutoAcceptKioskHint": "Send in-store kiosk orders straight to the Orders board. Turn off to review them in the Inbox first.",
+  "setAcceptOnlinePayment": "Accept online payment",
+  "setAcceptOnlinePaymentHint": "Let customers pay by card when they preorder. Requires the pay-online function on your Supabase — see docs/MONERIS_PAYMENT.md.",
   "setPayments": "Payments",
   "setCardTerminalManual": "Card terminal: manual entry",
   "setCardTerminalManualSubtitle": "Staff key the amount on the standalone terminal and record the outcome. Semi-integrated Moneris Go support arrives once the Moneris Cloud API access is set up.",
@@ -510,6 +525,22 @@
     "placeholders": { "count": { "type": "int" } }
   },
   "setSyncFirstWarning": "This device hasn't synced with this cloud yet — uploading may overwrite data already there. If the cloud already has your real data, choose Restore from cloud instead.",
+  "setSyncSelectBody": "Choose which changes to upload to the cloud. Unchecked changes stay on this device for now.",
+  "setSyncSelectAll": "Select all",
+  "setSyncSelectNone": "Clear all",
+  "setSyncUploadSelected": "Upload {count} selected",
+  "@setSyncUploadSelected": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "setSyncOpDelete": "Delete",
+  "setSyncOpUpdate": "Update",
+  "setSyncEntityCategory": "Category",
+  "setSyncEntityItem": "Item",
+  "setSyncEntityModifier": "Option",
+  "setSyncEntityModifierGroup": "Option group",
+  "setSyncEntityTable": "Table",
+  "setSyncEntityOrder": "Order",
+  "setSyncEntityPayment": "Payment",
   "setSyncAnyway": "Sync anyway",
   "setRestoreTitle": "Restore from cloud?",
   "setRestoreBody": "Pulls the full history from your Supabase and applies it to this device. Use this on a new or wiped tablet. Existing local data is merged (last write wins), never wiped.",

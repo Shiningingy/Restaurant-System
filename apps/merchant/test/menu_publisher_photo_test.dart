@@ -29,6 +29,23 @@ class _FakeObjectStore implements domain.ObjectStore {
   Future<void> deleteObject(String key) async => objects.remove(key);
 }
 
+/// An [domain.ObjectStore] whose uploads always fail (e.g. the bucket is
+/// missing or RLS rejects the write) — to prove the failure surfaces.
+class _ThrowingObjectStore implements domain.ObjectStore {
+  @override
+  Future<void> putObject(
+    String key,
+    List<int> bytes, {
+    required String contentType,
+  }) async => throw const domain.SyncException('object upload failed (400)');
+
+  @override
+  Future<List<int>?> getObject(String key) async => null;
+
+  @override
+  Future<void> deleteObject(String key) async {}
+}
+
 void main() {
   late MenuRepository menu;
   late SettingsRepository settings;
@@ -76,6 +93,23 @@ void main() {
       jsonDecode(jsonEncode(published.toJson())) as Map<String, dynamic>,
     );
     expect(roundTripped.categories.single.items.single.imageSha, sha);
+  });
+
+  test('a failed upload is recorded in photoErrors and ships no ref '
+      '(so the customer never points at a missing object)', () async {
+    final publisher = MenuPublisher(
+      menu: menu,
+      settings: settings,
+      itemPhoto: (id) async => (bytes: const [1, 2, 3], ext: '.jpg'),
+      photoStore: _ThrowingObjectStore(),
+    );
+
+    final published = await publisher.build();
+    final pub = published.categories.single.items.single;
+    expect(pub.imageSha, isNull, reason: 'no ref when the upload failed');
+    expect(pub.imageExt, isNull);
+    expect(publisher.photoErrors, hasLength(1));
+    expect(publisher.photoErrors.single, contains(item.id));
   });
 
   test('no photo (or no store) → no ref, no upload', () async {

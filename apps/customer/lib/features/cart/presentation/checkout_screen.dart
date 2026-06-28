@@ -10,6 +10,7 @@ import '../../orders/data/order_history.dart';
 import '../../storefront/application/providers.dart';
 import '../../storefront/presentation/status_screen.dart';
 import '../cart.dart';
+import 'payment_webview.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({super.key});
@@ -101,7 +102,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     return domain.Money(cents);
   }
 
-  Future<void> _place() async {
+  Future<void> _place({bool payOnline = false}) async {
     final l10n = context.l10n;
     final storefront = ref.read(storefrontProvider);
     if (storefront == null) return;
@@ -136,40 +137,34 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         submission,
         customerUid: ref.read(storefrontConfigProvider).customerUid,
       );
-      // A shared kiosk keeps no per-device history and doesn't remember the
-      // customer (privacy between customers); it confirms and resets instead.
-      if (!kiosk) {
-        final active = ref.read(walletProvider).active;
-        if (active != null) {
-          await ref
-              .read(orderHistoryProvider.notifier)
-              .add(
-                PlacedOrder(
-                  orderId: orderId,
-                  storefrontId: active.id,
-                  restaurantLabel: active.label,
-                  totalCents: submission.total.cents,
-                  placedAt: DateTime.now(),
-                  status: domain.OnlineOrderStatus.submitted,
-                ),
-              );
+
+      // Pay online: open Moneris's hosted page IN-APP. The webview renders it
+      // with our Supabase origin (which Moneris's iframe requires) and pops back
+      // `true` once the charge lands. The order isn't "placed" until paid — on
+      // success we finalize; if the customer backs out we delete the still-unpaid
+      // order so it never reaches the merchant, and the cart is kept.
+      final url = ref.read(storefrontConfigProvider).url;
+      if (payOnline && url != null) {
+        if (!mounted) return;
+        setState(() => _busy = false);
+        final paid = await Navigator.of(context).push<bool>(
+          MaterialPageRoute<bool>(
+            builder: (_) => PaymentWebView(
+              pageUrl: '$url/functions/v1/pay-online?order_id=$orderId',
+              orderId: orderId,
+            ),
+          ),
+        );
+        if (!mounted) return;
+        if (paid == true) {
+          await _finalizePlaced(orderId, submission, paidOnline: true);
+        } else {
+          await _cancelUnpaid(orderId);
         }
-        await ref
-            .read(walletProvider.notifier)
-            .rememberCustomer(
-              name: _name.text.trim(),
-              phone: _phone.text.trim(),
-            );
+        return;
       }
-      ref.read(cartProvider.notifier).clear();
-      if (!mounted) return;
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(
-          builder: (_) => kiosk
-              ? const KioskThankYouScreen()
-              : StatusScreen(orderId: orderId, total: submission.total),
-        ),
-      );
+
+      await _finalizePlaced(orderId, submission);
     } on Object catch (e) {
       if (mounted) {
         setState(() {
@@ -180,9 +175,69 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     }
   }
 
+  /// The order is real (placed or paid): record history, remember the customer,
+  /// clear the cart, and move to the status screen.
+  Future<void> _finalizePlaced(
+    String orderId,
+    domain.PreorderSubmission submission, {
+    bool paidOnline = false,
+  }) async {
+    final kiosk = ref.read(kioskModeProvider);
+    // A shared kiosk keeps no per-device history and doesn't remember the
+    // customer (privacy between customers); it confirms and resets instead.
+    if (!kiosk) {
+      final active = ref.read(walletProvider).active;
+      if (active != null) {
+        await ref
+            .read(orderHistoryProvider.notifier)
+            .add(
+              PlacedOrder(
+                orderId: orderId,
+                storefrontId: active.id,
+                restaurantLabel: active.label,
+                totalCents: submission.total.cents,
+                placedAt: DateTime.now(),
+                status: domain.OnlineOrderStatus.submitted,
+              ),
+            );
+      }
+      await ref
+          .read(walletProvider.notifier)
+          .rememberCustomer(name: _name.text.trim(), phone: _phone.text.trim());
+    }
+    ref.read(cartProvider.notifier).clear();
+    if (!mounted) return;
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute<void>(
+        builder: (_) => kiosk
+            ? const KioskThankYouScreen()
+            : StatusScreen(orderId: orderId, total: submission.total),
+      ),
+    );
+  }
+
+  /// The customer backed out of payment: delete the still-unpaid order (so it
+  /// never reaches the merchant) and surface a message. The cart is untouched,
+  /// so they can try again.
+  Future<void> _cancelUnpaid(String orderId) async {
+    try {
+      await ref.read(storefrontProvider)?.cancelUnpaidOrder(orderId);
+    } on Object {
+      // Best-effort — RLS or the row being gone is fine; the merchant won't act
+      // on an unpaid order anyway.
+    }
+    if (!mounted) return;
+    setState(() => _error = context.l10n.checkoutPaymentNotCompleted);
+  }
+
   @override
   Widget build(BuildContext context) {
     final cart = ref.watch(cartProvider);
+    // Online card payment is offered only when the merchant enabled it and this
+    // isn't a shared in-store kiosk (kiosk pays at the counter).
+    final payOnlineAvailable =
+        (ref.watch(menuProvider).value?.acceptsOnlinePayment ?? false) &&
+        !ref.watch(kioskModeProvider);
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.checkoutTitle)),
       body: ListView(
@@ -250,16 +305,23 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             ),
           ],
           const SizedBox(height: 24),
-          FilledButton(
-            onPressed: _busy ? null : _place,
-            child: _busy
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Text(context.l10n.checkoutPlacePreorder),
-          ),
+          if (_busy)
+            const Center(child: CircularProgressIndicator())
+          // When the merchant accepts online payment, the customer pays online —
+          // there is no pay-at-counter option (that's reserved for whitelisted
+          // regulars, not built yet). Otherwise it's a normal pay-at-counter
+          // preorder.
+          else if (payOnlineAvailable)
+            FilledButton.icon(
+              onPressed: () => _place(payOnline: true),
+              icon: const Icon(Icons.lock_outline),
+              label: Text(context.l10n.checkoutPayOnline),
+            )
+          else
+            FilledButton(
+              onPressed: () => _place(),
+              child: Text(context.l10n.checkoutPlacePreorder),
+            ),
         ],
       ),
     );

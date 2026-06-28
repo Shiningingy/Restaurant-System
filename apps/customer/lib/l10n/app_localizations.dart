@@ -482,6 +482,12 @@ abstract class AppLocalizations {
   /// **'Add to order  ·  +{extra}'**
   String kioskAddToOrderExtra(String extra);
 
+  /// No description provided for @kioskAddToOrderTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to order  ·  {total}'**
+  String kioskAddToOrderTotal(String total);
+
   /// No description provided for @kioskOrderName.
   ///
   /// In en, this message translates to:
@@ -836,6 +842,48 @@ abstract class AppLocalizations {
   /// **'Place preorder'**
   String get checkoutPlacePreorder;
 
+  /// No description provided for @checkoutPayOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay online'**
+  String get checkoutPayOnline;
+
+  /// No description provided for @checkoutPayAtCounterButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay at counter'**
+  String get checkoutPayAtCounterButton;
+
+  /// No description provided for @checkoutAwaitingPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Finishing payment…'**
+  String get checkoutAwaitingPayment;
+
+  /// No description provided for @checkoutAwaitingPaymentBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete your payment in the browser. This updates automatically once it\'s done.'**
+  String get checkoutAwaitingPaymentBody;
+
+  /// No description provided for @checkoutReopenPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen payment page'**
+  String get checkoutReopenPayment;
+
+  /// No description provided for @checkoutCancelPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel payment'**
+  String get checkoutCancelPayment;
+
+  /// No description provided for @checkoutPaymentNotCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment wasn\'t completed. Your cart is saved — you can try again.'**
+  String get checkoutPaymentNotCompleted;
+
   /// No description provided for @statusTitle.
   ///
   /// In en, this message translates to:
@@ -931,6 +979,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Total {total} — pay at pickup'**
   String statusTotalPayAtPickup(String total);
+
+  /// No description provided for @statusPaidOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid online — {total}'**
+  String statusPaidOnline(String total);
+
+  /// No description provided for @statusPayNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay now'**
+  String get statusPayNow;
 
   /// No description provided for @statusBackToMenu.
   ///

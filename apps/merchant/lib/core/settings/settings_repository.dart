@@ -135,6 +135,7 @@ class SettingsRepository {
   static const _pickupLeadKey = 'pickupLeadMinutes';
   static const _newOrderSoundKey = 'newOrderSound';
   static const _autoAcceptKioskKey = 'autoAcceptKiosk';
+  static const _acceptsOnlinePaymentKey = 'acceptsOnlinePayment';
   static const _secondNameLangKey = 'secondNameLanguage';
   static const _serviceFeeBpKey = 'serviceFeeBp';
   static const _discountPresetsKey = 'discountPresetsBp';
@@ -296,6 +297,15 @@ class SettingsRepository {
 
   Future<void> setAutoAcceptKiosk(bool on) =>
       prefs.setBool(_autoAcceptKioskKey, on);
+
+  /// Whether online card payment is offered to customers (Phase 7). Default
+  /// **off** — the shop must deploy the pay-online Edge Function first. When on,
+  /// it's published with the menu so the customer app shows "Pay online".
+  bool get acceptsOnlinePayment =>
+      prefs.getBool(_acceptsOnlinePaymentKey) ?? false;
+
+  Future<void> setAcceptsOnlinePayment(bool on) =>
+      prefs.setBool(_acceptsOnlinePaymentKey, on);
 
   /// The language code the item second names are written in (e.g. 'zh'), or
   /// null/empty if not set. Published so the customer app can surface the

@@ -62,30 +62,17 @@ class _ModifierPickerDialogState extends State<_ModifierPickerDialog> {
           children: [
             for (final group in widget.groups) ...[
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: const EdgeInsets.fromLTRB(0, 12, 0, 8),
                 child: Text(
                   '${group.name}  (${_requirementLabel(context, group)})',
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
               ),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final m in group.modifiers)
-                    FilterChip(
-                      label: Text(
-                        m.priceDelta.isZero
-                            ? m.name
-                            : '${m.name} (${m.priceDelta.isNegative ? '' : '+'}${m.priceDelta.format()})',
-                      ),
-                      selected: (_selected[group.id] ?? const []).any(
-                        (s) => s.id == m.id,
-                      ),
-                      onSelected: (_) => _toggle(group, m),
-                    ),
-                ],
-              ),
+              for (final m in group.modifiers)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: _optionButton(group, m),
+                ),
             ],
           ],
         ),
@@ -104,6 +91,43 @@ class _ModifierPickerDialogState extends State<_ModifierPickerDialog> {
           child: Text(context.l10n.modAddToOrder),
         ),
       ],
+    );
+  }
+
+  /// A full-width option row (matching the kiosk/customer popups): a tonal tile
+  /// that fills with the secondary colour when selected, a radio/check leading
+  /// icon, the name, and the price delta.
+  Widget _optionButton(domain.ModifierGroup g, domain.Modifier m) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final on = (_selected[g.id] ?? const []).any((s) => s.id == m.id);
+    final single = g.maxSelect == 1;
+    final icon = single
+        ? (on ? Icons.radio_button_checked : Icons.radio_button_unchecked)
+        : (on ? Icons.check_box : Icons.check_box_outline_blank);
+    return Material(
+      color: on ? cs.secondaryContainer : cs.surfaceContainerHigh,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => _toggle(g, m),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 56),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              Icon(icon, color: on ? cs.primary : cs.onSurfaceVariant),
+              const SizedBox(width: 12),
+              Expanded(child: Text(m.name, style: theme.textTheme.titleSmall)),
+              if (!m.priceDelta.isZero)
+                Text(
+                  '${m.priceDelta.isNegative ? '' : '+'}${m.priceDelta.format()}',
+                  style: theme.textTheme.bodyLarge,
+                ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

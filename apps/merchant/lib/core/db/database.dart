@@ -109,7 +109,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -151,6 +151,13 @@ class AppDatabase extends _$AppDatabase {
           "UPDATE orders SET status = 'done', paid_at = closed_at "
           "WHERE status = 'paid'",
         );
+      }
+      if (from < 10) {
+        // v10: cross-device item-photo sync. The content hash + extension let
+        // the bytes travel through the `menu-photos` bucket while the row rides
+        // the normal feed; legacy rows backfill their sha from the local file.
+        await m.addColumn(menuItemImages, menuItemImages.sha);
+        await m.addColumn(menuItemImages, menuItemImages.ext);
       }
     },
   );

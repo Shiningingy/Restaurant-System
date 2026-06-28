@@ -1,13 +1,16 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/providers.dart';
 import '../../../core/settings/providers.dart';
 import '../../../core/settings/settings_repository.dart';
 import '../../../core/window/window_control.dart';
 import '../../menu/application/providers.dart';
+import '../../menu/data/item_image_repository.dart';
 import '../../orders/application/providers.dart';
 import '../customer_display_channel.dart';
 import 'kiosk_bridge.dart';
@@ -169,12 +172,21 @@ class CustomerDisplayController {
 
   Future<Map<String, dynamic>> _buildMenuSnapshot() {
     final settings = _ref.read(settingsRepositoryProvider);
+    final images = ItemImageRepository(_ref.read(databaseProvider));
     return buildKioskMenuSnapshot(
       _ref.read(menuRepositoryProvider),
       businessName: settings.receiptConfig.businessName,
       taxRateBp: settings.taxRateBp,
       serviceFeeBp: settings.serviceFeeBp,
       payHere: settings.kioskPayHere,
+      // The item's first local photo, read by path in the display window (same
+      // machine/user). Null when the item has no photo or the file is gone.
+      imagePath: (itemId) async {
+        final imgs = await images.watchImages(itemId).first;
+        if (imgs.isEmpty) return null;
+        final path = imgs.first.path;
+        return await File(path).exists() ? path : null;
+      },
     );
   }
 

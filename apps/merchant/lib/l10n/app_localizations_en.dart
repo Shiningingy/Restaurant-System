@@ -77,6 +77,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get payCardKeyed => 'Card (keyed)';
 
   @override
+  String get payOnline => 'Online';
+
+  @override
   String get ordersTitle => 'Open Orders';
 
   @override
@@ -138,6 +141,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ordVoidConfirmBody => 'The order is kept in history as voided.';
+
+  @override
+  String get ordRefundOnline => 'Refund';
+
+  @override
+  String get ordRefundConfirmTitle => 'Refund this online payment?';
+
+  @override
+  String get ordRefundConfirmBody =>
+      'This refunds the card payment through Moneris and voids the order. It can\'t be undone.';
+
+  @override
+  String get ordRefundDone => 'Refund issued.';
+
+  @override
+  String ordRefundFailed(String error) {
+    return 'Refund failed: $error';
+  }
 
   @override
   String get ordKeep => 'Keep';
@@ -521,6 +542,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get inboxMenuPublished => 'Menu published to your storefront.';
 
   @override
+  String inboxMenuPublishedPhotoWarning(int count) {
+    return 'Menu published, but $count item photo(s) couldn\'t be uploaded. Check that the menu-photos storage bucket exists and you\'re signed in.';
+  }
+
+  @override
   String inboxPublishFailed(String error) {
     return 'Publish failed: $error';
   }
@@ -760,6 +786,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get setAutoAcceptKioskHint =>
       'Send in-store kiosk orders straight to the Orders board. Turn off to review them in the Inbox first.';
+
+  @override
+  String get setAcceptOnlinePayment => 'Accept online payment';
+
+  @override
+  String get setAcceptOnlinePaymentHint =>
+      'Let customers pay by card when they preorder. Requires the pay-online function on your Supabase — see docs/MONERIS_PAYMENT.md.';
 
   @override
   String get setPayments => 'Payments';
@@ -1175,6 +1208,48 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get setSyncFirstWarning =>
       'This device hasn\'t synced with this cloud yet — uploading may overwrite data already there. If the cloud already has your real data, choose Restore from cloud instead.';
+
+  @override
+  String get setSyncSelectBody =>
+      'Choose which changes to upload to the cloud. Unchecked changes stay on this device for now.';
+
+  @override
+  String get setSyncSelectAll => 'Select all';
+
+  @override
+  String get setSyncSelectNone => 'Clear all';
+
+  @override
+  String setSyncUploadSelected(int count) {
+    return 'Upload $count selected';
+  }
+
+  @override
+  String get setSyncOpDelete => 'Delete';
+
+  @override
+  String get setSyncOpUpdate => 'Update';
+
+  @override
+  String get setSyncEntityCategory => 'Category';
+
+  @override
+  String get setSyncEntityItem => 'Item';
+
+  @override
+  String get setSyncEntityModifier => 'Option';
+
+  @override
+  String get setSyncEntityModifierGroup => 'Option group';
+
+  @override
+  String get setSyncEntityTable => 'Table';
+
+  @override
+  String get setSyncEntityOrder => 'Order';
+
+  @override
+  String get setSyncEntityPayment => 'Payment';
 
   @override
   String get setSyncAnyway => 'Sync anyway';

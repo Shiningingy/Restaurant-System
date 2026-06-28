@@ -62,13 +62,22 @@ class MenuItemAttributes extends Table {
 }
 
 /// Renamable images attached to a menu item. [path] points at a file in the
-/// app documents dir. Local-only this phase (not part of the sync journal).
+/// app documents dir; the `(sha, ext)` content address rides the menu_item sync
+/// so the bytes can travel through the `menu-photos` bucket to other devices.
 @DataClassName('MenuItemImageRow')
 class MenuItemImages extends Table {
   TextColumn get id => text()();
   TextColumn get itemId => text().references(MenuItems, #id)();
   TextColumn get label => text()();
+  // Local file path. Empty ("") on a row that arrived via sync but whose bytes
+  // haven't been downloaded from the bucket yet (reconciled after a pull).
   TextColumn get path => text()();
+  // Content hash + extension for cross-device sync: the bytes live in the
+  // `menu-photos` bucket keyed by `<sha><ext>`, so any device can tell from the
+  // hash alone whether it already has the file. Null on legacy rows until the
+  // backfill computes it from the local file.
+  TextColumn get sha => text().nullable()();
+  TextColumn get ext => text().nullable()();
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
 
   @override

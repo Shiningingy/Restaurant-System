@@ -7,6 +7,7 @@ import 'package:restaurant_ui/restaurant_ui.dart';
 import '../../../core/l10n_ext.dart';
 import '../../../core/widgets/item_name_lines.dart';
 import '../../menu_capture/presentation/capture_screen.dart';
+import '../../online_orders/application/providers.dart';
 import '../application/providers.dart';
 import '../data/sample_menu.dart';
 import 'item_editor_screen.dart';
@@ -30,6 +31,15 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
         appBar: AppBar(
           title: Text(context.l10n.menuTitle),
           actions: [
+            if (ref.watch(onlineOrderingEnabledProvider))
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: TextButton.icon(
+                  onPressed: () => _publishMenu(context),
+                  icon: const Icon(Icons.cloud_upload_outlined),
+                  label: Text(context.l10n.inboxPublishMenu),
+                ),
+              ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: TextButton.icon(
@@ -68,6 +78,29 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
         ),
       ),
     );
+  }
+
+  /// Publishes the live menu to the storefront (so customers + kiosks see the
+  /// latest). Moved here from the Inbox so editing and publishing live together.
+  Future<void> _publishMenu(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    try {
+      final photoErrors = await ref.read(inboxServiceProvider).publishMenu();
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            photoErrors.isEmpty
+                ? l10n.inboxMenuPublished
+                : l10n.inboxMenuPublishedPhotoWarning(photoErrors.length),
+          ),
+        ),
+      );
+    } on Object catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.inboxPublishFailed('$e'))),
+      );
+    }
   }
 
   Widget _buildItemsTab(BuildContext context) {

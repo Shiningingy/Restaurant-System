@@ -77,6 +77,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get payCardKeyed => '刷卡（手输）';
 
   @override
+  String get payOnline => '在线';
+
+  @override
   String get ordersTitle => '未结订单';
 
   @override
@@ -137,6 +140,23 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get ordVoidConfirmBody => '该订单将作为已作废保留在历史记录中。';
+
+  @override
+  String get ordRefundOnline => '退款';
+
+  @override
+  String get ordRefundConfirmTitle => '为此在线付款退款？';
+
+  @override
+  String get ordRefundConfirmBody => '这将通过 Moneris 退回卡付款并作废该订单，且无法撤销。';
+
+  @override
+  String get ordRefundDone => '已退款。';
+
+  @override
+  String ordRefundFailed(String error) {
+    return '退款失败：$error';
+  }
 
   @override
   String get ordKeep => '保留';
@@ -510,6 +530,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get inboxMenuPublished => '菜单已发布到您的店铺。';
 
   @override
+  String inboxMenuPublishedPhotoWarning(int count) {
+    return '菜单已发布，但有 $count 张菜品图片未能上传。请确认 menu-photos 存储桶已创建并且您已登录。';
+  }
+
+  @override
   String inboxPublishFailed(String error) {
     return '发布失败：$error';
   }
@@ -742,6 +767,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get setAutoAcceptKioskHint => '将店内自助点餐机的订单直接送到订单面板。关闭则先在收件箱中审核。';
+
+  @override
+  String get setAcceptOnlinePayment => '接受在线付款';
+
+  @override
+  String get setAcceptOnlinePaymentHint =>
+      '让顾客预订时用卡付款。需要在您的 Supabase 上部署 pay-online 函数 — 参见 docs/MONERIS_PAYMENT.md。';
 
   @override
   String get setPayments => '支付';
@@ -1142,6 +1174,47 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get setSyncFirstWarning =>
       '本设备尚未与此云端同步过——上传可能会覆盖云端已有的数据。如果云端已有您的真实数据，请改用“从云端恢复”。';
+
+  @override
+  String get setSyncSelectBody => '选择要上传到云端的更改。未勾选的更改暂时保留在本设备上。';
+
+  @override
+  String get setSyncSelectAll => '全选';
+
+  @override
+  String get setSyncSelectNone => '全部清除';
+
+  @override
+  String setSyncUploadSelected(int count) {
+    return '上传所选 $count 项';
+  }
+
+  @override
+  String get setSyncOpDelete => '删除';
+
+  @override
+  String get setSyncOpUpdate => '更新';
+
+  @override
+  String get setSyncEntityCategory => '分类';
+
+  @override
+  String get setSyncEntityItem => '菜品';
+
+  @override
+  String get setSyncEntityModifier => '选项';
+
+  @override
+  String get setSyncEntityModifierGroup => '选项组';
+
+  @override
+  String get setSyncEntityTable => '餐桌';
+
+  @override
+  String get setSyncEntityOrder => '订单';
+
+  @override
+  String get setSyncEntityPayment => '付款';
 
   @override
   String get setSyncAnyway => '仍要同步';

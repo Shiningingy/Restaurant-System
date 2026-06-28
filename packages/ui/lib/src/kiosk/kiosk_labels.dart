@@ -44,6 +44,9 @@ class KioskLabels {
   /// "Add to order · +$2.00" when modifiers add a charge.
   final String Function(String extra) addToOrderExtra;
 
+  /// "Add to order · $14.99" — the running line total on the popup's button.
+  final String Function(String total) addToOrderTotal;
+
   const KioskLabels({
     required this.loadingMenu,
     required this.retry,
@@ -69,6 +72,7 @@ class KioskLabels {
     required this.service,
     required this.tax,
     required this.addToOrderExtra,
+    required this.addToOrderTotal,
   });
 
   /// The merchant display's wording — plain English, exactly as before the
@@ -97,11 +101,13 @@ class KioskLabels {
       cartSummary = _enCartSummary,
       service = _enService,
       tax = _enTax,
-      addToOrderExtra = _enAddToOrderExtra;
+      addToOrderExtra = _enAddToOrderExtra,
+      addToOrderTotal = _enAddToOrderTotal;
 
   static String _enCartSummary(int count, String total) =>
       '$count item${count == 1 ? '' : 's'}  ·  $total';
   static String _enService(String pct) => 'Service ($pct%)';
   static String _enTax(String pct) => 'Tax ($pct%)';
   static String _enAddToOrderExtra(String extra) => 'Add to order  ·  +$extra';
+  static String _enAddToOrderTotal(String total) => 'Add to order  ·  $total';
 }

@@ -63,6 +63,13 @@ class SyncCodec {
                   ..where((t) => t.itemId.equals(id))
                   ..orderBy([(t) => OrderingTerm.asc(t.sortOrder)]))
                 .get();
+        // Only content-addressed images (sha set) sync — the bytes ride the
+        // `menu-photos` bucket, the other device pulls them by `(sha, ext)`.
+        final images =
+            await (db.select(db.menuItemImages)
+                  ..where((t) => t.itemId.equals(id) & t.sha.isNotNull())
+                  ..orderBy([(t) => OrderingTerm.asc(t.sortOrder)]))
+                .get();
         return {
           'id': r.id,
           'categoryId': r.categoryId,
@@ -77,6 +84,16 @@ class SyncCodec {
           'attributes': [
             for (final a in attrs)
               {'id': a.id, 'label': a.label, 'value': a.value},
+          ],
+          'images': [
+            for (final img in images)
+              {
+                'id': img.id,
+                'label': img.label,
+                'sortOrder': img.sortOrder,
+                'sha': img.sha,
+                'ext': img.ext,
+              },
           ],
         };
       case SyncEntities.modifierGroup:
@@ -261,6 +278,38 @@ class SyncCodec {
                     label: a['label'] as String,
                     value: a['value'] as String,
                     sortOrder: Value(i),
+                  ),
+                );
+          }
+          // Images: replace the item's set, but keep the local file path for any
+          // hash we already have on disk (content-addressed → same sha = same
+          // bytes) so we don't re-download. New/changed photos get an empty path
+          // that the post-sync reconcile fills from the `menu-photos` bucket.
+          final existingImgs = await (db.select(
+            db.menuItemImages,
+          )..where((t) => t.itemId.equals(p['id'] as String))).get();
+          final pathBySha = {
+            for (final e in existingImgs)
+              if (e.sha != null && e.path.isNotEmpty) e.sha!: e.path,
+          };
+          await (db.delete(
+            db.menuItemImages,
+          )..where((t) => t.itemId.equals(p['id'] as String))).go();
+          final imgs = (p['images'] as List? ?? const [])
+              .cast<Map<String, dynamic>>();
+          for (final img in imgs) {
+            final sha = img['sha'] as String?;
+            await db
+                .into(db.menuItemImages)
+                .insertOnConflictUpdate(
+                  MenuItemImagesCompanion.insert(
+                    id: img['id'] as String,
+                    itemId: p['id'] as String,
+                    label: img['label'] as String,
+                    path: pathBySha[sha] ?? '',
+                    sha: Value(sha),
+                    ext: Value(img['ext'] as String?),
+                    sortOrder: Value(img['sortOrder'] as int? ?? 0),
                   ),
                 );
           }

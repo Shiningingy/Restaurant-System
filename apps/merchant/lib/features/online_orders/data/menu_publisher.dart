@@ -28,7 +28,14 @@ class MenuPublisher {
     this.photoStore,
   });
 
+  /// Items whose photo couldn't be uploaded on the last [build] — one
+  /// human-readable line each (e.g. the bucket is missing or RLS rejected the
+  /// write). A photo that simply doesn't exist locally is NOT an error and is
+  /// never listed. Reset at the start of every [build].
+  final List<String> photoErrors = [];
+
   Future<domain.PublishedMenu> build() async {
+    photoErrors.clear();
     final categories = <domain.PublishedCategory>[];
     final cats = (await menu.watchCategories().first)
         .where((c) => c.isActive)
@@ -85,31 +92,42 @@ class MenuPublisher {
       pickupLeadMinutes: settings.pickupLeadMinutes,
       taxRateBp: settings.taxRateBp,
       secondNameLanguage: settings.secondNameLanguage,
+      acceptsOnlinePayment: settings.acceptsOnlinePayment,
       categories: categories,
     );
   }
 
   /// Uploads the item's photo to the public bucket (content-addressed) and
   /// returns its `(sha, ext)` ref, or `(null, null)` when there's no photo or
-  /// no cloud. Best-effort — a failed upload just ships the item without a
-  /// photo, never failing the publish.
+  /// no cloud. Never fails the publish — but, unlike a missing photo, a genuine
+  /// read/upload failure is recorded in [photoErrors] so it's visible (a silent
+  /// upload failure looks identical to "no photo": the item just ships without
+  /// one). We only return the ref once the bytes are actually in the bucket, so
+  /// the customer never points at an object that isn't there.
   Future<(String?, String?)> _publishPhoto(String itemId) async {
     final store = photoStore;
     final read = itemPhoto;
     if (store == null || read == null) return (null, null);
+    final ItemPhoto? photo;
     try {
-      final photo = await read(itemId);
-      if (photo == null) return (null, null);
-      final sha = sha256.convert(photo.bytes).toString();
+      photo = await read(itemId);
+    } on Object catch (e) {
+      photoErrors.add('item $itemId: could not read its photo — $e');
+      return (null, null);
+    }
+    if (photo == null) return (null, null); // no photo is not an error
+    final sha = sha256.convert(photo.bytes).toString();
+    try {
       await store.putObject(
         '$sha${photo.ext}',
         photo.bytes,
         contentType: _contentType(photo.ext),
       );
-      return (sha, photo.ext);
-    } on Object {
+    } on Object catch (e) {
+      photoErrors.add('item $itemId: photo upload failed — $e');
       return (null, null);
     }
+    return (sha, photo.ext);
   }
 
   static String _contentType(String ext) => switch (ext.toLowerCase()) {

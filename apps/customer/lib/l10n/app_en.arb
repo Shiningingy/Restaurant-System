@@ -86,6 +86,10 @@
   "@kioskAddToOrderExtra": {
     "placeholders": { "extra": { "type": "String" } }
   },
+  "kioskAddToOrderTotal": "Add to order  ·  {total}",
+  "@kioskAddToOrderTotal": {
+    "placeholders": { "total": { "type": "String" } }
+  },
   "kioskOrderName": "Kiosk {number}",
   "@kioskOrderName": {
     "placeholders": { "number": { "type": "int" } }
@@ -185,6 +189,13 @@
     "placeholders": { "error": { "type": "String" } }
   },
   "checkoutPlacePreorder": "Place preorder",
+  "checkoutPayOnline": "Pay online",
+  "checkoutPayAtCounterButton": "Pay at counter",
+  "checkoutAwaitingPayment": "Finishing payment…",
+  "checkoutAwaitingPaymentBody": "Complete your payment in the browser. This updates automatically once it's done.",
+  "checkoutReopenPayment": "Reopen payment page",
+  "checkoutCancelPayment": "Cancel payment",
+  "checkoutPaymentNotCompleted": "Payment wasn't completed. Your cart is saved — you can try again.",
 
   "statusTitle": "Your preorder",
   "statusSendingHeadline": "Sending your order…",
@@ -208,6 +219,11 @@
   "@statusTotalPayAtPickup": {
     "placeholders": { "total": { "type": "String" } }
   },
+  "statusPaidOnline": "Paid online — {total}",
+  "@statusPaidOnline": {
+    "placeholders": { "total": { "type": "String" } }
+  },
+  "statusPayNow": "Pay now",
   "statusBackToMenu": "Back to menu",
 
   "ordersTitle": "My orders",
