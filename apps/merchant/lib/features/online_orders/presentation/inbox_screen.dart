@@ -171,7 +171,7 @@ class _OrderSummary extends StatelessWidget {
         Text(
           context.l10n.inboxCustomerPickup(
             order.customerName,
-            _pickup.format(order.requestedPickupAt),
+            _pickup.format(order.requestedPickupAt.toLocal()),
           ),
           style: Theme.of(context).textTheme.titleSmall,
         ),
@@ -236,7 +236,7 @@ class _NewOrderCard extends ConsumerWidget {
     final l10n = context.l10n;
     final picked = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay.fromDateTime(order.requestedPickupAt),
+      initialTime: TimeOfDay.fromDateTime(order.requestedPickupAt.toLocal()),
       helpText: l10n.inboxProposeTime,
     );
     if (picked == null) return;
@@ -313,7 +313,7 @@ class _AwaitingCard extends StatelessWidget {
                     proposed == null
                         ? context.l10n.inboxAwaitingApproval
                         : context.l10n.inboxProposedWaiting(
-                            _pickup.format(proposed),
+                            _pickup.format(proposed.toLocal()),
                           ),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
