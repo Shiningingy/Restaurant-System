@@ -287,6 +287,8 @@
   "setBusinessName": "店铺名称",
   "setBusinessNameHint": "显示在小票、顾客显示屏和自助点餐机上",
   "setReceiptFooter": "小票页脚",
+  "setAutoPrintReceipt": "自动打印小票",
+  "setAutoPrintReceiptSubtitle": "订单付款后自动打印小票。关闭：仅按需打印（可在报表中重印）。",
   "setCustomerDisplay": "顾客显示屏（第二屏幕）",
   "setBranding": "店铺与品牌",
   "setBrandingHint": "为整个应用设置一个默认标识。下方任意位置都可单独使用自己的标识。",

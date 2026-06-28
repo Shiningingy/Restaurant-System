@@ -889,6 +889,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setReceiptFooter => 'Receipt footer';
 
   @override
+  String get setAutoPrintReceipt => 'Auto-print receipt';
+
+  @override
+  String get setAutoPrintReceiptSubtitle =>
+      'Print the receipt automatically when an order is paid. Off: print only on demand (reprint from Reports).';
+
+  @override
   String get setCustomerDisplay => 'Customer display (second screen)';
 
   @override

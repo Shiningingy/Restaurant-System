@@ -1604,6 +1604,18 @@ abstract class AppLocalizations {
   /// **'Receipt footer'**
   String get setReceiptFooter;
 
+  /// No description provided for @setAutoPrintReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-print receipt'**
+  String get setAutoPrintReceipt;
+
+  /// No description provided for @setAutoPrintReceiptSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Print the receipt automatically when an order is paid. Off: print only on demand (reprint from Reports).'**
+  String get setAutoPrintReceiptSubtitle;
+
   /// No description provided for @setCustomerDisplay.
   ///
   /// In en, this message translates to:
