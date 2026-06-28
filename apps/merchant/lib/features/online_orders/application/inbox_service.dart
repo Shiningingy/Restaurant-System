@@ -69,7 +69,8 @@ class InboxService {
         .map(domain.PreorderLine.fromJson)
         .toList();
 
-    final pickup = _pickupFormat.format(incoming.requestedPickupAt);
+    // The cloud stores pickup times as UTC; show the store's local wall clock.
+    final pickup = _pickupFormat.format(incoming.requestedPickupAt.toLocal());
     final paidOnline = incoming.isPaidOnline;
     final orderId = await orders.createOrder(
       // Reuse the cloud order id locally so a later online refund can find it.
