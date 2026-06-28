@@ -14,18 +14,26 @@ class OrderTotals {
   final Money tax;
   final Money total;
 
+  /// Total worth of comped (on-the-house) lines — what the customer would have
+  /// paid for them. Not part of [subtotal]/[total] (the customer pays nothing
+  /// for them); surfaced for the receipt and reports.
+  final Money comps;
+
   const OrderTotals({
     required this.subtotal,
     required this.tax,
     required this.total,
     this.discount = Money.zero,
     this.serviceFee = Money.zero,
+    this.comps = Money.zero,
   });
 
-  /// Voided lines never count. The discount comes off the subtotal *before*
-  /// tax, so the customer pays tax on the lower amount; the service fee is
-  /// charged on that same discounted subtotal. All rates are basis points
-  /// (1300 = 13%), rounded half-up on the order subtotal — not per line.
+  /// Voided lines never count. Comped lines don't count toward what's owed
+  /// either — their worth is tallied separately in [comps]. The discount comes
+  /// off the subtotal *before* tax, so the customer pays tax on the lower
+  /// amount; the service fee is charged on that same discounted subtotal. All
+  /// rates are basis points (1300 = 13%), rounded half-up on the order subtotal
+  /// — not per line.
   ///
   /// total = (subtotal − discount) + tax + serviceFee.
   static OrderTotals compute({
@@ -35,8 +43,12 @@ class OrderTotals {
     int serviceFeeBp = 0,
   }) {
     var subtotal = Money.zero;
+    var comps = Money.zero;
     for (final line in lines) {
-      if (line.status == OrderLineStatus.active) {
+      if (line.status != OrderLineStatus.active) continue;
+      if (line.comped) {
+        comps += line.lineTotal;
+      } else {
         subtotal += line.lineTotal;
       }
     }
@@ -51,6 +63,7 @@ class OrderTotals {
       serviceFee: serviceFee,
       tax: tax,
       total: discounted + tax + serviceFee,
+      comps: comps,
     );
   }
 

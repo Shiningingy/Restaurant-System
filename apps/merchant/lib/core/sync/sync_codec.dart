@@ -173,6 +173,7 @@ class SyncCodec {
             'qty': l.qty,
             'lineTotal': l.lineTotal.cents,
             'status': l.status.name,
+            'comped': l.comped,
             'codeSnapshot': l.codeSnapshot,
             'nameSecondarySnapshot': l.nameSecondarySnapshot,
             'note': l.note,
@@ -430,6 +431,7 @@ class SyncCodec {
                 status: domain.OrderLineStatus.values.byName(
                   l['status'] as String,
                 ),
+                comped: Value(l['comped'] as bool? ?? false),
                 codeSnapshot: Value(l['codeSnapshot'] as String?),
                 nameSecondarySnapshot: Value(
                   l['nameSecondarySnapshot'] as String?,

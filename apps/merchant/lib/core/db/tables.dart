@@ -160,6 +160,10 @@ class OrderLines extends Table {
   IntColumn get lineTotal => integer().map(const MoneyConverter())();
   TextColumn get status => textEnum<domain.OrderLineStatus>()();
 
+  /// A comped (on-the-house) line: still active, but free to the customer.
+  /// [lineTotal] keeps the original price so the comp's worth is recoverable.
+  BoolColumn get comped => boolean().withDefault(const Constant(false))();
+
   /// Item code + second name line, snapshotted at sale time.
   TextColumn get codeSnapshot => text().nullable()();
   TextColumn get nameSecondarySnapshot => text().nullable()();

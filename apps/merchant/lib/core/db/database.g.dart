@@ -2986,6 +2986,19 @@ class $OrderLinesTable extends OrderLines
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   ).withConverter<domain.OrderLineStatus>($OrderLinesTable.$converterstatus);
+  static const VerificationMeta _compedMeta = const VerificationMeta('comped');
+  @override
+  late final GeneratedColumn<bool> comped = GeneratedColumn<bool>(
+    'comped',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("comped" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _codeSnapshotMeta = const VerificationMeta(
     'codeSnapshot',
   );
@@ -3038,6 +3051,7 @@ class $OrderLinesTable extends OrderLines
     qty,
     lineTotal,
     status,
+    comped,
     codeSnapshot,
     nameSecondarySnapshot,
     note,
@@ -3097,6 +3111,12 @@ class $OrderLinesTable extends OrderLines
       );
     } else if (isInserting) {
       context.missing(_qtyMeta);
+    }
+    if (data.containsKey('comped')) {
+      context.handle(
+        _compedMeta,
+        comped.isAcceptableOrUnknown(data['comped']!, _compedMeta),
+      );
     }
     if (data.containsKey('code_snapshot')) {
       context.handle(
@@ -3178,6 +3198,10 @@ class $OrderLinesTable extends OrderLines
           data['${effectivePrefix}status'],
         )!,
       ),
+      comped: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}comped'],
+      )!,
       codeSnapshot: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}code_snapshot'],
@@ -3222,6 +3246,10 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
   final domain.Money lineTotal;
   final domain.OrderLineStatus status;
 
+  /// A comped (on-the-house) line: still active, but free to the customer.
+  /// [lineTotal] keeps the original price so the comp's worth is recoverable.
+  final bool comped;
+
   /// Item code + second name line, snapshotted at sale time.
   final String? codeSnapshot;
   final String? nameSecondarySnapshot;
@@ -3239,6 +3267,7 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
     required this.qty,
     required this.lineTotal,
     required this.status,
+    required this.comped,
     this.codeSnapshot,
     this.nameSecondarySnapshot,
     this.note,
@@ -3267,6 +3296,7 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
         $OrderLinesTable.$converterstatus.toSql(status),
       );
     }
+    map['comped'] = Variable<bool>(comped);
     if (!nullToAbsent || codeSnapshot != null) {
       map['code_snapshot'] = Variable<String>(codeSnapshot);
     }
@@ -3292,6 +3322,7 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
       qty: Value(qty),
       lineTotal: Value(lineTotal),
       status: Value(status),
+      comped: Value(comped),
       codeSnapshot: codeSnapshot == null && nullToAbsent
           ? const Value.absent()
           : Value(codeSnapshot),
@@ -3321,6 +3352,7 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
       status: $OrderLinesTable.$converterstatus.fromJson(
         serializer.fromJson<String>(json['status']),
       ),
+      comped: serializer.fromJson<bool>(json['comped']),
       codeSnapshot: serializer.fromJson<String?>(json['codeSnapshot']),
       nameSecondarySnapshot: serializer.fromJson<String?>(
         json['nameSecondarySnapshot'],
@@ -3345,6 +3377,7 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
       'status': serializer.toJson<String>(
         $OrderLinesTable.$converterstatus.toJson(status),
       ),
+      'comped': serializer.toJson<bool>(comped),
       'codeSnapshot': serializer.toJson<String?>(codeSnapshot),
       'nameSecondarySnapshot': serializer.toJson<String?>(
         nameSecondarySnapshot,
@@ -3363,6 +3396,7 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
     int? qty,
     domain.Money? lineTotal,
     domain.OrderLineStatus? status,
+    bool? comped,
     Value<String?> codeSnapshot = const Value.absent(),
     Value<String?> nameSecondarySnapshot = const Value.absent(),
     Value<String?> note = const Value.absent(),
@@ -3376,6 +3410,7 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
     qty: qty ?? this.qty,
     lineTotal: lineTotal ?? this.lineTotal,
     status: status ?? this.status,
+    comped: comped ?? this.comped,
     codeSnapshot: codeSnapshot.present ? codeSnapshot.value : this.codeSnapshot,
     nameSecondarySnapshot: nameSecondarySnapshot.present
         ? nameSecondarySnapshot.value
@@ -3401,6 +3436,7 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
       qty: data.qty.present ? data.qty.value : this.qty,
       lineTotal: data.lineTotal.present ? data.lineTotal.value : this.lineTotal,
       status: data.status.present ? data.status.value : this.status,
+      comped: data.comped.present ? data.comped.value : this.comped,
       codeSnapshot: data.codeSnapshot.present
           ? data.codeSnapshot.value
           : this.codeSnapshot,
@@ -3425,6 +3461,7 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
           ..write('qty: $qty, ')
           ..write('lineTotal: $lineTotal, ')
           ..write('status: $status, ')
+          ..write('comped: $comped, ')
           ..write('codeSnapshot: $codeSnapshot, ')
           ..write('nameSecondarySnapshot: $nameSecondarySnapshot, ')
           ..write('note: $note, ')
@@ -3443,6 +3480,7 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
     qty,
     lineTotal,
     status,
+    comped,
     codeSnapshot,
     nameSecondarySnapshot,
     note,
@@ -3460,6 +3498,7 @@ class OrderLineRow extends DataClass implements Insertable<OrderLineRow> {
           other.qty == this.qty &&
           other.lineTotal == this.lineTotal &&
           other.status == this.status &&
+          other.comped == this.comped &&
           other.codeSnapshot == this.codeSnapshot &&
           other.nameSecondarySnapshot == this.nameSecondarySnapshot &&
           other.note == this.note &&
@@ -3475,6 +3514,7 @@ class OrderLinesCompanion extends UpdateCompanion<OrderLineRow> {
   final Value<int> qty;
   final Value<domain.Money> lineTotal;
   final Value<domain.OrderLineStatus> status;
+  final Value<bool> comped;
   final Value<String?> codeSnapshot;
   final Value<String?> nameSecondarySnapshot;
   final Value<String?> note;
@@ -3489,6 +3529,7 @@ class OrderLinesCompanion extends UpdateCompanion<OrderLineRow> {
     this.qty = const Value.absent(),
     this.lineTotal = const Value.absent(),
     this.status = const Value.absent(),
+    this.comped = const Value.absent(),
     this.codeSnapshot = const Value.absent(),
     this.nameSecondarySnapshot = const Value.absent(),
     this.note = const Value.absent(),
@@ -3504,6 +3545,7 @@ class OrderLinesCompanion extends UpdateCompanion<OrderLineRow> {
     required int qty,
     required domain.Money lineTotal,
     required domain.OrderLineStatus status,
+    this.comped = const Value.absent(),
     this.codeSnapshot = const Value.absent(),
     this.nameSecondarySnapshot = const Value.absent(),
     this.note = const Value.absent(),
@@ -3526,6 +3568,7 @@ class OrderLinesCompanion extends UpdateCompanion<OrderLineRow> {
     Expression<int>? qty,
     Expression<int>? lineTotal,
     Expression<String>? status,
+    Expression<bool>? comped,
     Expression<String>? codeSnapshot,
     Expression<String>? nameSecondarySnapshot,
     Expression<String>? note,
@@ -3541,6 +3584,7 @@ class OrderLinesCompanion extends UpdateCompanion<OrderLineRow> {
       if (qty != null) 'qty': qty,
       if (lineTotal != null) 'line_total': lineTotal,
       if (status != null) 'status': status,
+      if (comped != null) 'comped': comped,
       if (codeSnapshot != null) 'code_snapshot': codeSnapshot,
       if (nameSecondarySnapshot != null)
         'name_secondary_snapshot': nameSecondarySnapshot,
@@ -3560,6 +3604,7 @@ class OrderLinesCompanion extends UpdateCompanion<OrderLineRow> {
     Value<int>? qty,
     Value<domain.Money>? lineTotal,
     Value<domain.OrderLineStatus>? status,
+    Value<bool>? comped,
     Value<String?>? codeSnapshot,
     Value<String?>? nameSecondarySnapshot,
     Value<String?>? note,
@@ -3575,6 +3620,7 @@ class OrderLinesCompanion extends UpdateCompanion<OrderLineRow> {
       qty: qty ?? this.qty,
       lineTotal: lineTotal ?? this.lineTotal,
       status: status ?? this.status,
+      comped: comped ?? this.comped,
       codeSnapshot: codeSnapshot ?? this.codeSnapshot,
       nameSecondarySnapshot:
           nameSecondarySnapshot ?? this.nameSecondarySnapshot,
@@ -3617,6 +3663,9 @@ class OrderLinesCompanion extends UpdateCompanion<OrderLineRow> {
         $OrderLinesTable.$converterstatus.toSql(status.value),
       );
     }
+    if (comped.present) {
+      map['comped'] = Variable<bool>(comped.value);
+    }
     if (codeSnapshot.present) {
       map['code_snapshot'] = Variable<String>(codeSnapshot.value);
     }
@@ -3648,6 +3697,7 @@ class OrderLinesCompanion extends UpdateCompanion<OrderLineRow> {
           ..write('qty: $qty, ')
           ..write('lineTotal: $lineTotal, ')
           ..write('status: $status, ')
+          ..write('comped: $comped, ')
           ..write('codeSnapshot: $codeSnapshot, ')
           ..write('nameSecondarySnapshot: $nameSecondarySnapshot, ')
           ..write('note: $note, ')
@@ -9772,6 +9822,7 @@ typedef $$OrderLinesTableCreateCompanionBuilder =
       required int qty,
       required domain.Money lineTotal,
       required domain.OrderLineStatus status,
+      Value<bool> comped,
       Value<String?> codeSnapshot,
       Value<String?> nameSecondarySnapshot,
       Value<String?> note,
@@ -9788,6 +9839,7 @@ typedef $$OrderLinesTableUpdateCompanionBuilder =
       Value<int> qty,
       Value<domain.Money> lineTotal,
       Value<domain.OrderLineStatus> status,
+      Value<bool> comped,
       Value<String?> codeSnapshot,
       Value<String?> nameSecondarySnapshot,
       Value<String?> note,
@@ -9890,6 +9942,11 @@ class $$OrderLinesTableFilterComposer
   get status => $composableBuilder(
     column: $table.status,
     builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<bool> get comped => $composableBuilder(
+    column: $table.comped,
+    builder: (column) => ColumnFilters(column),
   );
 
   ColumnFilters<String> get codeSnapshot => $composableBuilder(
@@ -10005,6 +10062,11 @@ class $$OrderLinesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get comped => $composableBuilder(
+    column: $table.comped,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get codeSnapshot => $composableBuilder(
     column: $table.codeSnapshot,
     builder: (column) => ColumnOrderings(column),
@@ -10085,6 +10147,9 @@ class $$OrderLinesTableAnnotationComposer
 
   GeneratedColumnWithTypeConverter<domain.OrderLineStatus, String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<bool> get comped =>
+      $composableBuilder(column: $table.comped, builder: (column) => column);
 
   GeneratedColumn<String> get codeSnapshot => $composableBuilder(
     column: $table.codeSnapshot,
@@ -10190,6 +10255,7 @@ class $$OrderLinesTableTableManager
                 Value<int> qty = const Value.absent(),
                 Value<domain.Money> lineTotal = const Value.absent(),
                 Value<domain.OrderLineStatus> status = const Value.absent(),
+                Value<bool> comped = const Value.absent(),
                 Value<String?> codeSnapshot = const Value.absent(),
                 Value<String?> nameSecondarySnapshot = const Value.absent(),
                 Value<String?> note = const Value.absent(),
@@ -10204,6 +10270,7 @@ class $$OrderLinesTableTableManager
                 qty: qty,
                 lineTotal: lineTotal,
                 status: status,
+                comped: comped,
                 codeSnapshot: codeSnapshot,
                 nameSecondarySnapshot: nameSecondarySnapshot,
                 note: note,
@@ -10220,6 +10287,7 @@ class $$OrderLinesTableTableManager
                 required int qty,
                 required domain.Money lineTotal,
                 required domain.OrderLineStatus status,
+                Value<bool> comped = const Value.absent(),
                 Value<String?> codeSnapshot = const Value.absent(),
                 Value<String?> nameSecondarySnapshot = const Value.absent(),
                 Value<String?> note = const Value.absent(),
@@ -10234,6 +10302,7 @@ class $$OrderLinesTableTableManager
                 qty: qty,
                 lineTotal: lineTotal,
                 status: status,
+                comped: comped,
                 codeSnapshot: codeSnapshot,
                 nameSecondarySnapshot: nameSecondarySnapshot,
                 note: note,

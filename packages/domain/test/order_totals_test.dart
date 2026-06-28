@@ -5,6 +5,7 @@ OrderLine _line({
   required int cents,
   int qty = 1,
   OrderLineStatus status = OrderLineStatus.active,
+  bool comped = false,
 }) {
   return OrderLine(
     id: newId(),
@@ -15,6 +16,7 @@ OrderLine _line({
     qty: qty,
     lineTotal: Money(cents * qty),
     status: status,
+    comped: comped,
   );
 }
 
@@ -72,6 +74,29 @@ void main() {
       expect(t.serviceFee, const Money(100));
       expect(t.tax, const Money(130));
       expect(t.total, const Money(1230)); // 1000 + 130 + 100
+    });
+
+    test('comped lines are free but their worth is tallied in comps', () {
+      // $10.00 paid + $4.00 comped: customer owes 10.00 + 13% tax = 1130c;
+      // the comp's $4.00 is reported separately, never billed or taxed.
+      final t = OrderTotals.compute(
+        lines: [_line(cents: 1000), _line(cents: 400, comped: true)],
+        taxRateBp: 1300,
+      );
+      expect(t.subtotal, const Money(1000));
+      expect(t.comps, const Money(400));
+      expect(t.tax, const Money(130));
+      expect(t.total, const Money(1130));
+    });
+
+    test('a fully comped order owes nothing', () {
+      final t = OrderTotals.compute(
+        lines: [_line(cents: 800, comped: true)],
+        taxRateBp: 1300,
+      );
+      expect(t.subtotal, Money.zero);
+      expect(t.comps, const Money(800));
+      expect(t.total, Money.zero);
     });
 
     test('discount is capped at the subtotal', () {

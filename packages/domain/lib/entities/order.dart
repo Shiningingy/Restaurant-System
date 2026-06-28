@@ -64,6 +64,13 @@ abstract class OrderLine with _$OrderLine {
     required Money lineTotal,
     @Default(OrderLineStatus.active) OrderLineStatus status,
 
+    /// A comped (on-the-house) line: still active — the kitchen makes it and it
+    /// prints on the receipt — but it costs the customer nothing. Its
+    /// [lineTotal] is kept as the original price so the comp's worth is known
+    /// (reports, the manager's comp cap); the totals math routes it out of the
+    /// billable subtotal into [OrderTotals.comps] instead.
+    @Default(false) bool comped,
+
     /// Set to the id of the payment that settled this line when the bill is
     /// split by item; null while the line is still unpaid. Purely a record of
     /// which split paid for it — the order still closes on the payment balance.
