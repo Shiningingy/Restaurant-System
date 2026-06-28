@@ -163,6 +163,7 @@ class SyncCodec {
       'tax': o.tax.cents,
       'total': o.total.cents,
       'requestedTip': o.requestedTip.cents,
+      'cashRounding': o.cashRounding.cents,
       'note': o.note,
       'lines': [
         for (final l in lines)
@@ -405,6 +406,7 @@ class SyncCodec {
               tax: domain.Money(p['tax'] as int),
               total: domain.Money(p['total'] as int),
               requestedTip: Value(domain.Money(p['requestedTip'] as int? ?? 0)),
+              cashRounding: Value(domain.Money(p['cashRounding'] as int? ?? 0)),
               note: Value(p['note'] as String?),
             ),
           );

@@ -51,6 +51,12 @@ abstract class Order with _$Order {
     /// local order so staff see it and the payment sheet pre-fills it at
     /// settlement. Not part of [total] (the tip rides on top of the payment).
     @Default(Money.zero) Money requestedTip,
+
+    /// Cash-rounding adjustment applied at a cash payment (signed: negative when
+    /// rounded down). The amount actually owed is [total] + [cashRounding], so
+    /// the bill shows it as a small discount/rounding line. Zero for card/online
+    /// or when rounding is off.
+    @Default(Money.zero) Money cashRounding,
     String? note,
   }) = _Order;
 }

@@ -691,7 +691,11 @@ class _Ticket extends ConsumerWidget {
         .fold(domain.Money.zero, (s, l) => s + l.lineTotal);
     final payments = ref.watch(orderPaymentsProvider(order.id)).value ?? [];
     final settled = domain.settledPayments(payments).toList();
-    final balance = domain.balanceDue(total: order.total, payments: payments);
+    // What's owed is the total plus any cash-rounding adjustment.
+    final balance = domain.balanceDue(
+      total: order.total + order.cashRounding,
+      payments: payments,
+    );
     final showSecondary = ref.watch(nameDisplayProvider).orderScreen;
 
     return Column(
