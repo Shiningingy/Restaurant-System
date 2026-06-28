@@ -86,6 +86,9 @@ class SupabaseStorefront {
       // Optional column (docs/CLOUD_SECURITY.md): only sent for kiosk orders,
       // so a storefront that hasn't added it doesn't 400 for normal orders.
       if (sub.kiosk) 'is_kiosk': true,
+      // Optional column too — only sent when the customer added a tip, so a
+      // storefront that hasn't applied the DDL still accepts tipless orders.
+      if (!sub.tip.isZero) 'tip_cents': sub.tip.cents,
     };
     // Only send the email/SMS-notification columns when the customer opted in.
     // They're optional schema (docs/EMAIL_SMS_NOTIFICATIONS.md); referencing

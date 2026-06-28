@@ -319,6 +319,11 @@ class PreorderSubmission {
   /// the Orders board, since the customer is already on site.
   final bool kiosk;
 
+  /// The tip the customer chose at checkout (kiosk / online). Not card data —
+  /// just an amount, carried so the merchant can apply it when the order is
+  /// settled. Defaults to zero (no tip).
+  final Money tip;
+
   const PreorderSubmission({
     required this.customerName,
     required this.requestedPickupAt,
@@ -329,6 +334,7 @@ class PreorderSubmission {
     this.notifyBySms = false,
     this.note,
     this.kiosk = false,
+    this.tip = Money.zero,
   });
 
   Money get total => lines.fold(Money.zero, (sum, l) => sum + l.lineTotal);
@@ -343,6 +349,7 @@ class PreorderSubmission {
         'lines': lines.map((l) => l.toJson()).toList(),
         'note': note,
         'kiosk': kiosk,
+        if (!tip.isZero) 'tip': tip.cents,
       };
 
   factory PreorderSubmission.fromJson(Map<String, dynamic> j) =>
@@ -359,5 +366,6 @@ class PreorderSubmission {
             .toList(),
         note: j['note'] as String?,
         kiosk: j['kiosk'] as bool? ?? false,
+        tip: Money(j['tip'] as int? ?? 0),
       );
 }

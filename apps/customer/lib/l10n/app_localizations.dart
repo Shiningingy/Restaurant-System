@@ -422,6 +422,36 @@ abstract class AppLocalizations {
   /// **'Total'**
   String get kioskTotal;
 
+  /// No description provided for @kioskTipTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a tip?'**
+  String get kioskTipTitle;
+
+  /// No description provided for @kioskNoTip.
+  ///
+  /// In en, this message translates to:
+  /// **'No tip'**
+  String get kioskNoTip;
+
+  /// No description provided for @kioskTipCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get kioskTipCustom;
+
+  /// No description provided for @kioskTipCustomHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip amount'**
+  String get kioskTipCustomHint;
+
+  /// No description provided for @kioskTip.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip'**
+  String get kioskTip;
+
   /// No description provided for @kioskOrderPlaced.
   ///
   /// In en, this message translates to:
@@ -799,6 +829,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Subtotal'**
   String get checkoutSubtotal;
+
+  /// No description provided for @checkoutTip.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip'**
+  String get checkoutTip;
+
+  /// No description provided for @checkoutTipTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a tip?'**
+  String get checkoutTipTitle;
+
+  /// No description provided for @checkoutNoTip.
+  ///
+  /// In en, this message translates to:
+  /// **'No tip'**
+  String get checkoutNoTip;
+
+  /// No description provided for @checkoutTipCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get checkoutTipCustom;
+
+  /// No description provided for @checkoutTipCustomHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip amount'**
+  String get checkoutTipCustomHint;
 
   /// No description provided for @checkoutEstimatedTax.
   ///

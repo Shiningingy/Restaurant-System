@@ -37,7 +37,7 @@ class KioskOrderScreen extends ConsumerWidget {
       labels: _labels(l10n),
       onRefreshMenu: () async => ref.invalidate(menuProvider),
       onExit: () => Navigator.of(context).pop(),
-      onSubmit: (cart) => _submit(ref, l10n, cart),
+      onSubmit: (cart, tip) => _submit(ref, l10n, cart, tip),
     );
   }
 
@@ -45,6 +45,7 @@ class KioskOrderScreen extends ConsumerWidget {
     WidgetRef ref,
     AppLocalizations l10n,
     List<KioskCartLine> cart,
+    domain.Money tip,
   ) async {
     final storefront = ref.read(storefrontProvider);
     if (storefront == null) return {'ok': false};
@@ -59,6 +60,7 @@ class KioskOrderScreen extends ConsumerWidget {
       ),
       // In-store kiosk → the merchant can auto-accept straight to the board.
       kiosk: true,
+      tip: tip,
       lines: [
         for (final l in cart)
           domain.PreorderLine(
@@ -105,6 +107,11 @@ KioskLabels _labels(AppLocalizations l10n) => KioskLabels(
   payHereSoon: l10n.kioskPayHereSoon,
   subtotal: l10n.kioskSubtotal,
   total: l10n.kioskTotal,
+  tipTitle: l10n.kioskTipTitle,
+  noTip: l10n.kioskNoTip,
+  tipCustom: l10n.kioskTipCustom,
+  tipCustomHint: l10n.kioskTipCustomHint,
+  tip: l10n.kioskTip,
   orderPlaced: l10n.kioskOrderPlaced,
   yourNumber: l10n.kioskYourNumber,
   payAtCounterNote: l10n.kioskPayAtCounterNote,

@@ -8,6 +8,10 @@ class KioskMenu {
   final int taxRateBp;
   final int serviceFeeBp;
   final bool payHere;
+
+  /// Suggested tip percentages (basis points) for the review screen; a 0 entry
+  /// is the "No tip" button. Empty = no tip selector.
+  final List<int> tipPresetsBp;
   final List<KioskCategory> categories;
 
   const KioskMenu({
@@ -16,6 +20,7 @@ class KioskMenu {
     required this.serviceFeeBp,
     required this.payHere,
     required this.categories,
+    this.tipPresetsBp = const [],
   });
 
   static KioskMenu fromJson(Map<String, dynamic> j) => KioskMenu(
@@ -23,6 +28,9 @@ class KioskMenu {
     taxRateBp: (j['taxRateBp'] as num?)?.toInt() ?? 0,
     serviceFeeBp: (j['serviceFeeBp'] as num?)?.toInt() ?? 0,
     payHere: j['payHere'] as bool? ?? false,
+    tipPresetsBp: ((j['tipPresetsBp'] as List?) ?? const [])
+        .map((e) => (e as num).toInt())
+        .toList(),
     categories: ((j['categories'] as List?) ?? const [])
         .cast<Map<String, dynamic>>()
         .map(KioskCategory.fromJson)
