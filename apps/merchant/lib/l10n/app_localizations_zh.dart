@@ -806,6 +806,16 @@ class AppLocalizationsZh extends AppLocalizations {
       '让顾客预订时用卡付款。需要在您的 Supabase 上部署 pay-online 函数 — 参见 docs/MONERIS_PAYMENT.md。';
 
   @override
+  String get setTipPresets => '小费选项';
+
+  @override
+  String get setTipPresetsNone => '关闭 — 自助点餐和在线结账不提示小费';
+
+  @override
+  String get setTipPresetsHint =>
+      '最多 4 个可点选的小费百分比（用 0 表示“不给小费”按钮），例如 0、10、15、20。按税前小计计算。顾客也可随时自定义金额。';
+
+  @override
   String get setPayments => '支付';
 
   @override

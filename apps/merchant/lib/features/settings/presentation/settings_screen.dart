@@ -1600,8 +1600,64 @@ class _OnlineOrderingSection extends ConsumerWidget {
               .read(onlineOrderSettingsProvider.notifier)
               .setAcceptsOnlinePayment(v),
         ),
+        ListTile(
+          leading: const Icon(Icons.volunteer_activism_outlined),
+          title: Text(context.l10n.setTipPresets),
+          subtitle: Text(
+            settings.tipPresetsBp.isEmpty
+                ? context.l10n.setTipPresetsNone
+                : settings.tipPresetsBp.map(_tipLabel).join(', '),
+          ),
+          onTap: () => _editTipPresets(context, ref),
+        ),
       ],
     );
+  }
+
+  /// "No tip" for a 0 preset, else "N%".
+  String _tipLabel(int bp) => bp == 0 ? 'No tip' : '${bp ~/ 100}%';
+
+  Future<void> _editTipPresets(BuildContext context, WidgetRef ref) async {
+    final controller = TextEditingController(
+      text: settings.tipPresetsBp.map((bp) => bp / 100).join(', '),
+    );
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.l10n.setTipPresets),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: InputDecoration(
+            helperText: context.l10n.setTipPresetsHint,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(context.l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(context.l10n.commonSave),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) {
+      // Accept 0 (= "No tip"); keep first 4, in the order entered.
+      final presets = controller.text
+          .split(RegExp(r'[,\s]+'))
+          .map((s) => double.tryParse(s.trim()))
+          .whereType<double>()
+          .map((pct) => (pct * 100).round())
+          .where((bp) => bp >= 0 && bp <= 10000)
+          .take(4)
+          .toList();
+      await ref
+          .read(onlineOrderSettingsProvider.notifier)
+          .setTipPresetsBp(presets);
+    }
   }
 
   Future<void> _editLead(BuildContext context, WidgetRef ref) async {
