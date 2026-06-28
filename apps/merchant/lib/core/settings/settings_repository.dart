@@ -156,6 +156,8 @@ class SettingsRepository {
   static const _kioskSeqKey = 'kioskOrderSeq';
   static const _kioskPayHereKey = 'kioskPayHere';
   static const _helpSeenKey = 'helpSeen';
+  static const _compAllowedItemsKey = 'compAllowedItemIds';
+  static const _compAmountCapKey = 'compAmountCapCents';
 
   /// Staff may apply a manual discount up to this without a manager — 15%.
   static const defaultDiscountThresholdBp = 1500;
@@ -413,4 +415,20 @@ class SettingsRepository {
   bool get helpSeen => prefs.getBool(_helpSeenKey) ?? false;
 
   Future<void> setHelpSeen(bool seen) => prefs.setBool(_helpSeenKey, seen);
+
+  // --- Comp (free-item) policy: what staff may give free without a manager ---
+
+  /// Menu-item ids any staff may comp (give free) without manager approval.
+  List<String> get compAllowedItemIds =>
+      prefs.getStringList(_compAllowedItemsKey) ?? const [];
+
+  Future<void> setCompAllowedItemIds(List<String> ids) =>
+      prefs.setStringList(_compAllowedItemsKey, ids);
+
+  /// Max total comp value per order (in cents) staff may grant without manager
+  /// approval. 0 = no amount allowance (staff can only comp the allowed items).
+  int get compAmountCapCents => prefs.getInt(_compAmountCapKey) ?? 0;
+
+  Future<void> setCompAmountCapCents(int cents) =>
+      prefs.setInt(_compAmountCapKey, cents);
 }

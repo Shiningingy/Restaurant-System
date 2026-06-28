@@ -381,3 +381,61 @@ final onlineOrderSettingsProvider =
     NotifierProvider<OnlineOrderSettingsNotifier, OnlineOrderSettings>(
       OnlineOrderSettingsNotifier.new,
     );
+
+/// Manager-set comp (free-item) policy. Staff may comp on their own only within
+/// this allowance; anything beyond needs a manager (AppPermission.compOverride).
+class CompPolicy {
+  /// Menu-item ids any staff may always give free without approval.
+  final Set<String> allowedItemIds;
+
+  /// Max total comp value per order staff may grant without approval. Zero
+  /// means "no amount allowance" — staff can only comp the allowed items.
+  final domain.Money amountCap;
+
+  const CompPolicy({
+    this.allowedItemIds = const {},
+    this.amountCap = domain.Money.zero,
+  });
+
+  /// Whether staff may comp [itemId] on their own (no manager PIN), given the
+  /// order's total comp worth **after** this comp would apply. Allowed when the
+  /// item is on the always-free list, or the running comp total stays within
+  /// the cap. A manager/owner bypasses this entirely (they hold the override).
+  bool allowsWithoutApproval({
+    required String itemId,
+    required domain.Money orderCompTotalAfter,
+  }) {
+    if (allowedItemIds.contains(itemId)) return true;
+    if (amountCap.cents > 0 && orderCompTotalAfter.cents <= amountCap.cents) {
+      return true;
+    }
+    return false;
+  }
+}
+
+class CompPolicyNotifier extends Notifier<CompPolicy> {
+  @override
+  CompPolicy build() {
+    final r = ref.watch(settingsRepositoryProvider);
+    return CompPolicy(
+      allowedItemIds: r.compAllowedItemIds.toSet(),
+      amountCap: domain.Money(r.compAmountCapCents),
+    );
+  }
+
+  Future<void> setAllowedItemIds(Set<String> ids) async {
+    await ref
+        .read(settingsRepositoryProvider)
+        .setCompAllowedItemIds(ids.toList());
+    ref.invalidateSelf();
+  }
+
+  Future<void> setAmountCap(domain.Money cap) async {
+    await ref.read(settingsRepositoryProvider).setCompAmountCapCents(cap.cents);
+    ref.invalidateSelf();
+  }
+}
+
+final compPolicyProvider = NotifierProvider<CompPolicyNotifier, CompPolicy>(
+  CompPolicyNotifier.new,
+);
