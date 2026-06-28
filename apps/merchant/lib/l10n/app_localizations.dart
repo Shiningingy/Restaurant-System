@@ -962,6 +962,18 @@ abstract class AppLocalizations {
   /// **'Cash tendered (optional)'**
   String get pmtCashTendered;
 
+  /// No description provided for @pmtTip.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip (optional)'**
+  String get pmtTip;
+
+  /// No description provided for @pmtTipHint.
+  ///
+  /// In en, this message translates to:
+  /// **'On top of the amount; printed on the receipt'**
+  String get pmtTipHint;
+
   /// No description provided for @pmtChangeDue.
   ///
   /// In en, this message translates to:
@@ -1639,6 +1651,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Receipt footer'**
   String get setReceiptFooter;
+
+  /// No description provided for @setAutoPrintReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-print receipt'**
+  String get setAutoPrintReceipt;
+
+  /// No description provided for @setAutoPrintReceiptSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Print the receipt automatically when an order is paid. Off: print only on demand (reprint from Reports).'**
+  String get setAutoPrintReceiptSubtitle;
 
   /// No description provided for @setCustomerDisplay.
   ///

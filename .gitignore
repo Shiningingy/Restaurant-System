@@ -15,7 +15,7 @@ node_modules/
 # Pitch deck / design-handoff material at the repo root — not part of the app.
 # Anchored with a leading slash so it ONLY matches the top-level folder, not the
 # Flutter `features/*/presentation/` source dirs (a bare `presentation/` silently
-# dropped new source files there from commits).
+# dropped new source files there from commits — e.g. payment_webview.dart).
 /presentation/
 
 # Flutter

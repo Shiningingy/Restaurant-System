@@ -224,6 +224,8 @@
   "pmtDeclined": "Declined",
   "pmtApproved": "Approved",
   "pmtCashTendered": "Cash tendered (optional)",
+  "pmtTip": "Tip (optional)",
+  "pmtTipHint": "On top of the amount; printed on the receipt",
   "pmtChangeDue": "Change due {amount}",
   "@pmtChangeDue": {
     "placeholders": { "amount": { "type": "String" } }
@@ -404,6 +406,8 @@
   "setBusinessName": "Store name",
   "setBusinessNameHint": "Shown on receipts, the customer display and kiosk",
   "setReceiptFooter": "Receipt footer",
+  "setAutoPrintReceipt": "Auto-print receipt",
+  "setAutoPrintReceiptSubtitle": "Print the receipt automatically when an order is paid. Off: print only on demand (reprint from Reports).",
   "setCustomerDisplay": "Customer display (second screen)",
   "setBranding": "Store & branding",
   "setBrandingHint": "Set a default logo for the whole app. Any spot below can use its own instead.",

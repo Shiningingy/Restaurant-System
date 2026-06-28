@@ -175,6 +175,22 @@ final kioskPayHereProvider = NotifierProvider<KioskPayHereNotifier, bool>(
   KioskPayHereNotifier.new,
 );
 
+/// Whether the customer receipt auto-prints when an order is fully paid.
+class AutoPrintReceiptNotifier extends Notifier<bool> {
+  @override
+  bool build() => ref.watch(settingsRepositoryProvider).autoPrintReceipt;
+
+  Future<void> set(bool on) async {
+    await ref.read(settingsRepositoryProvider).setAutoPrintReceipt(on);
+    ref.invalidateSelf();
+  }
+}
+
+final autoPrintReceiptProvider =
+    NotifierProvider<AutoPrintReceiptNotifier, bool>(
+      AutoPrintReceiptNotifier.new,
+    );
+
 /// How the customer-facing second screen behaves (passive / kiosk / hybrid).
 class CustomerDisplayModeNotifier extends Notifier<CustomerDisplayMode> {
   @override

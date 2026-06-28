@@ -60,6 +60,7 @@ class PaymentService {
     required String orderId,
     required domain.Money amount,
     required ManualChargePrompt prompt,
+    domain.Money tip = domain.Money.zero,
     List<String> settleLineIds = const [],
   }) async {
     final (terminal, method) = buildTerminal(prompt);
@@ -87,7 +88,9 @@ class PaymentService {
               orderId: orderId,
               method: method,
               amount: value.amount,
-              tip: value.tip,
+              // An integrated terminal reports its own tip; a manual/keyed
+              // charge doesn't, so fall back to the tip keyed in the sheet.
+              tip: value.tip.isZero ? tip : value.tip,
               terminalRef: value.terminalRef,
               settleLineIds: settleLineIds,
             );

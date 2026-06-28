@@ -158,6 +158,7 @@ class SettingsRepository {
   static const _helpSeenKey = 'helpSeen';
   static const _compAllowedItemsKey = 'compAllowedItemIds';
   static const _compAmountCapKey = 'compAmountCapCents';
+  static const _autoPrintReceiptKey = 'autoPrintReceipt';
 
   /// Staff may apply a manual discount up to this without a manager — 15%.
   static const defaultDiscountThresholdBp = 1500;
@@ -431,4 +432,12 @@ class SettingsRepository {
 
   Future<void> setCompAmountCapCents(int cents) =>
       prefs.setInt(_compAmountCapKey, cents);
+
+  /// Whether the customer receipt prints automatically when an order is fully
+  /// paid. On by default; turn off to stop receipts without unplugging the
+  /// printer (staff can still reprint from Reports).
+  bool get autoPrintReceipt => prefs.getBool(_autoPrintReceiptKey) ?? true;
+
+  Future<void> setAutoPrintReceipt(bool on) =>
+      prefs.setBool(_autoPrintReceiptKey, on);
 }
