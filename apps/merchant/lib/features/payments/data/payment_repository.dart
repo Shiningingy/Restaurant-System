@@ -34,6 +34,11 @@ class PaymentRepository {
     required domain.PaymentMethod method,
     required domain.Money amount,
     domain.Money tip = domain.Money.zero,
+
+    /// A cash-rounding adjustment (signed) applied by this payment: the amount
+    /// owed becomes order.total + cashRounding, so a cash total rounded down to
+    /// a clean amount still settles the order. Stored on the order; usually zero.
+    domain.Money cashRounding = domain.Money.zero,
     String? terminalRef,
 
     /// When splitting the bill by item, the lines this payment settles. They
@@ -55,11 +60,18 @@ class PaymentRepository {
         // Lines changed — re-journal the order aggregate for sync.
         await journal.recordUpsert(SyncEntities.order, orderId);
       }
+      // Apply any cash-rounding adjustment to the order before the settle check.
+      if (!cashRounding.isZero) {
+        await (db.update(db.orders)..where((t) => t.id.equals(orderId))).write(
+          OrdersCompanion(cashRounding: Value(cashRounding)),
+        );
+      }
       final order = await (db.select(
         db.orders,
       )..where((t) => t.id.equals(orderId))).getSingle();
       final paid = await _approvedTotal(orderId);
-      if (paid < order.total) return false;
+      // The order owes total + cashRounding (rounding is a small ± adjustment).
+      if (paid < order.total + order.cashRounding) return false;
       await (db.update(db.orders)..where((t) => t.id.equals(orderId))).write(
         OrdersCompanion(
           status: const Value(domain.OrderStatus.paid),

@@ -158,7 +158,13 @@ TicketDoc buildCustomerReceipt({
         order.serviceFee.format(),
       ),
     TicketRow(taxLabel, order.tax.format()),
-    TicketRow('TOTAL', order.total.format(), style: TicketStyle.emphasized),
+    if (!order.cashRounding.isZero)
+      TicketRow('Rounding', order.cashRounding.format()),
+    TicketRow(
+      'TOTAL',
+      (order.total + order.cashRounding).format(),
+      style: TicketStyle.emphasized,
+    ),
     if (settled.isNotEmpty) ...[
       const TicketFeed(),
       for (final payment in settled) ...[

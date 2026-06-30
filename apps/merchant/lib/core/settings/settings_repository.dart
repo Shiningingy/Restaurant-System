@@ -141,6 +141,7 @@ class SettingsRepository {
   static const _serviceFeeBpKey = 'serviceFeeBp';
   static const _discountPresetsKey = 'discountPresetsBp';
   static const _discountThresholdKey = 'discountThresholdBp';
+  static const _cashRoundingKey = 'cashRoundingCents';
   static const _categoryVerticalKey = 'categoryVertical';
   static const _displayPromoKey = 'displayPromoLines';
   static const _displayPromoImagesKey = 'displayPromoImages';
@@ -362,6 +363,14 @@ class SettingsRepository {
 
   Future<void> setDiscountThresholdBp(int bp) =>
       prefs.setInt(_discountThresholdKey, bp);
+
+  /// Cash-rounding increment in cents (0 = off, e.g. 5/10/25): a cash payment's
+  /// total is rounded to this so the till needs no pennies. Card/online pay the
+  /// exact amount. Off by default.
+  int get cashRoundingCents => prefs.getInt(_cashRoundingKey) ?? 0;
+
+  Future<void> setCashRoundingCents(int cents) =>
+      prefs.setInt(_cashRoundingKey, cents);
 
   /// Whether the order screen lists categories vertically (a left column that
   /// can show them all at once) rather than the horizontal scrolling row.

@@ -148,6 +148,11 @@ class Orders extends Table {
   /// payment sheet to pre-fill at settlement. Not part of [total].
   IntColumn get requestedTip =>
       integer().map(const MoneyConverter()).withDefault(const Constant(0))();
+
+  /// Cash-rounding adjustment applied at a cash payment (signed). Amount owed
+  /// is [total] + this. Not part of [total].
+  IntColumn get cashRounding =>
+      integer().map(const MoneyConverter()).withDefault(const Constant(0))();
   TextColumn get note => text().nullable()();
 
   @override

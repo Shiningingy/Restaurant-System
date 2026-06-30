@@ -75,6 +75,7 @@
   "ordFreeItem": "赠送菜品",
   "ordFreeItemBanner": "赠送模式 — 接下来点选的菜品将免费赠送。",
   "ordFreeItemBannerOff": "关闭",
+  "ordRounding": "抹零",
   "ordTotal": "合计",
   "ordPaidMethod": "已付 — {method}",
   "ordTipSuffix": "（小费 {tip}）",
@@ -163,6 +164,15 @@
   "pmtCashTendered": "实收现金（可选）",
   "pmtTip": "小费（可选）",
   "pmtTipHint": "在金额之外另加；会打印在小票上",
+  "pmtCashRounding": "现金抹零",
+  "pmtRoundExact": "原价 {amount}",
+  "@pmtRoundExact": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "pmtRoundingAdjust": "抹零 {amount} — 在账单上显示为折扣",
+  "@pmtRoundingAdjust": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
   "pmtChangeDue": "应找零 {amount}",
   "@pmtChangeDue": {
     "placeholders": { "amount": { "type": "String" } }
@@ -260,6 +270,9 @@
   "setDiscountPresetsHint": "以逗号分隔的百分比，例如 5、10、15",
   "setDiscountThreshold": "无需经理的折扣上限",
   "setDiscountThresholdHint": "更大的折扣需要经理 PIN。",
+  "setCashRounding": "现金抹零",
+  "setCashRoundingHint": "将现金总额抹成整数（差额显示为折扣）。刷卡/在线按实际总额支付。",
+  "setCashRoundingOff": "关闭",
   "setOnlineOrdering": "在线点餐",
   "setPickupLead": "最短取餐时间",
   "setPickupLeadSubtitle": "顾客最早可要求的取餐时间。随菜单一起发送。",

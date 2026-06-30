@@ -49,6 +49,12 @@ mixin _$Order {
   /// local order so staff see it and the payment sheet pre-fills it at
   /// settlement. Not part of [total] (the tip rides on top of the payment).
   Money get requestedTip;
+
+  /// Cash-rounding adjustment applied at a cash payment (signed: negative when
+  /// rounded down). The amount actually owed is [total] + [cashRounding], so
+  /// the bill shows it as a small discount/rounding line. Zero for card/online
+  /// or when rounding is off.
+  Money get cashRounding;
   String? get note;
 
   /// Create a copy of Order
@@ -86,6 +92,8 @@ mixin _$Order {
             (identical(other.total, total) || other.total == total) &&
             (identical(other.requestedTip, requestedTip) ||
                 other.requestedTip == requestedTip) &&
+            (identical(other.cashRounding, cashRounding) ||
+                other.cashRounding == cashRounding) &&
             (identical(other.note, note) || other.note == note));
   }
 
@@ -107,11 +115,12 @@ mixin _$Order {
       tax,
       total,
       requestedTip,
+      cashRounding,
       note);
 
   @override
   String toString() {
-    return 'Order(id: $id, type: $type, status: $status, createdAt: $createdAt, taxRateBp: $taxRateBp, serviceFeeBp: $serviceFeeBp, tableId: $tableId, paidAt: $paidAt, closedAt: $closedAt, subtotal: $subtotal, discount: $discount, serviceFee: $serviceFee, tax: $tax, total: $total, requestedTip: $requestedTip, note: $note)';
+    return 'Order(id: $id, type: $type, status: $status, createdAt: $createdAt, taxRateBp: $taxRateBp, serviceFeeBp: $serviceFeeBp, tableId: $tableId, paidAt: $paidAt, closedAt: $closedAt, subtotal: $subtotal, discount: $discount, serviceFee: $serviceFee, tax: $tax, total: $total, requestedTip: $requestedTip, cashRounding: $cashRounding, note: $note)';
   }
 }
 
@@ -136,6 +145,7 @@ abstract mixin class $OrderCopyWith<$Res> {
       Money tax,
       Money total,
       Money requestedTip,
+      Money cashRounding,
       String? note});
 }
 
@@ -166,6 +176,7 @@ class _$OrderCopyWithImpl<$Res> implements $OrderCopyWith<$Res> {
     Object? tax = null,
     Object? total = null,
     Object? requestedTip = null,
+    Object? cashRounding = null,
     Object? note = freezed,
   }) {
     return _then(_self.copyWith(
@@ -228,6 +239,10 @@ class _$OrderCopyWithImpl<$Res> implements $OrderCopyWith<$Res> {
       requestedTip: null == requestedTip
           ? _self.requestedTip
           : requestedTip // ignore: cast_nullable_to_non_nullable
+              as Money,
+      cashRounding: null == cashRounding
+          ? _self.cashRounding
+          : cashRounding // ignore: cast_nullable_to_non_nullable
               as Money,
       note: freezed == note
           ? _self.note
@@ -346,6 +361,7 @@ extension OrderPatterns on Order {
             Money tax,
             Money total,
             Money requestedTip,
+            Money cashRounding,
             String? note)?
         $default, {
     required TResult orElse(),
@@ -369,6 +385,7 @@ extension OrderPatterns on Order {
             _that.tax,
             _that.total,
             _that.requestedTip,
+            _that.cashRounding,
             _that.note);
       case _:
         return orElse();
@@ -406,6 +423,7 @@ extension OrderPatterns on Order {
             Money tax,
             Money total,
             Money requestedTip,
+            Money cashRounding,
             String? note)
         $default,
   ) {
@@ -428,6 +446,7 @@ extension OrderPatterns on Order {
             _that.tax,
             _that.total,
             _that.requestedTip,
+            _that.cashRounding,
             _that.note);
       case _:
         throw StateError('Unexpected subclass');
@@ -464,6 +483,7 @@ extension OrderPatterns on Order {
             Money tax,
             Money total,
             Money requestedTip,
+            Money cashRounding,
             String? note)?
         $default,
   ) {
@@ -486,6 +506,7 @@ extension OrderPatterns on Order {
             _that.tax,
             _that.total,
             _that.requestedTip,
+            _that.cashRounding,
             _that.note);
       case _:
         return null;
@@ -512,6 +533,7 @@ class _Order implements Order {
       this.tax = Money.zero,
       this.total = Money.zero,
       this.requestedTip = Money.zero,
+      this.cashRounding = Money.zero,
       this.note});
 
   @override
@@ -571,6 +593,14 @@ class _Order implements Order {
   @override
   @JsonKey()
   final Money requestedTip;
+
+  /// Cash-rounding adjustment applied at a cash payment (signed: negative when
+  /// rounded down). The amount actually owed is [total] + [cashRounding], so
+  /// the bill shows it as a small discount/rounding line. Zero for card/online
+  /// or when rounding is off.
+  @override
+  @JsonKey()
+  final Money cashRounding;
   @override
   final String? note;
 
@@ -610,6 +640,8 @@ class _Order implements Order {
             (identical(other.total, total) || other.total == total) &&
             (identical(other.requestedTip, requestedTip) ||
                 other.requestedTip == requestedTip) &&
+            (identical(other.cashRounding, cashRounding) ||
+                other.cashRounding == cashRounding) &&
             (identical(other.note, note) || other.note == note));
   }
 
@@ -631,11 +663,12 @@ class _Order implements Order {
       tax,
       total,
       requestedTip,
+      cashRounding,
       note);
 
   @override
   String toString() {
-    return 'Order(id: $id, type: $type, status: $status, createdAt: $createdAt, taxRateBp: $taxRateBp, serviceFeeBp: $serviceFeeBp, tableId: $tableId, paidAt: $paidAt, closedAt: $closedAt, subtotal: $subtotal, discount: $discount, serviceFee: $serviceFee, tax: $tax, total: $total, requestedTip: $requestedTip, note: $note)';
+    return 'Order(id: $id, type: $type, status: $status, createdAt: $createdAt, taxRateBp: $taxRateBp, serviceFeeBp: $serviceFeeBp, tableId: $tableId, paidAt: $paidAt, closedAt: $closedAt, subtotal: $subtotal, discount: $discount, serviceFee: $serviceFee, tax: $tax, total: $total, requestedTip: $requestedTip, cashRounding: $cashRounding, note: $note)';
   }
 }
 
@@ -661,6 +694,7 @@ abstract mixin class _$OrderCopyWith<$Res> implements $OrderCopyWith<$Res> {
       Money tax,
       Money total,
       Money requestedTip,
+      Money cashRounding,
       String? note});
 }
 
@@ -691,6 +725,7 @@ class __$OrderCopyWithImpl<$Res> implements _$OrderCopyWith<$Res> {
     Object? tax = null,
     Object? total = null,
     Object? requestedTip = null,
+    Object? cashRounding = null,
     Object? note = freezed,
   }) {
     return _then(_Order(
@@ -753,6 +788,10 @@ class __$OrderCopyWithImpl<$Res> implements _$OrderCopyWith<$Res> {
       requestedTip: null == requestedTip
           ? _self.requestedTip
           : requestedTip // ignore: cast_nullable_to_non_nullable
+              as Money,
+      cashRounding: null == cashRounding
+          ? _self.cashRounding
+          : cashRounding // ignore: cast_nullable_to_non_nullable
               as Money,
       note: freezed == note
           ? _self.note

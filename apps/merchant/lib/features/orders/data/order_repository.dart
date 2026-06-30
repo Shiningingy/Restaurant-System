@@ -513,6 +513,7 @@ class OrderRepository {
     tax: r.tax,
     total: r.total,
     requestedTip: r.requestedTip,
+    cashRounding: r.cashRounding,
     note: r.note,
   );
 

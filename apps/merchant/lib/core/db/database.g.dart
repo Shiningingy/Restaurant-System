@@ -2200,6 +2200,16 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, OrderRow> {
         requiredDuringInsert: false,
         defaultValue: const Constant(0),
       ).withConverter<domain.Money>($OrdersTable.$converterrequestedTip);
+  @override
+  late final GeneratedColumnWithTypeConverter<domain.Money, int> cashRounding =
+      GeneratedColumn<int>(
+        'cash_rounding',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+        defaultValue: const Constant(0),
+      ).withConverter<domain.Money>($OrdersTable.$convertercashRounding);
   static const VerificationMeta _noteMeta = const VerificationMeta('note');
   @override
   late final GeneratedColumn<String> note = GeneratedColumn<String>(
@@ -2226,6 +2236,7 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, OrderRow> {
     tax,
     total,
     requestedTip,
+    cashRounding,
     note,
   ];
   @override
@@ -2379,6 +2390,12 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, OrderRow> {
           data['${effectivePrefix}requested_tip'],
         )!,
       ),
+      cashRounding: $OrdersTable.$convertercashRounding.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}cash_rounding'],
+        )!,
+      ),
       note: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}note'],
@@ -2409,6 +2426,8 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, OrderRow> {
       const MoneyConverter();
   static TypeConverter<domain.Money, int> $converterrequestedTip =
       const MoneyConverter();
+  static TypeConverter<domain.Money, int> $convertercashRounding =
+      const MoneyConverter();
 }
 
 class OrderRow extends DataClass implements Insertable<OrderRow> {
@@ -2430,6 +2449,10 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
   /// A tip the customer chose at the kiosk / online checkout, carried for the
   /// payment sheet to pre-fill at settlement. Not part of [total].
   final domain.Money requestedTip;
+
+  /// Cash-rounding adjustment applied at a cash payment (signed). Amount owed
+  /// is [total] + this. Not part of [total].
+  final domain.Money cashRounding;
   final String? note;
   const OrderRow({
     required this.id,
@@ -2447,6 +2470,7 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
     required this.tax,
     required this.total,
     required this.requestedTip,
+    required this.cashRounding,
     this.note,
   });
   @override
@@ -2499,6 +2523,11 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
         $OrdersTable.$converterrequestedTip.toSql(requestedTip),
       );
     }
+    {
+      map['cash_rounding'] = Variable<int>(
+        $OrdersTable.$convertercashRounding.toSql(cashRounding),
+      );
+    }
     if (!nullToAbsent || note != null) {
       map['note'] = Variable<String>(note);
     }
@@ -2528,6 +2557,7 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
       tax: Value(tax),
       total: Value(total),
       requestedTip: Value(requestedTip),
+      cashRounding: Value(cashRounding),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
     );
   }
@@ -2557,6 +2587,7 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
       tax: serializer.fromJson<domain.Money>(json['tax']),
       total: serializer.fromJson<domain.Money>(json['total']),
       requestedTip: serializer.fromJson<domain.Money>(json['requestedTip']),
+      cashRounding: serializer.fromJson<domain.Money>(json['cashRounding']),
       note: serializer.fromJson<String?>(json['note']),
     );
   }
@@ -2583,6 +2614,7 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
       'tax': serializer.toJson<domain.Money>(tax),
       'total': serializer.toJson<domain.Money>(total),
       'requestedTip': serializer.toJson<domain.Money>(requestedTip),
+      'cashRounding': serializer.toJson<domain.Money>(cashRounding),
       'note': serializer.toJson<String?>(note),
     };
   }
@@ -2603,6 +2635,7 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
     domain.Money? tax,
     domain.Money? total,
     domain.Money? requestedTip,
+    domain.Money? cashRounding,
     Value<String?> note = const Value.absent(),
   }) => OrderRow(
     id: id ?? this.id,
@@ -2620,6 +2653,7 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
     tax: tax ?? this.tax,
     total: total ?? this.total,
     requestedTip: requestedTip ?? this.requestedTip,
+    cashRounding: cashRounding ?? this.cashRounding,
     note: note.present ? note.value : this.note,
   );
   OrderRow copyWithCompanion(OrdersCompanion data) {
@@ -2645,6 +2679,9 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
       requestedTip: data.requestedTip.present
           ? data.requestedTip.value
           : this.requestedTip,
+      cashRounding: data.cashRounding.present
+          ? data.cashRounding.value
+          : this.cashRounding,
       note: data.note.present ? data.note.value : this.note,
     );
   }
@@ -2667,6 +2704,7 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
           ..write('tax: $tax, ')
           ..write('total: $total, ')
           ..write('requestedTip: $requestedTip, ')
+          ..write('cashRounding: $cashRounding, ')
           ..write('note: $note')
           ..write(')'))
         .toString();
@@ -2689,6 +2727,7 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
     tax,
     total,
     requestedTip,
+    cashRounding,
     note,
   );
   @override
@@ -2710,6 +2749,7 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
           other.tax == this.tax &&
           other.total == this.total &&
           other.requestedTip == this.requestedTip &&
+          other.cashRounding == this.cashRounding &&
           other.note == this.note);
 }
 
@@ -2729,6 +2769,7 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
   final Value<domain.Money> tax;
   final Value<domain.Money> total;
   final Value<domain.Money> requestedTip;
+  final Value<domain.Money> cashRounding;
   final Value<String?> note;
   final Value<int> rowid;
   const OrdersCompanion({
@@ -2747,6 +2788,7 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
     this.tax = const Value.absent(),
     this.total = const Value.absent(),
     this.requestedTip = const Value.absent(),
+    this.cashRounding = const Value.absent(),
     this.note = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -2766,6 +2808,7 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
     required domain.Money tax,
     required domain.Money total,
     this.requestedTip = const Value.absent(),
+    this.cashRounding = const Value.absent(),
     this.note = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -2792,6 +2835,7 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
     Expression<int>? tax,
     Expression<int>? total,
     Expression<int>? requestedTip,
+    Expression<int>? cashRounding,
     Expression<String>? note,
     Expression<int>? rowid,
   }) {
@@ -2811,6 +2855,7 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
       if (tax != null) 'tax': tax,
       if (total != null) 'total': total,
       if (requestedTip != null) 'requested_tip': requestedTip,
+      if (cashRounding != null) 'cash_rounding': cashRounding,
       if (note != null) 'note': note,
       if (rowid != null) 'rowid': rowid,
     });
@@ -2832,6 +2877,7 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
     Value<domain.Money>? tax,
     Value<domain.Money>? total,
     Value<domain.Money>? requestedTip,
+    Value<domain.Money>? cashRounding,
     Value<String?>? note,
     Value<int>? rowid,
   }) {
@@ -2851,6 +2897,7 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
       tax: tax ?? this.tax,
       total: total ?? this.total,
       requestedTip: requestedTip ?? this.requestedTip,
+      cashRounding: cashRounding ?? this.cashRounding,
       note: note ?? this.note,
       rowid: rowid ?? this.rowid,
     );
@@ -2918,6 +2965,11 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
         $OrdersTable.$converterrequestedTip.toSql(requestedTip.value),
       );
     }
+    if (cashRounding.present) {
+      map['cash_rounding'] = Variable<int>(
+        $OrdersTable.$convertercashRounding.toSql(cashRounding.value),
+      );
+    }
     if (note.present) {
       map['note'] = Variable<String>(note.value);
     }
@@ -2945,6 +2997,7 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
           ..write('tax: $tax, ')
           ..write('total: $total, ')
           ..write('requestedTip: $requestedTip, ')
+          ..write('cashRounding: $cashRounding, ')
           ..write('note: $note, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -9170,6 +9223,7 @@ typedef $$OrdersTableCreateCompanionBuilder =
       required domain.Money tax,
       required domain.Money total,
       Value<domain.Money> requestedTip,
+      Value<domain.Money> cashRounding,
       Value<String?> note,
       Value<int> rowid,
     });
@@ -9190,6 +9244,7 @@ typedef $$OrdersTableUpdateCompanionBuilder =
       Value<domain.Money> tax,
       Value<domain.Money> total,
       Value<domain.Money> requestedTip,
+      Value<domain.Money> cashRounding,
       Value<String?> note,
       Value<int> rowid,
     });
@@ -9336,6 +9391,12 @@ class $$OrdersTableFilterComposer
   ColumnWithTypeConverterFilters<domain.Money, domain.Money, int>
   get requestedTip => $composableBuilder(
     column: $table.requestedTip,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<domain.Money, domain.Money, int>
+  get cashRounding => $composableBuilder(
+    column: $table.cashRounding,
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
@@ -9497,6 +9558,11 @@ class $$OrdersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get cashRounding => $composableBuilder(
+    column: $table.cashRounding,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get note => $composableBuilder(
     column: $table.note,
     builder: (column) => ColumnOrderings(column),
@@ -9582,6 +9648,12 @@ class $$OrdersTableAnnotationComposer
   GeneratedColumnWithTypeConverter<domain.Money, int> get requestedTip =>
       $composableBuilder(
         column: $table.requestedTip,
+        builder: (column) => column,
+      );
+
+  GeneratedColumnWithTypeConverter<domain.Money, int> get cashRounding =>
+      $composableBuilder(
+        column: $table.cashRounding,
         builder: (column) => column,
       );
 
@@ -9709,6 +9781,7 @@ class $$OrdersTableTableManager
                 Value<domain.Money> tax = const Value.absent(),
                 Value<domain.Money> total = const Value.absent(),
                 Value<domain.Money> requestedTip = const Value.absent(),
+                Value<domain.Money> cashRounding = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => OrdersCompanion(
@@ -9727,6 +9800,7 @@ class $$OrdersTableTableManager
                 tax: tax,
                 total: total,
                 requestedTip: requestedTip,
+                cashRounding: cashRounding,
                 note: note,
                 rowid: rowid,
               ),
@@ -9747,6 +9821,7 @@ class $$OrdersTableTableManager
                 required domain.Money tax,
                 required domain.Money total,
                 Value<domain.Money> requestedTip = const Value.absent(),
+                Value<domain.Money> cashRounding = const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => OrdersCompanion.insert(
@@ -9765,6 +9840,7 @@ class $$OrdersTableTableManager
                 tax: tax,
                 total: total,
                 requestedTip: requestedTip,
+                cashRounding: cashRounding,
                 note: note,
                 rowid: rowid,
               ),

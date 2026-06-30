@@ -691,7 +691,11 @@ class _Ticket extends ConsumerWidget {
         .fold(domain.Money.zero, (s, l) => s + l.lineTotal);
     final payments = ref.watch(orderPaymentsProvider(order.id)).value ?? [];
     final settled = domain.settledPayments(payments).toList();
-    final balance = domain.balanceDue(total: order.total, payments: payments);
+    // What's owed is the total plus any cash-rounding adjustment.
+    final balance = domain.balanceDue(
+      total: order.total + order.cashRounding,
+      payments: payments,
+    );
     final showSecondary = ref.watch(nameDisplayProvider).orderScreen;
 
     return Column(
@@ -866,11 +870,18 @@ class _Ticket extends ConsumerWidget {
                 ),
                 order.tax,
               ),
+              if (!order.cashRounding.isZero)
+                _totalRow(
+                  context,
+                  context.l10n.ordRounding,
+                  order.cashRounding,
+                  valueColor: context.posStatus.success,
+                ),
               const SizedBox(height: 4),
               _totalRow(
                 context,
                 context.l10n.ordTotal,
-                order.total,
+                order.total + order.cashRounding,
                 emphasized: true,
               ),
               if (settled.isNotEmpty) ...[

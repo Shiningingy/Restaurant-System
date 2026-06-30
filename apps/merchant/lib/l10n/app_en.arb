@@ -96,6 +96,7 @@
   "ordFreeItem": "Free item",
   "ordFreeItemBanner": "Free-item mode — the next items you tap are on the house.",
   "ordFreeItemBannerOff": "TURN OFF",
+  "ordRounding": "Rounding",
   "ordTotal": "Total",
   "ordPaidMethod": "Paid — {method}",
   "@ordPaidMethod": {
@@ -226,6 +227,15 @@
   "pmtCashTendered": "Cash tendered (optional)",
   "pmtTip": "Tip (optional)",
   "pmtTipHint": "On top of the amount; printed on the receipt",
+  "pmtCashRounding": "Cash rounding",
+  "pmtRoundExact": "Exact {amount}",
+  "@pmtRoundExact": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "pmtRoundingAdjust": "Rounding {amount} — shows as a discount",
+  "@pmtRoundingAdjust": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
   "pmtChangeDue": "Change due {amount}",
   "@pmtChangeDue": {
     "placeholders": { "amount": { "type": "String" } }
@@ -365,6 +375,9 @@
   "setDiscountPresetsHint": "Comma-separated percentages, e.g. 5, 10, 15",
   "setDiscountThreshold": "Discount without manager",
   "setDiscountThresholdHint": "Larger discounts need a manager PIN.",
+  "setCashRounding": "Cash rounding",
+  "setCashRoundingHint": "Round a cash total to a clean amount (the difference shows as a discount). Card/online pay the exact total.",
+  "setCashRoundingOff": "Off",
   "setOnlineOrdering": "Online ordering",
   "setPickupLead": "Minimum pickup time",
   "setPickupLeadSubtitle": "Soonest a customer can ask to pick up. Sent with the menu.",

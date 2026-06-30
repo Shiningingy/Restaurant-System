@@ -518,6 +518,12 @@ abstract class AppLocalizations {
   /// **'TURN OFF'**
   String get ordFreeItemBannerOff;
 
+  /// No description provided for @ordRounding.
+  ///
+  /// In en, this message translates to:
+  /// **'Rounding'**
+  String get ordRounding;
+
   /// No description provided for @ordTotal.
   ///
   /// In en, this message translates to:
@@ -973,6 +979,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'On top of the amount; printed on the receipt'**
   String get pmtTipHint;
+
+  /// No description provided for @pmtCashRounding.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash rounding'**
+  String get pmtCashRounding;
+
+  /// No description provided for @pmtRoundExact.
+  ///
+  /// In en, this message translates to:
+  /// **'Exact {amount}'**
+  String pmtRoundExact(String amount);
+
+  /// No description provided for @pmtRoundingAdjust.
+  ///
+  /// In en, this message translates to:
+  /// **'Rounding {amount} — shows as a discount'**
+  String pmtRoundingAdjust(String amount);
 
   /// No description provided for @pmtChangeDue.
   ///
@@ -1441,6 +1465,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Larger discounts need a manager PIN.'**
   String get setDiscountThresholdHint;
+
+  /// No description provided for @setCashRounding.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash rounding'**
+  String get setCashRounding;
+
+  /// No description provided for @setCashRoundingHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Round a cash total to a clean amount (the difference shows as a discount). Card/online pay the exact total.'**
+  String get setCashRoundingHint;
+
+  /// No description provided for @setCashRoundingOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get setCashRoundingOff;
 
   /// No description provided for @setOnlineOrdering.
   ///

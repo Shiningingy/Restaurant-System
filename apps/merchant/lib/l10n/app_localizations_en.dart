@@ -234,6 +234,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ordFreeItemBannerOff => 'TURN OFF';
 
   @override
+  String get ordRounding => 'Rounding';
+
+  @override
   String get ordTotal => 'Total';
 
   @override
@@ -506,6 +509,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pmtTipHint => 'On top of the amount; printed on the receipt';
+
+  @override
+  String get pmtCashRounding => 'Cash rounding';
+
+  @override
+  String pmtRoundExact(String amount) {
+    return 'Exact $amount';
+  }
+
+  @override
+  String pmtRoundingAdjust(String amount) {
+    return 'Rounding $amount — shows as a discount';
+  }
 
   @override
   String pmtChangeDue(String amount) {
@@ -790,6 +806,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setDiscountThresholdHint => 'Larger discounts need a manager PIN.';
+
+  @override
+  String get setCashRounding => 'Cash rounding';
+
+  @override
+  String get setCashRoundingHint =>
+      'Round a cash total to a clean amount (the difference shows as a discount). Card/online pay the exact total.';
+
+  @override
+  String get setCashRoundingOff => 'Off';
 
   @override
   String get setOnlineOrdering => 'Online ordering';

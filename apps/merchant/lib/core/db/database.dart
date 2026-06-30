@@ -109,7 +109,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 12;
+  int get schemaVersion => 13;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -168,6 +168,10 @@ class AppDatabase extends _$AppDatabase {
         // v12: a customer-chosen tip carried onto the local order (kiosk /
         // online checkout). Defaults 0 on existing orders.
         await m.addColumn(orders, orders.requestedTip);
+      }
+      if (from < 13) {
+        // v13: cash-rounding adjustment applied at a cash payment. Defaults 0.
+        await m.addColumn(orders, orders.cashRounding);
       }
     },
   );
