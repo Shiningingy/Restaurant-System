@@ -1100,6 +1100,12 @@ abstract class AppLocalizations {
   /// **'Total {total} — pay at pickup'**
   String inboxTotalPayAtPickup(String total);
 
+  /// No description provided for @inboxCustomerTip.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer tip {amount} — add at the counter'**
+  String inboxCustomerTip(String amount);
+
   /// No description provided for @inboxReject.
   ///
   /// In en, this message translates to:
@@ -1489,6 +1495,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Let customers pay by card when they preorder. Requires the pay-online function on your Supabase — see docs/MONERIS_PAYMENT.md.'**
   String get setAcceptOnlinePaymentHint;
+
+  /// No description provided for @setTipPresets.
+  ///
+  /// In en, this message translates to:
+  /// **'Tip options'**
+  String get setTipPresets;
+
+  /// No description provided for @setTipPresetsNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Off — no tip prompt at the kiosk or online checkout'**
+  String get setTipPresetsNone;
+
+  /// No description provided for @setTipPresetsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to 4 tip percentages customers can tap (use 0 for a \"No tip\" button), e.g. 0, 10, 15, 20. Of the pre-tax subtotal. They can always enter a custom amount.'**
+  String get setTipPresetsHint;
 
   /// No description provided for @setPayments.
   ///

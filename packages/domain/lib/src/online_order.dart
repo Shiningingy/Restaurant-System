@@ -186,6 +186,13 @@ class PublishedMenu {
   /// this is set; otherwise preorders are pay-at-pickup. Defaults to off.
   final bool acceptsOnlinePayment;
 
+  /// Suggested tip percentages (basis points) the customer can pick at the
+  /// kiosk / online checkout — e.g. [0, 1000, 1500, 2000] = No tip / 10 / 15 /
+  /// 20%. Up to 4; a 0 entry renders as "No tip". Percentages are of the
+  /// pre-tax subtotal. Empty = no tip selector shown. Defaults to empty for
+  /// menus published before this field existed.
+  final List<int> tipPresetsBp;
+
   const PublishedMenu({
     required this.restaurantName,
     required this.categories,
@@ -193,6 +200,7 @@ class PublishedMenu {
     this.taxRateBp = 0,
     this.secondNameLanguage,
     this.acceptsOnlinePayment = false,
+    this.tipPresetsBp = const [],
   });
 
   Map<String, dynamic> toJson() => {
@@ -202,6 +210,7 @@ class PublishedMenu {
         if (secondNameLanguage != null)
           'secondNameLanguage': secondNameLanguage,
         if (acceptsOnlinePayment) 'acceptsOnlinePayment': true,
+        if (tipPresetsBp.isNotEmpty) 'tipPresetsBp': tipPresetsBp,
         'categories': categories.map((c) => c.toJson()).toList(),
       };
 
@@ -211,6 +220,9 @@ class PublishedMenu {
         taxRateBp: j['taxRateBp'] as int? ?? 0,
         secondNameLanguage: j['secondNameLanguage'] as String?,
         acceptsOnlinePayment: j['acceptsOnlinePayment'] as bool? ?? false,
+        tipPresetsBp:
+            (j['tipPresetsBp'] as List?)?.map((e) => e as int).toList() ??
+                const [],
         categories: (j['categories'] as List)
             .cast<Map<String, dynamic>>()
             .map(PublishedCategory.fromJson)
@@ -307,6 +319,11 @@ class PreorderSubmission {
   /// the Orders board, since the customer is already on site.
   final bool kiosk;
 
+  /// The tip the customer chose at checkout (kiosk / online). Not card data —
+  /// just an amount, carried so the merchant can apply it when the order is
+  /// settled. Defaults to zero (no tip).
+  final Money tip;
+
   const PreorderSubmission({
     required this.customerName,
     required this.requestedPickupAt,
@@ -317,6 +334,7 @@ class PreorderSubmission {
     this.notifyBySms = false,
     this.note,
     this.kiosk = false,
+    this.tip = Money.zero,
   });
 
   Money get total => lines.fold(Money.zero, (sum, l) => sum + l.lineTotal);
@@ -331,6 +349,7 @@ class PreorderSubmission {
         'lines': lines.map((l) => l.toJson()).toList(),
         'note': note,
         'kiosk': kiosk,
+        if (!tip.isZero) 'tip': tip.cents,
       };
 
   factory PreorderSubmission.fromJson(Map<String, dynamic> j) =>
@@ -347,5 +366,6 @@ class PreorderSubmission {
             .toList(),
         note: j['note'] as String?,
         kiosk: j['kiosk'] as bool? ?? false,
+        tip: Money(j['tip'] as int? ?? 0),
       );
 }

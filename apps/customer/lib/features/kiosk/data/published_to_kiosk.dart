@@ -21,6 +21,7 @@ KioskMenu publishedToKioskMenu(
     taxRateBp: menu.taxRateBp,
     serviceFeeBp: 0,
     payHere: false,
+    tipPresetsBp: menu.tipPresetsBp,
     categories: [
       for (final c in menu.categories)
         KioskCategory(

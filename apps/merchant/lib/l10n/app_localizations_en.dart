@@ -595,6 +595,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String inboxCustomerTip(String amount) {
+    return 'Customer tip $amount — add at the counter';
+  }
+
+  @override
   String get inboxReject => 'Reject';
 
   @override
@@ -824,6 +829,17 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get setAcceptOnlinePaymentHint =>
       'Let customers pay by card when they preorder. Requires the pay-online function on your Supabase — see docs/MONERIS_PAYMENT.md.';
+
+  @override
+  String get setTipPresets => 'Tip options';
+
+  @override
+  String get setTipPresetsNone =>
+      'Off — no tip prompt at the kiosk or online checkout';
+
+  @override
+  String get setTipPresetsHint =>
+      'Up to 4 tip percentages customers can tap (use 0 for a \"No tip\" button), e.g. 0, 10, 15, 20. Of the pre-tax subtotal. They can always enter a custom amount.';
 
   @override
   String get setPayments => 'Payments';

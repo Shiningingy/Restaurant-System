@@ -279,7 +279,9 @@ class _CustomerDisplayScreenState extends State<CustomerDisplayScreen> {
         brandConfirm: _brand.kioskConfirm,
         menu: _menu,
         labels: const KioskLabels.en(),
-        onSubmit: _submit,
+        // The merchant second-window kiosk has no tip presets, so the surface
+        // shows no tip selector here — ignore the (always-zero) tip arg.
+        onSubmit: (cart, _) => _submit(cart),
         onRefreshMenu: _requestMenu,
         // Finishing or backing out returns to the attract/cover screen.
         onExit: () => setState(() => _ordering = false),

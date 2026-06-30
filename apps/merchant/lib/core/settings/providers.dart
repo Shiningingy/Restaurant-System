@@ -352,11 +352,16 @@ class OnlineOrderSettings {
   final bool autoAcceptKiosk;
   final bool acceptsOnlinePayment;
 
+  /// Suggested tip percentages (basis points) offered at the kiosk / online
+  /// checkout, published with the menu. A 0 entry renders as "No tip".
+  final List<int> tipPresetsBp;
+
   const OnlineOrderSettings({
     required this.pickupLeadMinutes,
     required this.newOrderSound,
     required this.autoAcceptKiosk,
     required this.acceptsOnlinePayment,
+    required this.tipPresetsBp,
   });
 }
 
@@ -369,7 +374,13 @@ class OnlineOrderSettingsNotifier extends Notifier<OnlineOrderSettings> {
       newOrderSound: r.newOrderSound,
       autoAcceptKiosk: r.autoAcceptKiosk,
       acceptsOnlinePayment: r.acceptsOnlinePayment,
+      tipPresetsBp: r.tipPresetsBp,
     );
+  }
+
+  Future<void> setTipPresetsBp(List<int> presets) async {
+    await ref.read(settingsRepositoryProvider).setTipPresetsBp(presets);
+    ref.invalidateSelf();
   }
 
   Future<void> setPickupLead(int minutes) async {

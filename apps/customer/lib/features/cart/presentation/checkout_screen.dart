@@ -29,6 +29,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   bool _busy = false;
   String? _error;
 
+  /// The tip the customer chose (on top of subtotal + tax). Zero by default.
+  domain.Money _tip = domain.Money.zero;
+
   /// Earliest pickup the restaurant accepts: now + the menu's lead minutes.
   DateTime get _earliest => DateTime.now().add(
     Duration(minutes: ref.read(menuProvider).value?.pickupLeadMinutes ?? 0),
@@ -93,6 +96,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
   int get _taxRateBp => ref.read(menuProvider).value?.taxRateBp ?? 0;
 
+  List<int> get _tipPresets =>
+      ref.read(menuProvider).value?.tipPresetsBp ?? const [];
+
   /// Estimated tax on the current cart (basis points). The merchant applies
   /// the real tax on its side; this is only a heads-up for the customer.
   domain.Money get _estimatedTax {
@@ -131,6 +137,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             profile.notifyByEmail && (profile.email?.isNotEmpty ?? false),
         notifyBySms: profile.notifyBySms && _phone.text.trim().isNotEmpty,
         requestedPickupAt: _pickupDateTime,
+        tip: _tip,
         lines: cart.lines.map((l) => l.toPreorderLine()).toList(),
       );
       final orderId = await storefront.submitPreorder(
@@ -273,6 +280,19 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             onTap: _pickTime,
           ),
           const Divider(height: 32),
+          if (_tipPresets.isNotEmpty && cart.lines.isNotEmpty) ...[
+            TipSelector(
+              presetsBp: _tipPresets,
+              subtotal: cart.total,
+              tip: _tip,
+              onChanged: (t) => setState(() => _tip = t),
+              title: context.l10n.checkoutTipTitle,
+              noTipLabel: context.l10n.checkoutNoTip,
+              customLabel: context.l10n.checkoutTipCustom,
+              customHint: context.l10n.checkoutTipCustomHint,
+            ),
+            const SizedBox(height: 16),
+          ],
           if (_taxRateBp > 0) ...[
             _AmountRow(
               label: context.l10n.checkoutSubtotal,
@@ -285,9 +305,13 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             ),
             const SizedBox(height: 4),
           ],
+          if (!_tip.isZero) ...[
+            _AmountRow(label: context.l10n.checkoutTip, amount: _tip.format()),
+            const SizedBox(height: 4),
+          ],
           _AmountRow(
             label: context.l10n.checkoutTotal,
-            amount: (cart.total + _estimatedTax).format(),
+            amount: (cart.total + _estimatedTax + _tip).format(),
             emphasize: true,
           ),
           const SizedBox(height: 4),

@@ -98,6 +98,8 @@ class SupabaseOnlineOrderChannel implements domain.OnlineOrderChannel {
     // Online payment (Phase 7); absent on shops without the column → unpaid.
     paymentStatus: r['payment_status'] as String? ?? 'unpaid',
     processorRef: r['processor_ref'] as String?,
+    // Optional column (docs/CLOUD_SECURITY.md); absent → no tip.
+    tip: domain.Money((r['tip_cents'] as num?)?.toInt() ?? 0),
   );
 
   @override

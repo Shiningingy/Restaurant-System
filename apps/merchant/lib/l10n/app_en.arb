@@ -273,6 +273,10 @@
   "@inboxTotalPayAtPickup": {
     "placeholders": { "total": { "type": "String" } }
   },
+  "inboxCustomerTip": "Customer tip {amount} — add at the counter",
+  "@inboxCustomerTip": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
   "inboxReject": "Reject",
   "inboxAccept": "Accept",
   "inboxProposeTime": "Propose time",
@@ -373,6 +377,9 @@
   "setAutoAcceptKioskHint": "Send in-store kiosk orders straight to the Orders board. Turn off to review them in the Inbox first.",
   "setAcceptOnlinePayment": "Accept online payment",
   "setAcceptOnlinePaymentHint": "Let customers pay by card when they preorder. Requires the pay-online function on your Supabase — see docs/MONERIS_PAYMENT.md.",
+  "setTipPresets": "Tip options",
+  "setTipPresetsNone": "Off — no tip prompt at the kiosk or online checkout",
+  "setTipPresetsHint": "Up to 4 tip percentages customers can tap (use 0 for a \"No tip\" button), e.g. 0, 10, 15, 20. Of the pre-tax subtotal. They can always enter a custom amount.",
   "setPayments": "Payments",
   "setCardTerminalManual": "Card terminal: manual entry",
   "setCardTerminalManualSubtitle": "Staff key the amount on the standalone terminal and record the outcome. Semi-integrated Moneris Go support arrives once the Moneris Cloud API access is set up.",

@@ -140,6 +140,7 @@ void main() {
           'status': 'submitted',
           'payment_status': paymentStatus,
           'processor_ref': processorRef,
+          if (!sub.tip.isZero) 'tip_cents': sub.tip.cents,
         },
       ]),
     );
@@ -217,6 +218,37 @@ void main() {
     await inbox.markReady(onlineId);
     expect(server.rowsOf('online_orders').single['status'], 'ready');
   });
+
+  test(
+    'a customer tip rides onto the accepted order (not in the total)',
+    () async {
+      final inbox = await buildInbox();
+      await submitPreorder(
+        domain.PreorderSubmission(
+          customerName: 'Tipper',
+          requestedPickupAt: DateTime.utc(2026, 6, 1, 12),
+          tip: const domain.Money(300),
+          lines: [
+            domain.PreorderLine(
+              itemId: 'i1',
+              nameSnapshot: 'Tea',
+              priceSnapshot: const domain.Money(500),
+              qty: 1,
+            ),
+          ],
+        ),
+      );
+
+      final pending = await inbox.currentPending();
+      expect(pending.single.tip, const domain.Money(300));
+
+      final localId = (await inbox.accept(pending.single))!;
+      final order = (await inbox.orders.getOrder(localId))!;
+      // The tip is carried for the payment sheet, separate from the bill.
+      expect(order.requestedTip, const domain.Money(300));
+      expect(order.total, const domain.Money(565)); // 500 + 13% tax, no tip
+    },
+  );
 
   test(
     'rejecting a preorder sets its status and creates no local order',

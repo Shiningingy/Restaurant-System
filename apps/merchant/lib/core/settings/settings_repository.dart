@@ -136,6 +136,7 @@ class SettingsRepository {
   static const _newOrderSoundKey = 'newOrderSound';
   static const _autoAcceptKioskKey = 'autoAcceptKiosk';
   static const _acceptsOnlinePaymentKey = 'acceptsOnlinePayment';
+  static const _tipPresetsKey = 'tipPresetsBp';
   static const _secondNameLangKey = 'secondNameLanguage';
   static const _serviceFeeBpKey = 'serviceFeeBp';
   static const _discountPresetsKey = 'discountPresetsBp';
@@ -309,6 +310,22 @@ class SettingsRepository {
 
   Future<void> setAcceptsOnlinePayment(bool on) =>
       prefs.setBool(_acceptsOnlinePaymentKey, on);
+
+  /// Suggested tip percentages (basis points) shown to customers at the kiosk /
+  /// online checkout — published with the menu. Default No tip / 10 / 15 / 20%
+  /// (a 0 entry renders as "No tip"). Up to 4; percentages are of the pre-tax
+  /// subtotal. Empty hides the tip selector.
+  List<int> get tipPresetsBp =>
+      (prefs.getStringList(_tipPresetsKey) ??
+              const ['0', '1000', '1500', '2000'])
+          .map(int.tryParse)
+          .whereType<int>()
+          .toList();
+
+  Future<void> setTipPresetsBp(List<int> presets) => prefs.setStringList(
+    _tipPresetsKey,
+    presets.map((e) => e.toString()).toList(),
+  );
 
   /// The language code the item second names are written in (e.g. 'zh'), or
   /// null/empty if not set. Published so the customer app can surface the

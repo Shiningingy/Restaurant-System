@@ -144,6 +144,7 @@ create table online_orders (
   status              text not null default 'submitted',
   note                text,
   is_kiosk            boolean not null default false,  -- placed at an in-store kiosk
+  tip_cents           bigint not null default 0,       -- customer-chosen tip (kiosk/online)
   -- Online card payment (Phase 7). Written ONLY by the pay-online Edge
   -- Function (service role) — never by a client. See docs/MONERIS_PAYMENT.md.
   payment_status      text not null default 'unpaid',  -- unpaid | paid | refunded
@@ -210,6 +211,12 @@ alter table online_orders add column if not exists proposed_pickup_at timestampt
 -- so shops that haven't added the column still take normal orders fine.
 alter table online_orders add column if not exists is_kiosk boolean not null default false;
 
+-- The tip the customer chose at the kiosk / online checkout. Optional: the
+-- customer app only sends it when non-zero, so shops without the column still
+-- take tipless orders. The customer-update trigger below freezes it after
+-- insert so a customer can't change their tip once submitted.
+alter table online_orders add column if not exists tip_cents bigint not null default 0;
+
 -- Online card payment (Phase 7). These are written ONLY by the pay-online Edge
 -- Function (service role); the customer-update trigger below freezes them so a
 -- customer can never mark their own order paid. See docs/MONERIS_PAYMENT.md.
@@ -262,6 +269,7 @@ begin
        or new.customer_name is distinct from old.customer_name
        or new.customer_phone is distinct from old.customer_phone
        or new.submitted_at is distinct from old.submitted_at
+       or new.tip_cents is distinct from old.tip_cents
        or new.payment_status is distinct from old.payment_status
        or new.paid_at is distinct from old.paid_at
        or new.processor_ref is distinct from old.processor_ref then

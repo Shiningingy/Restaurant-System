@@ -25,6 +25,14 @@ class KioskLabels {
   final String payHereSoon;
   final String subtotal;
   final String total;
+
+  /// Tip selector: section title, the "No tip" button, the custom-amount
+  /// button, its field hint, and the breakdown row label.
+  final String tipTitle;
+  final String noTip;
+  final String tipCustom;
+  final String tipCustomHint;
+  final String tip;
   final String orderPlaced;
   final String yourNumber;
   final String payAtCounterNote;
@@ -62,6 +70,11 @@ class KioskLabels {
     required this.payHereSoon,
     required this.subtotal,
     required this.total,
+    required this.tipTitle,
+    required this.noTip,
+    required this.tipCustom,
+    required this.tipCustomHint,
+    required this.tip,
     required this.orderPlaced,
     required this.yourNumber,
     required this.payAtCounterNote,
@@ -92,6 +105,11 @@ class KioskLabels {
       payHereSoon = 'Pay here (soon)',
       subtotal = 'Subtotal',
       total = 'Total',
+      tipTitle = 'Add a tip?',
+      noTip = 'No tip',
+      tipCustom = 'Custom',
+      tipCustomHint = 'Tip amount',
+      tip = 'Tip',
       orderPlaced = 'Order placed!',
       yourNumber = 'Your number',
       payAtCounterNote = 'Please pay at the counter.',

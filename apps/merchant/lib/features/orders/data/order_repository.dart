@@ -26,6 +26,9 @@ class OrderRepository {
     int serviceFeeBp = 0,
     String? tableId,
     String? note,
+    // A tip the customer chose at the kiosk / online checkout (pre-fills the
+    // payment sheet at settlement). Zero for a normal counter order.
+    domain.Money requestedTip = domain.Money.zero,
     // Online orders reuse their cloud order id as the local id, so the two are
     // trivially linkable (e.g. for an online refund). Defaults to a fresh id.
     String? id,
@@ -46,6 +49,7 @@ class OrderRepository {
               subtotal: domain.Money.zero,
               tax: domain.Money.zero,
               total: domain.Money.zero,
+              requestedTip: Value(requestedTip),
               note: Value(note),
             ),
           );
@@ -508,6 +512,7 @@ class OrderRepository {
     serviceFee: r.serviceFee,
     tax: r.tax,
     total: r.total,
+    requestedTip: r.requestedTip,
     note: r.note,
   );
 

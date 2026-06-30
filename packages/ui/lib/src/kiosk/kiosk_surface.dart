@@ -6,6 +6,7 @@ import 'package:restaurant_domain/restaurant_domain.dart' as domain;
 
 import '../brand_mark.dart';
 import '../pos_theme.dart';
+import '../tip_selector.dart';
 import 'kiosk_labels.dart';
 import 'kiosk_menu.dart';
 
@@ -31,9 +32,14 @@ class KioskSurface extends StatefulWidget {
   /// display and localized in the customer app).
   final KioskLabels labels;
 
-  /// Sends the built cart to the host; resolves with `{ok, code}` (or `{ok:
-  /// false}` on failure). `code` (when present) is shown as the pickup number.
-  final Future<Map<String, dynamic>> Function(List<KioskCartLine>) onSubmit;
+  /// Sends the built cart (and the chosen [tip]) to the host; resolves with
+  /// `{ok, code}` (or `{ok: false}` on failure). `code` (when present) is shown
+  /// as the pickup number.
+  final Future<Map<String, dynamic>> Function(
+    List<KioskCartLine> cart,
+    domain.Money tip,
+  )
+  onSubmit;
 
   /// Asks the host to re-supply the menu (used while waiting for the first one).
   final Future<void> Function() onRefreshMenu;
@@ -67,11 +73,13 @@ class _KioskSurfaceState extends State<KioskSurface> {
   bool _submitting = false;
   String? _confirmCode;
   Timer? _resetTimer;
+  domain.Money _tip = domain.Money.zero;
 
   KioskLabels get _l => widget.labels;
 
   int get _cartCount => _cart.fold(0, (s, l) => s + l.qty);
   int get _cartCents => _cart.fold(0, (s, l) => s + l.lineCents);
+  List<int> get _tipPresets => widget.menu?.tipPresetsBp ?? const [];
 
   @override
   void dispose() {
@@ -107,7 +115,7 @@ class _KioskSurfaceState extends State<KioskSurface> {
   Future<void> _placeOrder() async {
     if (_cart.isEmpty || _submitting) return;
     setState(() => _submitting = true);
-    final res = await widget.onSubmit(_cart);
+    final res = await widget.onSubmit(_cart, _tip);
     if (!mounted) return;
     if (res['ok'] == true) {
       setState(() {
@@ -132,6 +140,7 @@ class _KioskSurfaceState extends State<KioskSurface> {
       _cart.clear();
       _confirmCode = null;
       _categoryIndex = 0;
+      _tip = domain.Money.zero;
       _stage = _Stage.browse;
     });
     // A dedicated kiosk returns to its menu; a hybrid session bows out.
@@ -391,6 +400,19 @@ class _KioskSurfaceState extends State<KioskSurface> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
+                  if (_tipPresets.isNotEmpty && _cart.isNotEmpty) ...[
+                    TipSelector(
+                      presetsBp: _tipPresets,
+                      subtotal: _totals().subtotal,
+                      tip: _tip,
+                      onChanged: (t) => setState(() => _tip = t),
+                      title: _l.tipTitle,
+                      noTipLabel: _l.noTip,
+                      customLabel: _l.tipCustom,
+                      customHint: _l.tipCustomHint,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                   _breakdown(),
                   const SizedBox(height: 16),
                   _paymentActions(),
@@ -454,8 +476,9 @@ class _KioskSurfaceState extends State<KioskSurface> {
         if (!t.serviceFee.isZero)
           row(_l.service(_pct(serviceFeeBp)), t.serviceFee),
         row(_l.tax(_pct(taxBp)), t.tax),
+        if (!_tip.isZero) row(_l.tip, _tip),
         const Divider(height: 16),
-        row(_l.total, t.total, bold: true),
+        row(_l.total, t.total + _tip, bold: true),
       ],
     );
   }

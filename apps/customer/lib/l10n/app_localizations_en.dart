@@ -179,6 +179,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get kioskTotal => 'Total';
 
   @override
+  String get kioskTipTitle => 'Add a tip?';
+
+  @override
+  String get kioskNoTip => 'No tip';
+
+  @override
+  String get kioskTipCustom => 'Custom';
+
+  @override
+  String get kioskTipCustomHint => 'Tip amount';
+
+  @override
+  String get kioskTip => 'Tip';
+
+  @override
   String get kioskOrderPlaced => 'Order placed!';
 
   @override
@@ -423,6 +438,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get checkoutSubtotal => 'Subtotal';
+
+  @override
+  String get checkoutTip => 'Tip';
+
+  @override
+  String get checkoutTipTitle => 'Add a tip?';
+
+  @override
+  String get checkoutNoTip => 'No tip';
+
+  @override
+  String get checkoutTipCustom => 'Custom';
+
+  @override
+  String get checkoutTipCustomHint => 'Tip amount';
 
   @override
   String get checkoutEstimatedTax => 'Estimated tax';

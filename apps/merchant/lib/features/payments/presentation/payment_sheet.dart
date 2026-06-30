@@ -70,7 +70,14 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
       text: (initial.cents / 100).toStringAsFixed(2),
     );
     _tendered = TextEditingController();
-    _tip = TextEditingController();
+    // Pre-fill the tip the customer chose at the kiosk / online checkout so
+    // staff can confirm it (only on a whole-order payment, not a split share).
+    final requested = widget.order.requestedTip;
+    _tip = TextEditingController(
+      text: (!_locked && !requested.isZero)
+          ? (requested.cents / 100).toStringAsFixed(2)
+          : '',
+    );
   }
 
   @override

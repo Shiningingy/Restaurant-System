@@ -175,6 +175,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get kioskTotal => '合计';
 
   @override
+  String get kioskTipTitle => '添加小费？';
+
+  @override
+  String get kioskNoTip => '不给小费';
+
+  @override
+  String get kioskTipCustom => '自定义';
+
+  @override
+  String get kioskTipCustomHint => '小费金额';
+
+  @override
+  String get kioskTip => '小费';
+
+  @override
   String get kioskOrderPlaced => '下单成功！';
 
   @override
@@ -407,6 +422,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get checkoutSubtotal => '小计';
+
+  @override
+  String get checkoutTip => '小费';
+
+  @override
+  String get checkoutTipTitle => '添加小费？';
+
+  @override
+  String get checkoutNoTip => '不给小费';
+
+  @override
+  String get checkoutTipCustom => '自定义';
+
+  @override
+  String get checkoutTipCustomHint => '小费金额';
 
   @override
   String get checkoutEstimatedTax => '预估税费';
