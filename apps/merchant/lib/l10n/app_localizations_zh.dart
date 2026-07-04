@@ -800,6 +800,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get setCashRoundingOff => '关闭';
 
   @override
+  String get setDevice => '设备';
+
+  @override
+  String get setOnScreenKeyboard => '屏幕键盘';
+
+  @override
+  String get setOnScreenKeyboardHint => '在没有实体键盘的终端上打字时显示触摸键盘。';
+
+  @override
   String get setOnlineOrdering => '在线点餐';
 
   @override

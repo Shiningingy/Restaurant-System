@@ -191,6 +191,23 @@ final autoPrintReceiptProvider =
       AutoPrintReceiptNotifier.new,
     );
 
+/// Whether the app shows an on-screen touch keyboard for text fields — for POS
+/// terminals with no physical keyboard. Per-device; off by default.
+class OnScreenKeyboardNotifier extends Notifier<bool> {
+  @override
+  bool build() => ref.watch(settingsRepositoryProvider).onScreenKeyboard;
+
+  Future<void> set(bool on) async {
+    await ref.read(settingsRepositoryProvider).setOnScreenKeyboard(on);
+    ref.invalidateSelf();
+  }
+}
+
+final onScreenKeyboardProvider =
+    NotifierProvider<OnScreenKeyboardNotifier, bool>(
+      OnScreenKeyboardNotifier.new,
+    );
+
 /// How the customer-facing second screen behaves (passive / kiosk / hybrid).
 class CustomerDisplayModeNotifier extends Notifier<CustomerDisplayMode> {
   @override

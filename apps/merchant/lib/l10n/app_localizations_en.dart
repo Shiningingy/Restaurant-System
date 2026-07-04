@@ -818,6 +818,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setCashRoundingOff => 'Off';
 
   @override
+  String get setDevice => 'Device';
+
+  @override
+  String get setOnScreenKeyboard => 'On-screen keyboard';
+
+  @override
+  String get setOnScreenKeyboardHint =>
+      'Show a touch keyboard for typing on a terminal with no physical keyboard.';
+
+  @override
   String get setOnlineOrdering => 'Online ordering';
 
   @override

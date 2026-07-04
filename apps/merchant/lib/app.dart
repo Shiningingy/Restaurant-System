@@ -139,6 +139,14 @@ class _MerchantAppState extends ConsumerState<MerchantApp> {
       supportedLocales: AppLocalizations.supportedLocales,
       theme: buildPosTheme(),
       routerConfig: _router,
+      // Wraps everything (routes + dialogs) so the on-screen keyboard, when
+      // enabled for a keyboard-less terminal, floats above any focused field.
+      builder: (context, child) => Consumer(
+        builder: (context, ref, _) => OnScreenKeyboardScope(
+          enabled: ref.watch(onScreenKeyboardProvider),
+          child: child ?? const SizedBox.shrink(),
+        ),
+      ),
     );
   }
 }

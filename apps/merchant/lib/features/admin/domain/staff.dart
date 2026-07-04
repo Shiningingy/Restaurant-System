@@ -71,6 +71,11 @@ enum AppPermission {
   /// Add/edit/delete staff and change roles.
   manageStaff,
 
+  /// Change checkout pricing settings — tax, service fee, discount presets and
+  /// threshold, cash rounding. These affect what customers are charged, so a
+  /// server can't change them without a manager's PIN.
+  manageSettings,
+
   /// Permanently delete a closed order from history (e.g. clearing test data).
   deleteHistory,
 }
@@ -82,6 +87,7 @@ StaffRole _minRole(AppPermission permission) => switch (permission) {
   AppPermission.refundPaidOrder ||
   AppPermission.largeDiscount ||
   AppPermission.compOverride ||
+  AppPermission.manageSettings ||
   AppPermission.accessAdmin => StaffRole.manager,
 };
 

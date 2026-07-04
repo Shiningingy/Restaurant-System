@@ -1484,6 +1484,24 @@ abstract class AppLocalizations {
   /// **'Off'**
   String get setCashRoundingOff;
 
+  /// No description provided for @setDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Device'**
+  String get setDevice;
+
+  /// No description provided for @setOnScreenKeyboard.
+  ///
+  /// In en, this message translates to:
+  /// **'On-screen keyboard'**
+  String get setOnScreenKeyboard;
+
+  /// No description provided for @setOnScreenKeyboardHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Show a touch keyboard for typing on a terminal with no physical keyboard.'**
+  String get setOnScreenKeyboardHint;
+
   /// No description provided for @setOnlineOrdering.
   ///
   /// In en, this message translates to:

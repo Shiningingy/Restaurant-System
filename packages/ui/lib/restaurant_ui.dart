@@ -11,6 +11,7 @@ export 'src/brand_mark.dart';
 export 'src/kiosk/kiosk_labels.dart';
 export 'src/kiosk/kiosk_menu.dart';
 export 'src/kiosk/kiosk_surface.dart';
+export 'src/on_screen_keyboard.dart';
 export 'src/pos_status_colors.dart';
 export 'src/pos_theme.dart';
 export 'src/tip_selector.dart';
