@@ -153,6 +153,15 @@ class Orders extends Table {
   /// is [total] + this. Not part of [total].
   IntColumn get cashRounding =>
       integer().map(const MoneyConverter()).withDefault(const Constant(0))();
+
+  /// The processor checkout session behind a staff-sent **payment link**, and
+  /// its last known state. Both null unless staff chose "pay by link" for this
+  /// order (a phone-in takeout). The session id is persisted rather than held
+  /// in memory so polling survives an app restart — otherwise a till reboot
+  /// would strand an order that the customer is about to pay.
+  TextColumn get payLinkSessionId => text().nullable()();
+  TextColumn get payLinkStatus =>
+      textEnum<domain.PayLinkStatus>().nullable()();
   TextColumn get note => text().nullable()();
 
   @override

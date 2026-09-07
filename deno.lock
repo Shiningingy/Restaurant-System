@@ -2,6 +2,7 @@
   "version": "5",
   "specifiers": {
     "jsr:@std/assert@*": "1.0.19",
+    "jsr:@std/assert@^1.0.19": "1.0.19",
     "jsr:@std/internal@^1.0.12": "1.0.14"
   },
   "jsr": {
@@ -16,6 +17,9 @@
     }
   },
   "workspace": {
+    "dependencies": [
+      "jsr:@std/assert@^1.0.19"
+    ],
     "packageJson": {
       "dependencies": [
         "npm:supabase@^2.108.0"

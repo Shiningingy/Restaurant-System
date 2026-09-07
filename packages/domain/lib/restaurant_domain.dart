@@ -23,6 +23,7 @@ export 'src/ids.dart';
 export 'src/money.dart';
 export 'src/online_order.dart';
 export 'src/order_totals.dart';
+export 'src/pay_link.dart';
 export 'src/payment_math.dart';
 export 'src/promo_manifest.dart';
 export 'src/receipt_templates.dart';

@@ -2210,6 +2210,26 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, OrderRow> {
         requiredDuringInsert: false,
         defaultValue: const Constant(0),
       ).withConverter<domain.Money>($OrdersTable.$convertercashRounding);
+  static const VerificationMeta _payLinkSessionIdMeta = const VerificationMeta(
+    'payLinkSessionId',
+  );
+  @override
+  late final GeneratedColumn<String> payLinkSessionId = GeneratedColumn<String>(
+    'pay_link_session_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<domain.PayLinkStatus?, String>
+  payLinkStatus = GeneratedColumn<String>(
+    'pay_link_status',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  ).withConverter<domain.PayLinkStatus?>($OrdersTable.$converterpayLinkStatusn);
   static const VerificationMeta _noteMeta = const VerificationMeta('note');
   @override
   late final GeneratedColumn<String> note = GeneratedColumn<String>(
@@ -2237,6 +2257,8 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, OrderRow> {
     total,
     requestedTip,
     cashRounding,
+    payLinkSessionId,
+    payLinkStatus,
     note,
   ];
   @override
@@ -2296,6 +2318,15 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, OrderRow> {
         serviceFeeBp.isAcceptableOrUnknown(
           data['service_fee_bp']!,
           _serviceFeeBpMeta,
+        ),
+      );
+    }
+    if (data.containsKey('pay_link_session_id')) {
+      context.handle(
+        _payLinkSessionIdMeta,
+        payLinkSessionId.isAcceptableOrUnknown(
+          data['pay_link_session_id']!,
+          _payLinkSessionIdMeta,
         ),
       );
     }
@@ -2396,6 +2427,16 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, OrderRow> {
           data['${effectivePrefix}cash_rounding'],
         )!,
       ),
+      payLinkSessionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}pay_link_session_id'],
+      ),
+      payLinkStatus: $OrdersTable.$converterpayLinkStatusn.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}pay_link_status'],
+        ),
+      ),
       note: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}note'],
@@ -2428,6 +2469,14 @@ class $OrdersTable extends Orders with TableInfo<$OrdersTable, OrderRow> {
       const MoneyConverter();
   static TypeConverter<domain.Money, int> $convertercashRounding =
       const MoneyConverter();
+  static JsonTypeConverter2<domain.PayLinkStatus, String, String>
+  $converterpayLinkStatus = const EnumNameConverter<domain.PayLinkStatus>(
+    domain.PayLinkStatus.values,
+  );
+  static JsonTypeConverter2<domain.PayLinkStatus?, String?, String?>
+  $converterpayLinkStatusn = JsonTypeConverter2.asNullable(
+    $converterpayLinkStatus,
+  );
 }
 
 class OrderRow extends DataClass implements Insertable<OrderRow> {
@@ -2453,6 +2502,14 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
   /// Cash-rounding adjustment applied at a cash payment (signed). Amount owed
   /// is [total] + this. Not part of [total].
   final domain.Money cashRounding;
+
+  /// The processor checkout session behind a staff-sent **payment link**, and
+  /// its last known state. Both null unless staff chose "pay by link" for this
+  /// order (a phone-in takeout). The session id is persisted rather than held
+  /// in memory so polling survives an app restart — otherwise a till reboot
+  /// would strand an order that the customer is about to pay.
+  final String? payLinkSessionId;
+  final domain.PayLinkStatus? payLinkStatus;
   final String? note;
   const OrderRow({
     required this.id,
@@ -2471,6 +2528,8 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
     required this.total,
     required this.requestedTip,
     required this.cashRounding,
+    this.payLinkSessionId,
+    this.payLinkStatus,
     this.note,
   });
   @override
@@ -2528,6 +2587,14 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
         $OrdersTable.$convertercashRounding.toSql(cashRounding),
       );
     }
+    if (!nullToAbsent || payLinkSessionId != null) {
+      map['pay_link_session_id'] = Variable<String>(payLinkSessionId);
+    }
+    if (!nullToAbsent || payLinkStatus != null) {
+      map['pay_link_status'] = Variable<String>(
+        $OrdersTable.$converterpayLinkStatusn.toSql(payLinkStatus),
+      );
+    }
     if (!nullToAbsent || note != null) {
       map['note'] = Variable<String>(note);
     }
@@ -2558,6 +2625,12 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
       total: Value(total),
       requestedTip: Value(requestedTip),
       cashRounding: Value(cashRounding),
+      payLinkSessionId: payLinkSessionId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(payLinkSessionId),
+      payLinkStatus: payLinkStatus == null && nullToAbsent
+          ? const Value.absent()
+          : Value(payLinkStatus),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
     );
   }
@@ -2588,6 +2661,10 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
       total: serializer.fromJson<domain.Money>(json['total']),
       requestedTip: serializer.fromJson<domain.Money>(json['requestedTip']),
       cashRounding: serializer.fromJson<domain.Money>(json['cashRounding']),
+      payLinkSessionId: serializer.fromJson<String?>(json['payLinkSessionId']),
+      payLinkStatus: $OrdersTable.$converterpayLinkStatusn.fromJson(
+        serializer.fromJson<String?>(json['payLinkStatus']),
+      ),
       note: serializer.fromJson<String?>(json['note']),
     );
   }
@@ -2615,6 +2692,10 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
       'total': serializer.toJson<domain.Money>(total),
       'requestedTip': serializer.toJson<domain.Money>(requestedTip),
       'cashRounding': serializer.toJson<domain.Money>(cashRounding),
+      'payLinkSessionId': serializer.toJson<String?>(payLinkSessionId),
+      'payLinkStatus': serializer.toJson<String?>(
+        $OrdersTable.$converterpayLinkStatusn.toJson(payLinkStatus),
+      ),
       'note': serializer.toJson<String?>(note),
     };
   }
@@ -2636,6 +2717,8 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
     domain.Money? total,
     domain.Money? requestedTip,
     domain.Money? cashRounding,
+    Value<String?> payLinkSessionId = const Value.absent(),
+    Value<domain.PayLinkStatus?> payLinkStatus = const Value.absent(),
     Value<String?> note = const Value.absent(),
   }) => OrderRow(
     id: id ?? this.id,
@@ -2654,6 +2737,12 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
     total: total ?? this.total,
     requestedTip: requestedTip ?? this.requestedTip,
     cashRounding: cashRounding ?? this.cashRounding,
+    payLinkSessionId: payLinkSessionId.present
+        ? payLinkSessionId.value
+        : this.payLinkSessionId,
+    payLinkStatus: payLinkStatus.present
+        ? payLinkStatus.value
+        : this.payLinkStatus,
     note: note.present ? note.value : this.note,
   );
   OrderRow copyWithCompanion(OrdersCompanion data) {
@@ -2682,6 +2771,12 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
       cashRounding: data.cashRounding.present
           ? data.cashRounding.value
           : this.cashRounding,
+      payLinkSessionId: data.payLinkSessionId.present
+          ? data.payLinkSessionId.value
+          : this.payLinkSessionId,
+      payLinkStatus: data.payLinkStatus.present
+          ? data.payLinkStatus.value
+          : this.payLinkStatus,
       note: data.note.present ? data.note.value : this.note,
     );
   }
@@ -2705,6 +2800,8 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
           ..write('total: $total, ')
           ..write('requestedTip: $requestedTip, ')
           ..write('cashRounding: $cashRounding, ')
+          ..write('payLinkSessionId: $payLinkSessionId, ')
+          ..write('payLinkStatus: $payLinkStatus, ')
           ..write('note: $note')
           ..write(')'))
         .toString();
@@ -2728,6 +2825,8 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
     total,
     requestedTip,
     cashRounding,
+    payLinkSessionId,
+    payLinkStatus,
     note,
   );
   @override
@@ -2750,6 +2849,8 @@ class OrderRow extends DataClass implements Insertable<OrderRow> {
           other.total == this.total &&
           other.requestedTip == this.requestedTip &&
           other.cashRounding == this.cashRounding &&
+          other.payLinkSessionId == this.payLinkSessionId &&
+          other.payLinkStatus == this.payLinkStatus &&
           other.note == this.note);
 }
 
@@ -2770,6 +2871,8 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
   final Value<domain.Money> total;
   final Value<domain.Money> requestedTip;
   final Value<domain.Money> cashRounding;
+  final Value<String?> payLinkSessionId;
+  final Value<domain.PayLinkStatus?> payLinkStatus;
   final Value<String?> note;
   final Value<int> rowid;
   const OrdersCompanion({
@@ -2789,6 +2892,8 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
     this.total = const Value.absent(),
     this.requestedTip = const Value.absent(),
     this.cashRounding = const Value.absent(),
+    this.payLinkSessionId = const Value.absent(),
+    this.payLinkStatus = const Value.absent(),
     this.note = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -2809,6 +2914,8 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
     required domain.Money total,
     this.requestedTip = const Value.absent(),
     this.cashRounding = const Value.absent(),
+    this.payLinkSessionId = const Value.absent(),
+    this.payLinkStatus = const Value.absent(),
     this.note = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -2836,6 +2943,8 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
     Expression<int>? total,
     Expression<int>? requestedTip,
     Expression<int>? cashRounding,
+    Expression<String>? payLinkSessionId,
+    Expression<String>? payLinkStatus,
     Expression<String>? note,
     Expression<int>? rowid,
   }) {
@@ -2856,6 +2965,8 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
       if (total != null) 'total': total,
       if (requestedTip != null) 'requested_tip': requestedTip,
       if (cashRounding != null) 'cash_rounding': cashRounding,
+      if (payLinkSessionId != null) 'pay_link_session_id': payLinkSessionId,
+      if (payLinkStatus != null) 'pay_link_status': payLinkStatus,
       if (note != null) 'note': note,
       if (rowid != null) 'rowid': rowid,
     });
@@ -2878,6 +2989,8 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
     Value<domain.Money>? total,
     Value<domain.Money>? requestedTip,
     Value<domain.Money>? cashRounding,
+    Value<String?>? payLinkSessionId,
+    Value<domain.PayLinkStatus?>? payLinkStatus,
     Value<String?>? note,
     Value<int>? rowid,
   }) {
@@ -2898,6 +3011,8 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
       total: total ?? this.total,
       requestedTip: requestedTip ?? this.requestedTip,
       cashRounding: cashRounding ?? this.cashRounding,
+      payLinkSessionId: payLinkSessionId ?? this.payLinkSessionId,
+      payLinkStatus: payLinkStatus ?? this.payLinkStatus,
       note: note ?? this.note,
       rowid: rowid ?? this.rowid,
     );
@@ -2970,6 +3085,14 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
         $OrdersTable.$convertercashRounding.toSql(cashRounding.value),
       );
     }
+    if (payLinkSessionId.present) {
+      map['pay_link_session_id'] = Variable<String>(payLinkSessionId.value);
+    }
+    if (payLinkStatus.present) {
+      map['pay_link_status'] = Variable<String>(
+        $OrdersTable.$converterpayLinkStatusn.toSql(payLinkStatus.value),
+      );
+    }
     if (note.present) {
       map['note'] = Variable<String>(note.value);
     }
@@ -2998,6 +3121,8 @@ class OrdersCompanion extends UpdateCompanion<OrderRow> {
           ..write('total: $total, ')
           ..write('requestedTip: $requestedTip, ')
           ..write('cashRounding: $cashRounding, ')
+          ..write('payLinkSessionId: $payLinkSessionId, ')
+          ..write('payLinkStatus: $payLinkStatus, ')
           ..write('note: $note, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -9224,6 +9349,8 @@ typedef $$OrdersTableCreateCompanionBuilder =
       required domain.Money total,
       Value<domain.Money> requestedTip,
       Value<domain.Money> cashRounding,
+      Value<String?> payLinkSessionId,
+      Value<domain.PayLinkStatus?> payLinkStatus,
       Value<String?> note,
       Value<int> rowid,
     });
@@ -9245,6 +9372,8 @@ typedef $$OrdersTableUpdateCompanionBuilder =
       Value<domain.Money> total,
       Value<domain.Money> requestedTip,
       Value<domain.Money> cashRounding,
+      Value<String?> payLinkSessionId,
+      Value<domain.PayLinkStatus?> payLinkStatus,
       Value<String?> note,
       Value<int> rowid,
     });
@@ -9397,6 +9526,21 @@ class $$OrdersTableFilterComposer
   ColumnWithTypeConverterFilters<domain.Money, domain.Money, int>
   get cashRounding => $composableBuilder(
     column: $table.cashRounding,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get payLinkSessionId => $composableBuilder(
+    column: $table.payLinkSessionId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<
+    domain.PayLinkStatus?,
+    domain.PayLinkStatus,
+    String
+  >
+  get payLinkStatus => $composableBuilder(
+    column: $table.payLinkStatus,
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
@@ -9563,6 +9707,16 @@ class $$OrdersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get payLinkSessionId => $composableBuilder(
+    column: $table.payLinkSessionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get payLinkStatus => $composableBuilder(
+    column: $table.payLinkStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get note => $composableBuilder(
     column: $table.note,
     builder: (column) => ColumnOrderings(column),
@@ -9656,6 +9810,17 @@ class $$OrdersTableAnnotationComposer
         column: $table.cashRounding,
         builder: (column) => column,
       );
+
+  GeneratedColumn<String> get payLinkSessionId => $composableBuilder(
+    column: $table.payLinkSessionId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<domain.PayLinkStatus?, String>
+  get payLinkStatus => $composableBuilder(
+    column: $table.payLinkStatus,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get note =>
       $composableBuilder(column: $table.note, builder: (column) => column);
@@ -9782,6 +9947,9 @@ class $$OrdersTableTableManager
                 Value<domain.Money> total = const Value.absent(),
                 Value<domain.Money> requestedTip = const Value.absent(),
                 Value<domain.Money> cashRounding = const Value.absent(),
+                Value<String?> payLinkSessionId = const Value.absent(),
+                Value<domain.PayLinkStatus?> payLinkStatus =
+                    const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => OrdersCompanion(
@@ -9801,6 +9969,8 @@ class $$OrdersTableTableManager
                 total: total,
                 requestedTip: requestedTip,
                 cashRounding: cashRounding,
+                payLinkSessionId: payLinkSessionId,
+                payLinkStatus: payLinkStatus,
                 note: note,
                 rowid: rowid,
               ),
@@ -9822,6 +9992,9 @@ class $$OrdersTableTableManager
                 required domain.Money total,
                 Value<domain.Money> requestedTip = const Value.absent(),
                 Value<domain.Money> cashRounding = const Value.absent(),
+                Value<String?> payLinkSessionId = const Value.absent(),
+                Value<domain.PayLinkStatus?> payLinkStatus =
+                    const Value.absent(),
                 Value<String?> note = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => OrdersCompanion.insert(
@@ -9841,6 +10014,8 @@ class $$OrdersTableTableManager
                 total: total,
                 requestedTip: requestedTip,
                 cashRounding: cashRounding,
+                payLinkSessionId: payLinkSessionId,
+                payLinkStatus: payLinkStatus,
                 note: note,
                 rowid: rowid,
               ),

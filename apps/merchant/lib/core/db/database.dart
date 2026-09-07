@@ -109,7 +109,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 13;
+  int get schemaVersion => 14;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -172,6 +172,12 @@ class AppDatabase extends _$AppDatabase {
       if (from < 13) {
         // v13: cash-rounding adjustment applied at a cash payment. Defaults 0.
         await m.addColumn(orders, orders.cashRounding);
+      }
+      if (from < 14) {
+        // v14: staff-sent payment link (phone-in takeout). Both null on every
+        // existing order — nothing is retroactively awaiting a link.
+        await m.addColumn(orders, orders.payLinkSessionId);
+        await m.addColumn(orders, orders.payLinkStatus);
       }
     },
   );
