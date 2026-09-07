@@ -197,6 +197,77 @@ class SupabaseOnlineOrderChannel implements domain.OnlineOrderChannel {
     return (jsonDecode(resp.body) as Map<String, dynamic>)['refunded'] == true;
   }
 
+  /// Mints a staff-initiated **payment link** for an order built at the till,
+  /// returning the URL to show as a QR (or send by SMS/email) and the session
+  /// id to poll.
+  ///
+  /// Unlike a customer-initiated payment this passes the amount explicitly: the
+  /// order exists only in the till, so there is nothing in the cloud for the
+  /// function to recompute it from. That is safe because the caller is the
+  /// authenticated restaurant — the party being paid.
+  Future<({String url, String sessionId})> createPayLink({
+    required String orderId,
+    required int amountCents,
+    String? label,
+  }) async {
+    final resp = await _client
+        .post(
+          baseUrl
+              .resolve('functions/v1/pay-online')
+              .replace(queryParameters: {'action': 'link'}),
+          headers: await _authHeaders(),
+          body: jsonEncode({
+            'order_id': orderId,
+            'amount_cents': amountCents,
+            if (label != null && label.isNotEmpty) 'label': label,
+          }),
+        )
+        .timeout(timeout);
+    if (resp.statusCode >= 300) {
+      throw domain.SyncException('create pay link (${resp.statusCode})');
+    }
+    final j = jsonDecode(resp.body) as Map<String, dynamic>;
+    final url = j['url'] as String?;
+    final sessionId = j['session_id'] as String?;
+    if (url == null || sessionId == null) {
+      throw const domain.SyncException('create pay link (malformed response)');
+    }
+    return (url: url, sessionId: sessionId);
+  }
+
+  /// Polls one payment link. The till asks the processor directly, so the
+  /// answer never depends on the customer's browser coming back to us — they
+  /// can pay and close the tab straight away.
+  Future<({domain.PayLinkStatus status, String? paymentIntentId})>
+  payLinkStatus(String sessionId) async {
+    final resp = await _client
+        .get(
+          baseUrl
+              .resolve('functions/v1/pay-online')
+              .replace(
+                queryParameters: {
+                  'action': 'link_status',
+                  'session_id': sessionId,
+                },
+              ),
+          headers: await _authHeaders(),
+        )
+        .timeout(timeout);
+    if (resp.statusCode >= 300) {
+      throw domain.SyncException('pay link status (${resp.statusCode})');
+    }
+    final j = jsonDecode(resp.body) as Map<String, dynamic>;
+    // An expired session is unpaid but dead — that is the red dot, and it is
+    // recoverable: nothing was charged, so staff can resend or take payment
+    // another way.
+    final status = j['paid'] == true
+        ? domain.PayLinkStatus.paid
+        : (j['session_status'] == 'expired'
+              ? domain.PayLinkStatus.failed
+              : domain.PayLinkStatus.pending);
+    return (status: status, paymentIntentId: j['payment_intent_id'] as String?);
+  }
+
   @override
   Future<void> proposePickupTime(
     String orderId,

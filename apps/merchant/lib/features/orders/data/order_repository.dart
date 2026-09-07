@@ -70,6 +70,50 @@ class OrderRepository {
     });
   }
 
+  // --- Pay by link (staff-sent payment link) ---
+
+  /// Records the link staff just sent for [orderId] and marks it awaiting
+  /// payment (the amber dot). The session id is persisted rather than held in
+  /// memory so polling survives a till restart — otherwise a reboot would
+  /// strand an order the customer is about to pay.
+  Future<void> setPayLink(String orderId, String sessionId) {
+    return db.transaction(() async {
+      await (db.update(db.orders)..where((t) => t.id.equals(orderId))).write(
+        OrdersCompanion(
+          payLinkSessionId: Value(sessionId),
+          payLinkStatus: const Value(domain.PayLinkStatus.pending),
+        ),
+      );
+      await _journalOrder(orderId);
+    });
+  }
+
+  /// Updates the dot. Settling a paid order is the payment repository's job —
+  /// this only records what the link itself is doing.
+  Future<void> setPayLinkStatus(String orderId, domain.PayLinkStatus status) {
+    return db.transaction(() async {
+      await (db.update(db.orders)..where((t) => t.id.equals(orderId))).write(
+        OrdersCompanion(payLinkStatus: Value(status)),
+      );
+      await _journalOrder(orderId);
+    });
+  }
+
+  /// Every order still waiting on a customer to pay their link. Only these are
+  /// polled, so a busy board costs nothing extra.
+  Future<List<({String orderId, String sessionId})>> pendingPayLinks() async {
+    final rows =
+        await (db.select(db.orders)..where(
+              (t) => t.payLinkStatus.equalsValue(domain.PayLinkStatus.pending),
+            ))
+            .get();
+    return [
+      for (final r in rows)
+        if (r.payLinkSessionId != null)
+          (orderId: r.id, sessionId: r.payLinkSessionId!),
+    ];
+  }
+
   /// Active orders for the board: `open`/`sent` (still being rung up) plus
   /// `paid` (fully paid but still being prepared — sits in the Pending area
   /// until staff mark it finished). `done`/`voided` orders have left the board.
@@ -514,6 +558,7 @@ class OrderRepository {
     total: r.total,
     requestedTip: r.requestedTip,
     cashRounding: r.cashRounding,
+    payLinkStatus: r.payLinkStatus,
     note: r.note,
   );
 

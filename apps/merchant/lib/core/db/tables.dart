@@ -160,8 +160,7 @@ class Orders extends Table {
   /// in memory so polling survives an app restart — otherwise a till reboot
   /// would strand an order that the customer is about to pay.
   TextColumn get payLinkSessionId => text().nullable()();
-  TextColumn get payLinkStatus =>
-      textEnum<domain.PayLinkStatus>().nullable()();
+  TextColumn get payLinkStatus => textEnum<domain.PayLinkStatus>().nullable()();
   TextColumn get note => text().nullable()();
 
   @override

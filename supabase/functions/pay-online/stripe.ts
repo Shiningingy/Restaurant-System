@@ -157,6 +157,10 @@ export async function createCheckoutSession(
 export interface SessionStatus {
   id: string;
   paymentStatus: string; // "paid" when settled
+  /// The session's own lifecycle: "open" | "complete" | "expired". Needed to
+  /// tell "still waiting" apart from "this link will never be paid" — an
+  /// expired session is unpaid but dead, and staff need to know the difference.
+  sessionStatus: string;
   amountTotalCents: number | null;
   currency: string | null;
   paymentIntentId: string | null; // for refunds
@@ -183,6 +187,7 @@ export async function retrieveCheckoutSession(
   return {
     id: (j.id as string) ?? sessionId,
     paymentStatus: `${j.payment_status ?? ""}`,
+    sessionStatus: `${j.status ?? ""}`,
     amountTotalCents: typeof j.amount_total === "number" ? j.amount_total : null,
     currency: (j.currency as string) ?? null,
     // Expands to an object when requested; a bare string otherwise.

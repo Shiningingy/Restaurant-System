@@ -908,6 +908,10 @@ async function handleLinkStatus(req: Request, url: URL): Promise<Response> {
     return json({
       paid: s.paymentStatus === "paid",
       status: s.paymentStatus,
+      // "open" while the customer still could pay; "expired" once the link is
+      // dead. The POS turns the latter into a red dot so staff know to take
+      // payment another way rather than waiting forever.
+      session_status: s.sessionStatus,
       amount_cents: s.amountTotalCents,
       currency: s.currency,
       // The POS stores this as the payment's terminalRef so a later refund can

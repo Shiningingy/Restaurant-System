@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../src/money.dart';
+import '../src/pay_link.dart';
 
 part 'order.freezed.dart';
 
@@ -57,6 +58,11 @@ abstract class Order with _$Order {
     /// the bill shows it as a small discount/rounding line. Zero for card/online
     /// or when rounding is off.
     @Default(Money.zero) Money cashRounding,
+
+    /// State of a staff-sent payment link, if one was sent for this order — the
+    /// amber / green / red dot on the order board. Null for every order settled
+    /// the ordinary way (cash, card, or paid online by the customer).
+    PayLinkStatus? payLinkStatus,
     String? note,
   }) = _Order;
 }
