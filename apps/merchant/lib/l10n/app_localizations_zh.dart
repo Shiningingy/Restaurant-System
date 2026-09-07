@@ -598,8 +598,18 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String inboxTotalPaidOnline(String total) {
+    return '合计 $total · 已在线支付';
+  }
+
+  @override
   String inboxCustomerTip(String amount) {
     return '顾客小费 $amount · 请在柜台收取';
+  }
+
+  @override
+  String inboxCustomerTipPaid(String amount) {
+    return '顾客小费 $amount · 已含在在线支付中';
   }
 
   @override

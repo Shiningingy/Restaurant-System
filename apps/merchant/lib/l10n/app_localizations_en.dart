@@ -611,8 +611,18 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String inboxTotalPaidOnline(String total) {
+    return 'Total $total — PAID online';
+  }
+
+  @override
   String inboxCustomerTip(String amount) {
     return 'Customer tip $amount — add at the counter';
+  }
+
+  @override
+  String inboxCustomerTipPaid(String amount) {
+    return 'Customer tip $amount — included in the online payment';
   }
 
   @override

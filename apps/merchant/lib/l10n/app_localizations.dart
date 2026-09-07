@@ -1124,11 +1124,23 @@ abstract class AppLocalizations {
   /// **'Total {total} — pay at pickup'**
   String inboxTotalPayAtPickup(String total);
 
+  /// No description provided for @inboxTotalPaidOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'Total {total} — PAID online'**
+  String inboxTotalPaidOnline(String total);
+
   /// No description provided for @inboxCustomerTip.
   ///
   /// In en, this message translates to:
   /// **'Customer tip {amount} — add at the counter'**
   String inboxCustomerTip(String amount);
+
+  /// No description provided for @inboxCustomerTipPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer tip {amount} — included in the online payment'**
+  String inboxCustomerTipPaid(String amount);
 
   /// No description provided for @inboxReject.
   ///

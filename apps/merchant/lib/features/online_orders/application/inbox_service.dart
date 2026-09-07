@@ -116,6 +116,10 @@ class InboxService {
           orderId: orderId,
           method: domain.PaymentMethod.online,
           amount: order.total,
+          // The customer was charged subtotal + tax + tip, so the tip really is
+          // already collected — record it here or it vanishes from the day's
+          // tip total and staff never see the money they were given.
+          tip: incoming.tip,
           terminalRef: incoming.processorRef,
         );
       }
