@@ -148,9 +148,8 @@ class _PaymentWebViewState extends ConsumerState<PaymentWebView> {
 
   /// Shape A — the processor hosts the page. Just navigate; it is served as real
   /// `text/html` on the processor's own origin, so nothing needs intercepting.
-  Widget _hostedWebview(String url) => InAppWebView(
-    initialUrlRequest: URLRequest(url: WebUri(url)),
-  );
+  Widget _hostedWebview(String url) =>
+      InAppWebView(initialUrlRequest: URLRequest(url: WebUri(url)));
 
   Widget _webview(String html) {
     // Windows/WebView2: navigate to the real URL (keeps the origin) and serve
