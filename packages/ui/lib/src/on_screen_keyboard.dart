@@ -183,7 +183,22 @@ class _OnScreenKeyboardScopeState extends State<OnScreenKeyboardScope> {
                   ),
                 )
               : media,
-          child: widget.child,
+          // Tapping "nothing" dismisses the keyboard, the way a system soft
+          // keyboard behaves. Without this the field keeps focus forever and the
+          // panel sits there covering a third of a touch-only terminal.
+          //
+          // translucent + a tap gesture is deliberate: hit testing runs
+          // innermost-first, so any child that handles its own taps (a button,
+          // another text field) is added to the gesture arena first and wins.
+          // This only fires when the tap landed on genuinely empty space.
+          // Drags and scrolls are unaffected — onTap never claims those.
+          child: show
+              ? GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+                  child: widget.child,
+                )
+              : widget.child,
         ),
         if (show)
           Positioned(
