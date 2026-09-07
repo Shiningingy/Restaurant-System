@@ -39,3 +39,11 @@ node_modules/
 # OS
 Thumbs.db
 .DS_Store
+
+# Local-only business documents (drafts, commercial terms, marketing collateral).
+# Deliberately NOT versioned: the partnership term sheet carries live commercial
+# terms, and git history is permanent and readable by anyone who is ever given
+# repo access. Keep these local, or store them outside the repo entirely.
+docs/PARTNERSHIP_TERM_SHEET.*
+docs/COMPETITOR_INVESTIGATION_BRIEF.*
+docs/PRODUCT_OVERVIEW.*
