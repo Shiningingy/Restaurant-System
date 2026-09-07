@@ -114,6 +114,10 @@ export async function createCheckoutSession(
     successUrl: string;
     cancelUrl: string;
     idempotencyKey: string;
+    /// What the customer sees as the line item. A raw uuid is meaningless to
+    /// someone who was just texted a link, so pay-by-link passes something
+    /// human ("Yee Sushi — takeout order").
+    label?: string;
   },
 ): Promise<SessionResult> {
   const body = new URLSearchParams({
@@ -125,7 +129,9 @@ export async function createCheckoutSession(
     "line_items[0][quantity]": "1",
     "line_items[0][price_data][currency]": cfg.currency,
     "line_items[0][price_data][unit_amount]": String(args.amountCents),
-    "line_items[0][price_data][product_data][name]": `Order ${args.orderId}`,
+    "line_items[0][price_data][product_data][name]": args.label?.trim().length
+      ? args.label!.trim()
+      : `Order ${args.orderId}`,
     // Carry the order id onto the PaymentIntent too, so a refund or a dashboard
     // lookup can be traced back without going via the session.
     "payment_intent_data[metadata][order_id]": args.orderId,

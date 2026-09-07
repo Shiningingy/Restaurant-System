@@ -842,6 +842,85 @@ async function handleStripeReturn(url: URL): Promise<Response> {
   return text("✅ Payment complete. You can return to the app.");
 }
 
+// --- Pay by link (staff-initiated, e.g. a phone-in takeout order) ---
+//
+// Deliberately does NOT touch `online_orders`. The order already exists in the
+// POS, so mirroring it into the customer-facing table would make the inbox try
+// to rebuild an order that is already there. Instead the POS keeps the returned
+// session id and polls it.
+//
+// That polling is also why pay-by-link needs no webhook: the merchant asks
+// Stripe directly, so the answer never depends on the customer's browser coming
+// back to us. They can pay and close the tab immediately.
+
+/// Mints a Checkout Session for an amount the STAFF entered, and returns a URL
+/// to show as a QR or text to the customer.
+///
+/// Restaurant-authenticated. The amount comes from the merchant rather than a
+/// customer, so there is nothing to defend against here — they are the party
+/// being paid. (Customer-initiated payment still recomputes the amount from the
+/// order's own lines; see effectiveCents.)
+async function handleCreateLink(req: Request, url: URL): Promise<Response> {
+  if (!await isRestaurant(bearer(req))) {
+    return json({ error: "forbidden" }, 403);
+  }
+  if (paymentProvider() !== "stripe") {
+    return json({ error: "pay_by_link_requires_stripe" }, 400);
+  }
+  const body = await req.json().catch(() => ({}));
+  const orderId = `${body.order_id ?? ""}`;
+  const amountCents = Math.round(Number(body.amount_cents));
+  const label = typeof body.label === "string" ? body.label : undefined;
+  if (!orderId || !Number.isFinite(amountCents) || amountCents <= 0) {
+    return json({ error: "bad request" }, 400);
+  }
+  const base = `${url.origin}${url.pathname}`;
+  try {
+    const session = await createCheckoutSession(stripeConfig(), {
+      amountCents,
+      orderId,
+      label,
+      successUrl: `${base}?action=link_done`,
+      cancelUrl: `${base}?action=link_cancelled`,
+      // Keyed on order AND amount: re-sending the same link is idempotent (one
+      // session, not a pile of them), but editing the order before re-sending
+      // correctly mints a new session for the new total.
+      idempotencyKey: `${orderId}-link-${amountCents}`,
+    });
+    return json({ url: session.url, session_id: session.id });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error(`pay-by-link create failed order=${orderId}: ${msg}`);
+    return json({ error: "link_failed" }, 502);
+  }
+}
+
+/// Polls one pay-by-link session. Stripe is the source of truth; we proxy it
+/// because only this function holds the secret key.
+async function handleLinkStatus(req: Request, url: URL): Promise<Response> {
+  if (!await isRestaurant(bearer(req))) {
+    return json({ error: "forbidden" }, 403);
+  }
+  const sessionId = url.searchParams.get("session_id") ?? "";
+  if (!sessionId) return json({ error: "bad request" }, 400);
+  try {
+    const s = await retrieveCheckoutSession(stripeConfig(), sessionId);
+    return json({
+      paid: s.paymentStatus === "paid",
+      status: s.paymentStatus,
+      amount_cents: s.amountTotalCents,
+      currency: s.currency,
+      // The POS stores this as the payment's terminalRef so a later refund can
+      // find the charge.
+      payment_intent_id: s.paymentIntentId,
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error(`pay-by-link status failed session=${sessionId}: ${msg}`);
+    return json({ error: "status_failed" }, 502);
+  }
+}
+
 /// The card has ALREADY been captured but we cannot reconcile the payment to the
 /// order (the amount or currency disagrees with what we recomputed). Refund it
 /// immediately.
@@ -962,6 +1041,27 @@ Deno.serve(async (req) => {
       const token = url.searchParams.get("token");
       return json(await monerisDiagnose(monerisConfig(), token));
     }
+    // --- pay by link (staff-initiated) ---
+    if (req.method === "POST" && action === "link") {
+      return await handleCreateLink(req, url);
+    }
+    if (req.method === "GET" && action === "link_status") {
+      return await handleLinkStatus(req, url);
+    }
+    // Where a pay-by-link customer lands. Nothing is written here: the POS polls
+    // the session, so these pages are courtesy only and it does not matter if
+    // the customer closes the tab before seeing them.
+    if (req.method === "GET" && action === "link_done") {
+      return text(
+        "✅ Payment received. Thank you — the restaurant has been notified.",
+      );
+    }
+    if (req.method === "GET" && action === "link_cancelled") {
+      return text(
+        "Payment cancelled. Please contact the restaurant if you still want this order.",
+      );
+    }
+
     // Stripe Checkout sends the customer back here when they finish or bail.
     if (req.method === "GET" && action === "return") {
       return await handleStripeReturn(url);
