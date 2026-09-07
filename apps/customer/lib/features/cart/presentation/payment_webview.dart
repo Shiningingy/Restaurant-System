@@ -11,17 +11,26 @@ import 'package:http/http.dart' as http;
 import '../../../core/l10n_ext.dart';
 import '../../storefront/application/providers.dart';
 
-/// Renders Moneris's hosted-tokenization page (served by the `pay-online`
-/// function) inside the app.
+/// Renders the processor's hosted payment page (served by the `pay-online`
+/// function) inside the app. Two shapes, decided by what the function answers:
 ///
-/// Supabase serves edge-function output as `text/plain` (anti-phishing), so a
-/// browser won't render it. We fetch the HTML ourselves and feed it to the
-/// webview with our Supabase origin — which is what Moneris's iframe checks
-/// against the registered source domain:
+/// **A — the function REDIRECTS (302) to the processor** (Stripe Checkout). The
+/// processor serves its own page as real `text/html` on its own origin, so we
+/// simply navigate the webview there and get out of the way. This is the simple
+/// path: no interception, no origin games.
+///
+/// **B — the function returns the page itself** (Moneris hosted tokenization,
+/// HelcimPay.js, Stripe Payment Element). Supabase serves edge-function output as
+/// `text/plain` (anti-phishing), so a browser won't render it. We fetch the HTML
+/// ourselves and feed it to the webview under our Supabase origin — which is what
+/// Moneris's iframe checks against the registered source domain:
 ///  - **mobile** (Android/iOS): `loadData` + `baseUrl` (origin honored natively);
 ///  - **Windows** (WebView2): navigate to the real URL and relabel the response
 ///    `text/html` via request interception (WebView2 ignores `baseUrl` for
 ///    in-memory data, but a real navigation keeps the origin).
+///
+/// We must NOT follow the redirect while fetching — doing so would re-serve the
+/// processor's page under OUR origin and break it.
 ///
 /// Pops `true` once the order's `payment_status` flips to paid; backing out pops
 /// `null`, which the checkout treats as "not paid" (and cleans up the order).
@@ -43,6 +52,7 @@ class PaymentWebView extends ConsumerStatefulWidget {
 
 class _PaymentWebViewState extends ConsumerState<PaymentWebView> {
   String? _html;
+  String? _redirectUrl; // set when the function 302s us to the processor
   String? _error;
   Timer? _poll;
 
@@ -60,18 +70,38 @@ class _PaymentWebViewState extends ConsumerState<PaymentWebView> {
   }
 
   Future<void> _load() async {
+    final client = http.Client();
     try {
-      final resp = await http
-          .get(Uri.parse(widget.pageUrl))
+      // Deliberately do NOT follow redirects: a 302 means the processor hosts the
+      // page itself, and following it here would hand us their HTML to re-serve
+      // under our own origin (shape B), which breaks it.
+      final request = http.Request('GET', Uri.parse(widget.pageUrl))
+        ..followRedirects = false;
+      final resp = await client
+          .send(request)
           .timeout(const Duration(seconds: 20));
       if (!mounted) return;
+
+      if (resp.statusCode >= 300 && resp.statusCode < 400) {
+        final location = resp.headers['location'];
+        if (location != null && location.isNotEmpty) {
+          // Resolve in case the processor ever sends a relative Location.
+          final target = Uri.parse(widget.pageUrl).resolve(location).toString();
+          setState(() => _redirectUrl = target);
+          return;
+        }
+      }
       if (resp.statusCode >= 300) {
         setState(() => _error = 'HTTP ${resp.statusCode}');
         return;
       }
-      setState(() => _html = resp.body);
+      final body = await resp.stream.bytesToString();
+      if (!mounted) return;
+      setState(() => _html = body);
     } on Object catch (e) {
       if (mounted) setState(() => _error = '$e');
+    } finally {
+      client.close();
     }
   }
 
@@ -108,11 +138,19 @@ class _PaymentWebViewState extends ConsumerState<PaymentWebView> {
                 ),
               ),
             )
+          : _redirectUrl != null
+          ? _hostedWebview(_redirectUrl!)
           : _html == null
           ? const Center(child: CircularProgressIndicator())
           : _webview(_html!),
     );
   }
+
+  /// Shape A — the processor hosts the page. Just navigate; it is served as real
+  /// `text/html` on the processor's own origin, so nothing needs intercepting.
+  Widget _hostedWebview(String url) => InAppWebView(
+    initialUrlRequest: URLRequest(url: WebUri(url)),
+  );
 
   Widget _webview(String html) {
     // Windows/WebView2: navigate to the real URL (keeps the origin) and serve
