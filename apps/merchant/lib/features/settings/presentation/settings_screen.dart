@@ -18,6 +18,8 @@ import '../../../core/settings/settings_repository.dart';
 import '../../../core/supabase_auth.dart';
 import '../../../core/window/window_control.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../admin/domain/staff.dart';
+import '../../admin/presentation/pin_dialog.dart';
 import '../../customer_display/application/customer_display.dart';
 import '../../customer_display/data/promo_image_store.dart';
 import '../../help/presentation/help_screen.dart';
@@ -84,6 +86,12 @@ class SettingsScreen extends ConsumerWidget {
             Icons.tv_outlined,
             l10n.setCustomerDisplay,
             _displayBody,
+          ),
+          _hubTile(
+            context,
+            Icons.devices_outlined,
+            l10n.setDevice,
+            _deviceBody,
           ),
           _hubTile(
             context,
@@ -223,6 +231,16 @@ class SettingsScreen extends ConsumerWidget {
       leading: const Icon(Icons.point_of_sale_outlined),
       title: Text(context.l10n.setCardTerminalManual),
       subtitle: Text(context.l10n.setCardTerminalManualSubtitle),
+    ),
+  ];
+
+  List<Widget> _deviceBody(BuildContext context, WidgetRef ref) => [
+    SwitchListTile(
+      secondary: const Icon(Icons.keyboard_outlined),
+      title: Text(context.l10n.setOnScreenKeyboard),
+      subtitle: Text(context.l10n.setOnScreenKeyboardHint),
+      value: ref.watch(onScreenKeyboardProvider),
+      onChanged: (v) => ref.read(onScreenKeyboardProvider.notifier).set(v),
     ),
   ];
 
@@ -1428,12 +1446,17 @@ class _CheckoutPricingSection extends ConsumerWidget {
             _pct(pricing.serviceFeeBp),
             style: Theme.of(context).textTheme.titleMedium,
           ),
-          onTap: () => _editPercent(
+          onTap: () => _guard(
             context,
-            title: context.l10n.setServiceFee,
-            currentBp: pricing.serviceFeeBp,
-            onPicked: (bp) =>
-                ref.read(checkoutPricingProvider.notifier).setServiceFeeBp(bp),
+            ref,
+            () => _editPercent(
+              context,
+              title: context.l10n.setServiceFee,
+              currentBp: pricing.serviceFeeBp,
+              onPicked: (bp) => ref
+                  .read(checkoutPricingProvider.notifier)
+                  .setServiceFeeBp(bp),
+            ),
           ),
         ),
         ListTile(
@@ -1444,7 +1467,7 @@ class _CheckoutPricingSection extends ConsumerWidget {
                 ? context.l10n.setDiscountPresetsNone
                 : pricing.discountPresetsBp.map(_pct).join(', '),
           ),
-          onTap: () => _editPresets(context, ref),
+          onTap: () => _guard(context, ref, () => _editPresets(context, ref)),
         ),
         ListTile(
           leading: const Icon(Icons.shield_outlined),
@@ -1454,13 +1477,17 @@ class _CheckoutPricingSection extends ConsumerWidget {
             _pct(pricing.discountThresholdBp),
             style: Theme.of(context).textTheme.titleMedium,
           ),
-          onTap: () => _editPercent(
+          onTap: () => _guard(
             context,
-            title: context.l10n.setDiscountThreshold,
-            currentBp: pricing.discountThresholdBp,
-            onPicked: (bp) => ref
-                .read(checkoutPricingProvider.notifier)
-                .setDiscountThresholdBp(bp),
+            ref,
+            () => _editPercent(
+              context,
+              title: context.l10n.setDiscountThreshold,
+              currentBp: pricing.discountThresholdBp,
+              onPicked: (bp) => ref
+                  .read(checkoutPricingProvider.notifier)
+                  .setDiscountThresholdBp(bp),
+            ),
           ),
         ),
         ListTile(
@@ -1473,10 +1500,25 @@ class _CheckoutPricingSection extends ConsumerWidget {
                 : domain.Money(pricing.cashRoundingCents).format(),
             style: Theme.of(context).textTheme.titleMedium,
           ),
-          onTap: () => _editCashRounding(context, ref),
+          onTap: () =>
+              _guard(context, ref, () => _editCashRounding(context, ref)),
         ),
       ],
     );
+  }
+
+  /// Runs [action] only after confirming the current role may change pricing.
+  /// A manager/owner passes straight through; a server gets a manager-PIN
+  /// prompt — these settings change what customers are charged.
+  Future<void> _guard(
+    BuildContext context,
+    WidgetRef ref,
+    Future<void> Function() action,
+  ) async {
+    if (!await requirePermission(context, ref, AppPermission.manageSettings)) {
+      return;
+    }
+    if (context.mounted) await action();
   }
 
   Future<void> _editCashRounding(BuildContext context, WidgetRef ref) async {

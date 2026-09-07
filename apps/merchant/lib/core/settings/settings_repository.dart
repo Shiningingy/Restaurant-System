@@ -161,6 +161,7 @@ class SettingsRepository {
   static const _compAllowedItemsKey = 'compAllowedItemIds';
   static const _compAmountCapKey = 'compAmountCapCents';
   static const _autoPrintReceiptKey = 'autoPrintReceipt';
+  static const _onScreenKeyboardKey = 'onScreenKeyboard';
 
   /// Staff may apply a manual discount up to this without a manager — 15%.
   static const defaultDiscountThresholdBp = 1500;
@@ -378,6 +379,14 @@ class SettingsRepository {
 
   Future<void> setCategoryVertical(bool vertical) =>
       prefs.setBool(_categoryVerticalKey, vertical);
+
+  /// Whether an on-screen touch keyboard pops up for text fields — for
+  /// terminals with no physical keyboard. Per-device (not synced); off by
+  /// default so keyboard-equipped installs are unaffected.
+  bool get onScreenKeyboard => prefs.getBool(_onScreenKeyboardKey) ?? false;
+
+  Future<void> setOnScreenKeyboard(bool on) =>
+      prefs.setBool(_onScreenKeyboardKey, on);
 
   /// Promo lines that rotate on the customer display while no order is being
   /// rung up. Empty = just show the business name.
