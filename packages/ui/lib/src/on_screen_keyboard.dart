@@ -52,25 +52,42 @@ class _OnScreenKeyboardScopeState extends State<OnScreenKeyboardScope> {
     super.dispose();
   }
 
-  /// The editable the primary focus currently sits in, or null. Checks the
-  /// focus node's own context, its descendants, and its ancestors, so it works
-  /// regardless of exactly where the focus node is attached inside the field.
+  /// The editable that genuinely holds focus right now, or null.
+  ///
+  /// Every candidate is verified against its OWN focus node. That check is the
+  /// whole point: unfocusing a field does not clear `primaryFocus`, it moves it
+  /// to an enclosing scope whose context sits high in the tree. An unverified
+  /// search of that scope's descendants will happily find *some other* text
+  /// field on the page and report it as focused — so on a screen full of fields
+  /// (menu editing) the keyboard could never hide, and even the ✓ key failed to
+  /// dismiss it because unfocusing simply re-found a different field.
   EditableTextState? _focusedEditable() {
     final context = FocusManager.instance.primaryFocus?.context;
     if (context == null) return null;
-    EditableTextState? result;
+
+    // Normal case: a text field's focus node lives INSIDE its own EditableText,
+    // so the EditableText is an ancestor of the focused node's context.
+    final ancestor = context.findAncestorStateOfType<EditableTextState>();
+    if (ancestor != null && ancestor.widget.focusNode.hasFocus) return ancestor;
+
+    // Fallback for a field whose focus node is hosted ABOVE it by a wrapper.
+    // Only accept a descendant whose own node actually has focus, so an
+    // unrelated field elsewhere on the page can never masquerade as focused.
+    EditableTextState? found;
     void visit(Element element) {
-      if (result != null) return;
+      if (found != null) return;
       if (element is StatefulElement && element.state is EditableTextState) {
-        result = element.state as EditableTextState;
-        return;
+        final state = element.state as EditableTextState;
+        if (state.widget.focusNode.hasFocus) {
+          found = state;
+          return;
+        }
       }
       element.visitChildren(visit);
     }
 
     visit(context as Element);
-    result ??= context.findAncestorStateOfType<EditableTextState>();
-    return result;
+    return found;
   }
 
   static bool _isNumeric(TextInputType? type) {
