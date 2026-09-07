@@ -13,6 +13,16 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
+          # PINNED deliberately. With a bare `channel: stable`, CI silently
+          # follows whatever stable is that day, so the toolchain moves under us
+          # and a build goes red with no code change: `dart format` began
+          # failing on selective_push_test.dart, untouched since June, purely
+          # because a newer formatter has different opinions.
+          #
+          # Keep this in step with the version developers actually build and
+          # test on, and bump it as a deliberate PR (bump here, upgrade locally,
+          # re-run `dart format`, re-test) rather than by surprise.
+          flutter-version: 3.44.2
           channel: stable
           cache: true
 
