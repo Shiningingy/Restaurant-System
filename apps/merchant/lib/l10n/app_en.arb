@@ -32,6 +32,41 @@
   "payCard": "Card",
   "payCardKeyed": "Card (keyed)",
   "payOnline": "Online",
+  "payByLink": "Pay by link",
+  "ordStatusAwaitingPayment": "Awaiting payment",
+  "ordStatusLinkExpired": "Link expired",
+  "payLinkTitle": "Payment link — {amount}",
+  "@payLinkTitle": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "payLinkScanHint": "Ask the customer to scan this code to pay.",
+  "payLinkOrSend": "Or send it to them",
+  "payLinkEmail": "Email",
+  "payLinkPhone": "Phone number",
+  "payLinkSend": "Send link",
+  "payLinkSent": "Link sent.",
+  "payLinkNoContact": "Enter an email address or a phone number first.",
+  "payLinkNotConfigured": "Email and SMS aren't set up on this deployment — show the QR code instead.",
+  "payLinkWaiting": "Waiting for payment…",
+  "payLinkPaid": "Paid — thank you!",
+  "payLinkFailed": "This link has expired. Take payment another way, or cancel the order.",
+  "payLinkKeepServing": "You can close this — the order updates by itself when they pay.",
+  "payLinkCreateFailed": "Couldn't create the payment link: {error}",
+  "@payLinkCreateFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "payLinkSendFailed": "Couldn't send the link: {error}",
+  "@payLinkSendFailed": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "payLinkCustomerMessage": "Please pay {amount} for your order: {url}",
+  "@payLinkCustomerMessage": {
+    "placeholders": {
+      "amount": { "type": "String" },
+      "url": { "type": "String" }
+    }
+  },
+  "payLinkCustomerSubject": "Payment link for your order",
 
   "ordersTitle": "Open Orders",
   "ordersEmpty": "No open orders — start a dine-in or takeout order.",

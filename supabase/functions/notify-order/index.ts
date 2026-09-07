@@ -37,7 +37,11 @@ function readyMessage(name: string | null): string {
   return `${who}your order is ready for pickup. Thanks!`;
 }
 
-async function sendEmail(to: string, body: string): Promise<void> {
+async function sendEmail(
+  to: string,
+  body: string,
+  subject = "Your order is ready",
+): Promise<void> {
   const key = env("RESEND_API_KEY");
   const from = env("NOTIFY_FROM_EMAIL");
   if (!key || !from) return; // email not configured — skip silently
@@ -50,7 +54,7 @@ async function sendEmail(to: string, body: string): Promise<void> {
     body: JSON.stringify({
       from,
       to,
-      subject: "Your order is ready",
+      subject,
       text: body,
     }),
   });
@@ -80,7 +84,55 @@ async function sendSms(to: string, body: string): Promise<void> {
   }
 }
 
+/// Is this caller the signed-in restaurant? Mirrors the check in `pay-online`:
+/// an anonymous customer token is not enough.
+async function isRestaurant(req: Request): Promise<boolean> {
+  const header = req.headers.get("authorization") ?? "";
+  if (!header.toLowerCase().startsWith("bearer ")) return false;
+  const resp = await fetch(`${env("SUPABASE_URL")}/auth/v1/user`, {
+    headers: {
+      apikey: env("SUPABASE_ANON_KEY"),
+      Authorization: `Bearer ${header.slice(7)}`,
+    },
+  });
+  if (!resp.ok) return false;
+  const user = await resp.json();
+  return user?.is_anonymous !== true && !!user?.id;
+}
+
 Deno.serve(async (req) => {
+  // POST ?action=send — a message the STAFF chose to send (currently a payment
+  // link for a phone-in order). Restaurant-authenticated, because this spends
+  // the restaurant's own Twilio credit and sends from their address; left open
+  // it would be a free SMS gateway for anyone who learned the URL.
+  //
+  // Separate from the webhook path below, which is Supabase calling us on a row
+  // change and carries no user token.
+  if (new URL(req.url).searchParams.get("action") === "send") {
+    if (req.method !== "POST") {
+      return new Response("method not allowed", { status: 405 });
+    }
+    if (!await isRestaurant(req)) {
+      return new Response("forbidden", { status: 403 });
+    }
+    const body = await req.json().catch(() => ({}));
+    const message = `${body.message ?? ""}`;
+    const email = `${body.to_email ?? ""}`;
+    const phone = `${body.to_phone ?? ""}`;
+    const subject = `${body.subject ?? ""}` || "Your payment link";
+    if (!message || (!email && !phone)) {
+      return new Response("bad request", { status: 400 });
+    }
+    const jobs: Promise<void>[] = [];
+    if (email) jobs.push(sendEmail(email, message, subject));
+    if (phone) jobs.push(sendSms(phone, message));
+    await Promise.all(jobs);
+    return new Response(JSON.stringify({ sent: jobs.length }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   let payload: WebhookPayload;
   try {
     payload = await req.json();

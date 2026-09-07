@@ -80,6 +80,78 @@ class AppLocalizationsEn extends AppLocalizations {
   String get payOnline => 'Online';
 
   @override
+  String get payByLink => 'Pay by link';
+
+  @override
+  String get ordStatusAwaitingPayment => 'Awaiting payment';
+
+  @override
+  String get ordStatusLinkExpired => 'Link expired';
+
+  @override
+  String payLinkTitle(String amount) {
+    return 'Payment link — $amount';
+  }
+
+  @override
+  String get payLinkScanHint => 'Ask the customer to scan this code to pay.';
+
+  @override
+  String get payLinkOrSend => 'Or send it to them';
+
+  @override
+  String get payLinkEmail => 'Email';
+
+  @override
+  String get payLinkPhone => 'Phone number';
+
+  @override
+  String get payLinkSend => 'Send link';
+
+  @override
+  String get payLinkSent => 'Link sent.';
+
+  @override
+  String get payLinkNoContact =>
+      'Enter an email address or a phone number first.';
+
+  @override
+  String get payLinkNotConfigured =>
+      'Email and SMS aren\'t set up on this deployment — show the QR code instead.';
+
+  @override
+  String get payLinkWaiting => 'Waiting for payment…';
+
+  @override
+  String get payLinkPaid => 'Paid — thank you!';
+
+  @override
+  String get payLinkFailed =>
+      'This link has expired. Take payment another way, or cancel the order.';
+
+  @override
+  String get payLinkKeepServing =>
+      'You can close this — the order updates by itself when they pay.';
+
+  @override
+  String payLinkCreateFailed(String error) {
+    return 'Couldn\'t create the payment link: $error';
+  }
+
+  @override
+  String payLinkSendFailed(String error) {
+    return 'Couldn\'t send the link: $error';
+  }
+
+  @override
+  String payLinkCustomerMessage(String amount, String url) {
+    return 'Please pay $amount for your order: $url';
+  }
+
+  @override
+  String get payLinkCustomerSubject => 'Payment link for your order';
+
+  @override
   String get ordersTitle => 'Open Orders';
 
   @override

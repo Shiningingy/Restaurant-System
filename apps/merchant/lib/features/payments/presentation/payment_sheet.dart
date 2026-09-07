@@ -6,6 +6,7 @@ import '../../../core/l10n_ext.dart';
 import '../../../core/settings/providers.dart';
 import '../application/payment_service.dart';
 import '../application/providers.dart';
+import 'pay_link_sheet.dart';
 
 /// Collects one payment toward [order]: amount (defaults to the balance,
 /// staff lower it to split the bill), optional cash-tendered for change, cash
@@ -163,6 +164,22 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
           settleLineIds: widget.settleLineIds,
         );
     if (mounted) Navigator.pop(context, result);
+  }
+
+  /// Hands off to the pay-by-link sheet.
+  ///
+  /// Closes the payment sheet first: the customer may take minutes to pay, and
+  /// holding the till open on someone else's phone would be worse than the
+  /// problem pay-by-link solves. The order keeps being polled in the
+  /// background, and turns paid on the board by itself.
+  Future<void> _payByLink() async {
+    final amount = _validate();
+    if (amount == null) return;
+    final navigator = Navigator.of(context);
+    final orderId = widget.order.id;
+    navigator.pop();
+    // The navigator's own context survives our route being popped; ours does not.
+    await showPayLinkSheet(navigator.context, orderId: orderId, amount: amount);
   }
 
   Future<void> _card() async {
@@ -374,6 +391,14 @@ class _PaymentSheetState extends ConsumerState<_PaymentSheet> {
           onPressed: _busy ? null : () => Navigator.pop(context),
           child: Text(l10n.commonCancel),
         ),
+        // Only offered once the shop has cloud ordering configured — the link
+        // is minted by their own Edge Function.
+        if (ref.watch(payLinkServiceProvider).isAvailable)
+          OutlinedButton.icon(
+            onPressed: _busy ? null : _payByLink,
+            icon: const Icon(Icons.qr_code_2_outlined),
+            label: Text(l10n.payByLink),
+          ),
         OutlinedButton.icon(
           onPressed: _busy ? null : _card,
           icon: const Icon(Icons.credit_card_outlined),

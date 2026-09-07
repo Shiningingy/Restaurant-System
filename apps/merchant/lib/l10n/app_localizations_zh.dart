@@ -80,6 +80,74 @@ class AppLocalizationsZh extends AppLocalizations {
   String get payOnline => '在线';
 
   @override
+  String get payByLink => '支付链接';
+
+  @override
+  String get ordStatusAwaitingPayment => '等待支付';
+
+  @override
+  String get ordStatusLinkExpired => '链接已失效';
+
+  @override
+  String payLinkTitle(String amount) {
+    return '支付链接 — $amount';
+  }
+
+  @override
+  String get payLinkScanHint => '请顾客扫描此二维码支付。';
+
+  @override
+  String get payLinkOrSend => '或发送给顾客';
+
+  @override
+  String get payLinkEmail => '邮箱';
+
+  @override
+  String get payLinkPhone => '手机号';
+
+  @override
+  String get payLinkSend => '发送链接';
+
+  @override
+  String get payLinkSent => '链接已发送。';
+
+  @override
+  String get payLinkNoContact => '请先填写邮箱或手机号。';
+
+  @override
+  String get payLinkNotConfigured => '本店尚未配置邮件或短信 — 请改为出示二维码。';
+
+  @override
+  String get payLinkWaiting => '等待顾客支付…';
+
+  @override
+  String get payLinkPaid => '已支付，谢谢！';
+
+  @override
+  String get payLinkFailed => '此链接已失效。请改用其他方式收款，或取消订单。';
+
+  @override
+  String get payLinkKeepServing => '可以关闭此窗口 — 顾客支付后订单会自动更新。';
+
+  @override
+  String payLinkCreateFailed(String error) {
+    return '无法创建支付链接：$error';
+  }
+
+  @override
+  String payLinkSendFailed(String error) {
+    return '无法发送链接：$error';
+  }
+
+  @override
+  String payLinkCustomerMessage(String amount, String url) {
+    return '请支付您的订单 $amount：$url';
+  }
+
+  @override
+  String get payLinkCustomerSubject => '您的订单支付链接';
+
+  @override
   String get ordersTitle => '未结订单';
 
   @override

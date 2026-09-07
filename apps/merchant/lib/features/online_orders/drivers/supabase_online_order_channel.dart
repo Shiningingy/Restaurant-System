@@ -197,6 +197,37 @@ class SupabaseOnlineOrderChannel implements domain.OnlineOrderChannel {
     return (jsonDecode(resp.body) as Map<String, dynamic>)['refunded'] == true;
   }
 
+  /// Sends [message] to a customer by email and/or SMS through the restaurant's
+  /// own `notify-order` function — their Resend / Twilio keys, their bill.
+  /// Returns how many channels were attempted (0 if neither is configured).
+  Future<int> sendMessage({
+    required String message,
+    String? email,
+    String? phone,
+    String? subject,
+  }) async {
+    final resp = await _client
+        .post(
+          baseUrl
+              .resolve('functions/v1/notify-order')
+              .replace(queryParameters: {'action': 'send'}),
+          headers: await _authHeaders(),
+          body: jsonEncode({
+            'message': message,
+            if (email != null && email.isNotEmpty) 'to_email': email,
+            if (phone != null && phone.isNotEmpty) 'to_phone': phone,
+            if (subject != null && subject.isNotEmpty) 'subject': subject,
+          }),
+        )
+        .timeout(timeout);
+    if (resp.statusCode >= 300) {
+      throw domain.SyncException('send message (${resp.statusCode})');
+    }
+    return ((jsonDecode(resp.body) as Map<String, dynamic>)['sent'] as num?)
+            ?.toInt() ??
+        0;
+  }
+
   /// Mints a staff-initiated **payment link** for an order built at the till,
   /// returning the URL to show as a QR (or send by SMS/email) and the session
   /// id to poll.
@@ -238,7 +269,13 @@ class SupabaseOnlineOrderChannel implements domain.OnlineOrderChannel {
   /// Polls one payment link. The till asks the processor directly, so the
   /// answer never depends on the customer's browser coming back to us — they
   /// can pay and close the tab straight away.
-  Future<({domain.PayLinkStatus status, String? paymentIntentId})>
+  Future<
+    ({
+      domain.PayLinkStatus status,
+      String? paymentIntentId,
+      domain.Money? amount,
+    })
+  >
   payLinkStatus(String sessionId) async {
     final resp = await _client
         .get(
@@ -265,7 +302,15 @@ class SupabaseOnlineOrderChannel implements domain.OnlineOrderChannel {
         : (j['session_status'] == 'expired'
               ? domain.PayLinkStatus.failed
               : domain.PayLinkStatus.pending);
-    return (status: status, paymentIntentId: j['payment_intent_id'] as String?);
+    final cents = (j['amount_cents'] as num?)?.toInt();
+    return (
+      status: status,
+      paymentIntentId: j['payment_intent_id'] as String?,
+      // What the customer was ACTUALLY charged, per the processor — recorded in
+      // preference to whatever the order currently totals, since the order may
+      // have been edited after the link went out.
+      amount: cents == null ? null : domain.Money(cents),
+    );
   }
 
   @override

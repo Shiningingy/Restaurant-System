@@ -236,6 +236,126 @@ abstract class AppLocalizations {
   /// **'Online'**
   String get payOnline;
 
+  /// No description provided for @payByLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay by link'**
+  String get payByLink;
+
+  /// No description provided for @ordStatusAwaitingPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting payment'**
+  String get ordStatusAwaitingPayment;
+
+  /// No description provided for @ordStatusLinkExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Link expired'**
+  String get ordStatusLinkExpired;
+
+  /// No description provided for @payLinkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment link — {amount}'**
+  String payLinkTitle(String amount);
+
+  /// No description provided for @payLinkScanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask the customer to scan this code to pay.'**
+  String get payLinkScanHint;
+
+  /// No description provided for @payLinkOrSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Or send it to them'**
+  String get payLinkOrSend;
+
+  /// No description provided for @payLinkEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get payLinkEmail;
+
+  /// No description provided for @payLinkPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number'**
+  String get payLinkPhone;
+
+  /// No description provided for @payLinkSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send link'**
+  String get payLinkSend;
+
+  /// No description provided for @payLinkSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Link sent.'**
+  String get payLinkSent;
+
+  /// No description provided for @payLinkNoContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an email address or a phone number first.'**
+  String get payLinkNoContact;
+
+  /// No description provided for @payLinkNotConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'Email and SMS aren\'t set up on this deployment — show the QR code instead.'**
+  String get payLinkNotConfigured;
+
+  /// No description provided for @payLinkWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for payment…'**
+  String get payLinkWaiting;
+
+  /// No description provided for @payLinkPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid — thank you!'**
+  String get payLinkPaid;
+
+  /// No description provided for @payLinkFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'This link has expired. Take payment another way, or cancel the order.'**
+  String get payLinkFailed;
+
+  /// No description provided for @payLinkKeepServing.
+  ///
+  /// In en, this message translates to:
+  /// **'You can close this — the order updates by itself when they pay.'**
+  String get payLinkKeepServing;
+
+  /// No description provided for @payLinkCreateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t create the payment link: {error}'**
+  String payLinkCreateFailed(String error);
+
+  /// No description provided for @payLinkSendFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t send the link: {error}'**
+  String payLinkSendFailed(String error);
+
+  /// No description provided for @payLinkCustomerMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Please pay {amount} for your order: {url}'**
+  String payLinkCustomerMessage(String amount, String url);
+
+  /// No description provided for @payLinkCustomerSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment link for your order'**
+  String get payLinkCustomerSubject;
+
   /// No description provided for @ordersTitle.
   ///
   /// In en, this message translates to:
