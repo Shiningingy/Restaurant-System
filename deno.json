@@ -1,0 +1,29 @@
+{
+  "$comment": [
+    "Deno config for the pay-online edge function and its unit tests.",
+    "Sits at the repo root because Deno resolves its config from the working",
+    "directory, so `deno test supabase/tests` has to find it from here.",
+    "",
+    "The tests live OUTSIDE supabase/functions/ on purpose: `supabase functions",
+    "deploy` uploads the whole function folder, so test files and their dev",
+    "dependencies would otherwise ship to production for no reason.",
+    "",
+    "Declaring @std/assert here (rather than importing 'jsr:@std/assert' inline)",
+    "is what deno lint's no-import-prefix / no-unversioned-import rules want, and",
+    "it pins the version so the tests cannot drift under us.",
+    "",
+    "Run:  deno test supabase/tests",
+    "      deno lint supabase",
+    "      deno check supabase/functions/pay-online/index.ts"
+  ],
+  "imports": {
+    "@std/assert": "jsr:@std/assert@^1.0.19"
+  },
+  "exclude": [
+    "apps",
+    "packages",
+    "build",
+    "release",
+    ".dart_tool"
+  ]
+}
