@@ -183,13 +183,23 @@ class _OrderSummary extends StatelessWidget {
             '${l.modifiers.isEmpty ? '' : ' (${l.modifiers.map((m) => m.nameSnapshot).join(", ")})'}',
           ),
         const SizedBox(height: 4),
+        // A paid-online order must NOT read "pay at pickup" — staff would ask an
+        // already-paid customer to pay again at the counter.
         Text(
-          context.l10n.inboxTotalPayAtPickup(total.format()),
-          style: Theme.of(context).textTheme.bodySmall,
+          order.isPaidOnline
+              ? context.l10n.inboxTotalPaidOnline(total.format())
+              : context.l10n.inboxTotalPayAtPickup(total.format()),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            fontWeight: order.isPaidOnline ? FontWeight.w700 : null,
+          ),
         ),
         if (!order.tip.isZero)
           Text(
-            context.l10n.inboxCustomerTip(order.tip.format()),
+            // The tip rides along with an online payment, but has to be collected
+            // at the counter otherwise.
+            order.isPaidOnline
+                ? context.l10n.inboxCustomerTipPaid(order.tip.format())
+                : context.l10n.inboxCustomerTip(order.tip.format()),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.primary,
               fontWeight: FontWeight.w600,

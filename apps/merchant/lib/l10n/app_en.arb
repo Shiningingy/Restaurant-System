@@ -283,8 +283,16 @@
   "@inboxTotalPayAtPickup": {
     "placeholders": { "total": { "type": "String" } }
   },
+  "inboxTotalPaidOnline": "Total {total} — PAID online",
+  "@inboxTotalPaidOnline": {
+    "placeholders": { "total": { "type": "String" } }
+  },
   "inboxCustomerTip": "Customer tip {amount} — add at the counter",
   "@inboxCustomerTip": {
+    "placeholders": { "amount": { "type": "String" } }
+  },
+  "inboxCustomerTipPaid": "Customer tip {amount} — included in the online payment",
+  "@inboxCustomerTipPaid": {
     "placeholders": { "amount": { "type": "String" } }
   },
   "inboxReject": "Reject",
