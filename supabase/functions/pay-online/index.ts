@@ -173,6 +173,25 @@ const redirect = (location: string) => {
   return new Response(null, { status: 302, headers: h });
 };
 
+/// This function's **publicly reachable** URL.
+///
+/// Supabase's edge runtime strips the `/functions/v1` prefix before the request
+/// reaches us, so `url.pathname` is a bare `/pay-online`. Echoing that straight
+/// back to Stripe as a `success_url` sent the paying customer to
+/// `https://<ref>.supabase.co/pay-online`, which the API gateway rejects with
+/// `{"error":"requested path is invalid"}` — a 404 shown *after* their card had
+/// been charged. Always rebuild the address from the outside world's point of
+/// view, never from the path we happen to be handed.
+///
+/// Tolerates the prefix already being present so a local `supabase functions
+/// serve` (which does pass the full path) keeps working.
+function publicFunctionUrl(url: URL): string {
+  const path = url.pathname.startsWith("/functions/v1/")
+    ? url.pathname
+    : `/functions/v1${url.pathname}`;
+  return `${url.origin}${path}`;
+}
+
 // --- Supabase REST (service role: bypasses RLS to read orders / write paid) ---
 
 function restHeaders() {
@@ -558,7 +577,7 @@ async function handleGet(orderId: string, url: URL): Promise<Response> {
 
     // DEFAULT: hand the whole payment page to Stripe. We render nothing.
     if (stripeUi() === "checkout") {
-      const base = `${url.origin}${url.pathname}`;
+      const base = publicFunctionUrl(url);
       let session;
       try {
         session = await createCheckoutSession(cfg, {
@@ -874,13 +893,16 @@ async function handleCreateLink(req: Request, url: URL): Promise<Response> {
   if (!orderId || !Number.isFinite(amountCents) || amountCents <= 0) {
     return json({ error: "bad request" }, 400);
   }
-  const base = `${url.origin}${url.pathname}`;
+  const base = publicFunctionUrl(url);
   try {
     const session = await createCheckoutSession(stripeConfig(), {
       amountCents,
       orderId,
       label,
-      successUrl: `${base}?action=link_done`,
+      // Stripe substitutes the real id into {CHECKOUT_SESSION_ID}, which lets the
+      // landing page confirm with Stripe that this person actually paid instead
+      // of thanking anyone who happens to open the URL.
+      successUrl: `${base}?action=link_done&session_id={CHECKOUT_SESSION_ID}`,
       cancelUrl: `${base}?action=link_cancelled`,
       // Keyed on order AND amount: re-sending the same link is idempotent (one
       // session, not a pile of them), but editing the order before re-sending
@@ -893,6 +915,72 @@ async function handleCreateLink(req: Request, url: URL): Promise<Response> {
     console.error(`pay-by-link create failed order=${orderId}: ${msg}`);
     return json({ error: "link_failed" }, 502);
   }
+}
+
+/// Formats integer cents for display. Kept integer-only (no `cents / 100`
+/// rounding) in line with the money rules the rest of the codebase follows.
+function formatMoney(cents: number, currency: string | null): string {
+  const sign = cents < 0 ? "-" : "";
+  const abs = Math.abs(cents);
+  const whole = (abs - (abs % 100)) / 100; // exact: the numerator is a multiple of 100
+  const frac = String(abs % 100).padStart(2, "0");
+  const code = (currency ?? "").toUpperCase();
+  return `${sign}$${whole}.${frac}${code ? ` ${code}` : ""}`;
+}
+
+/// Where a pay-by-link customer lands once Stripe has taken their money.
+///
+/// This page writes nothing: the POS polls the session, so the order settles
+/// whether or not the customer's browser ever arrives here. It exists purely so
+/// that the person who just paid gets an acknowledgement instead of a blank tab.
+///
+/// It still ASKS Stripe before thanking them. The URL is guessable, and telling
+/// someone their payment succeeded when it did not would be worse than saying
+/// nothing at all.
+///
+/// Plain text, deliberately: the Supabase gateway rewrites our `Content-Type` to
+/// `text/plain` and sends `X-Content-Type-Options: nosniff`, so markup would be
+/// shown to the customer as literal angle brackets. Line breaks are all the
+/// formatting available here.
+async function handleLinkDone(url: URL): Promise<Response> {
+  const sessionId = url.searchParams.get("session_id") ?? "";
+  // No id to check — an older link, or a customer who trimmed the URL. The till
+  // is the source of truth regardless, so stay warm but don't claim anything.
+  if (!sessionId) {
+    return text(
+      "Thank you — you can close this page.\n\n" +
+        "If your payment went through, the restaurant has been notified.",
+    );
+  }
+  let session;
+  try {
+    session = await retrieveCheckoutSession(stripeConfig(), sessionId);
+  } catch (e) {
+    // Stripe unreachable from here. The money is unaffected and the till will
+    // still see it, so reassure the customer and keep the cause in the logs.
+    console.error(`pay-by-link done lookup failed session=${sessionId}: ${e}`);
+    return text(
+      "Thank you — you can close this page.\n\n" +
+        "The restaurant will confirm your payment.",
+    );
+  }
+  if (session.paymentStatus !== "paid") {
+    return text(
+      "We haven't received this payment yet.\n\n" +
+        "If you have just paid, wait a moment and refresh this page. " +
+        "Otherwise please contact the restaurant.",
+      402,
+    );
+  }
+  const amount = session.amountTotalCents != null
+    ? ` of ${formatMoney(session.amountTotalCents, session.currency)}`
+    : "";
+  return text(
+    "✅ Payment received — thank you!\n\n" +
+      `Your payment${amount} is confirmed, and the restaurant has been ` +
+      "notified. They are preparing your order now.\n\n" +
+      "You can close this page.",
+  );
 }
 
 /// Polls one pay-by-link session. Stripe is the source of truth; we proxy it
@@ -1056,13 +1144,12 @@ Deno.serve(async (req) => {
     // the session, so these pages are courtesy only and it does not matter if
     // the customer closes the tab before seeing them.
     if (req.method === "GET" && action === "link_done") {
-      return text(
-        "✅ Payment received. Thank you — the restaurant has been notified.",
-      );
+      return await handleLinkDone(url);
     }
     if (req.method === "GET" && action === "link_cancelled") {
       return text(
-        "Payment cancelled. Please contact the restaurant if you still want this order.",
+        "Payment cancelled — you have not been charged.\n\n" +
+          "Please contact the restaurant if you still want this order.",
       );
     }
 

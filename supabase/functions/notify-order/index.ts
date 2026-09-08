@@ -14,6 +14,8 @@
 //
 // Card data never touches this function — preorders are pay-at-pickup.
 
+import { linkifyHtml } from "./html.ts";
+
 interface OrderRow {
   id: string;
   status: string;
@@ -55,7 +57,10 @@ async function sendEmail(
       from,
       to,
       subject,
+      // Both parts: the HTML one carries the clickable link, and `text` stays
+      // the fallback for clients that refuse HTML (and helps spam scoring).
       text: body,
+      html: linkifyHtml(body),
     }),
   });
   if (!resp.ok) {
