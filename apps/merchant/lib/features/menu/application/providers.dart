@@ -1,11 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:restaurant_domain/restaurant_domain.dart' as domain;
+import 'package:restaurant_extension_api/restaurant_extension_api.dart';
+import 'package:restaurant_extensions/restaurant_extensions.dart';
 
 import '../../../core/providers.dart';
 import '../../../core/sync/providers.dart';
+import '../../online_orders/application/providers.dart';
 import '../../sync/application/providers.dart';
 import '../data/item_image_repository.dart';
 import '../data/menu_repository.dart';
+import '../data/merchant_menu_host.dart';
 
 final menuRepositoryProvider = Provider<MenuRepository>(
   (ref) => MenuRepository(
@@ -60,4 +64,20 @@ final categoryCodeLetterProvider = Provider.family<String?, String>((
 
 final modifierGroupsProvider = StreamProvider<List<domain.ModifierGroup>>(
   (ref) => ref.watch(menuRepositoryProvider).watchModifierGroups(),
+);
+
+/// The extensions installed in this build (none in the open-source build; see
+/// packages/extension_api).
+final merchantExtensionsProvider = Provider<List<MerchantExtension>>(
+  (ref) => merchantExtensions(),
+);
+
+/// How extensions read and change the menu.
+final menuHostProvider = Provider<MenuHost>(
+  (ref) => MerchantMenuHost(
+    db: ref.watch(databaseProvider),
+    menu: ref.watch(menuRepositoryProvider),
+    canPublish: ref.watch(onlineOrderingEnabledProvider),
+    publish: () => ref.read(inboxServiceProvider).publishMenu(),
+  ),
 );
