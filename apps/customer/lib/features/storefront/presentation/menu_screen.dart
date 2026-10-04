@@ -11,6 +11,7 @@ import '../../cart/presentation/cart_screen.dart';
 import '../../kiosk/presentation/kiosk_setup_screen.dart';
 import '../../orders/presentation/orders_screen.dart';
 import '../application/providers.dart';
+import '../application/storefront_host.dart';
 import '../data/menu_photo_url.dart';
 import 'item_sheet.dart';
 
@@ -42,6 +43,17 @@ class MenuScreen extends ConsumerWidget {
           // In kiosk mode the customer can't browse history or switch
           // restaurants; the app-bar back button returns to the attract screen.
           if (!kiosk) ...[
+            for (final extension in ref.watch(customerExtensionsProvider))
+              for (final action in extension.storefrontActions)
+                TextButton.icon(
+                  key: ValueKey('storefront-action-${action.id}'),
+                  onPressed: () => action.onPressed(
+                    context,
+                    ref.read(storefrontHostProvider),
+                  ),
+                  icon: Icon(action.icon),
+                  label: Text(action.label(Localizations.localeOf(context))),
+                ),
             IconButton(
               tooltip: context.l10n.ordersTitle,
               icon: const Icon(Icons.receipt_long_outlined),

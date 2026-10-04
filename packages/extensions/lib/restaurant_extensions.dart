@@ -9,9 +9,12 @@
 ///     path: ../my-extensions/packages/extensions
 /// ```
 ///
-/// That package must expose the same `merchantExtensions()` function.
+/// That package must expose the same `merchantExtensions()` and
+/// `customerExtensions()` functions.
 library;
 
 import 'package:restaurant_extension_api/restaurant_extension_api.dart';
 
 List<MerchantExtension> merchantExtensions() => const [];
+
+List<CustomerExtension> customerExtensions() => const [];

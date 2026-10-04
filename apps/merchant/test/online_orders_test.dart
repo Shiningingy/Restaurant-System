@@ -327,6 +327,40 @@ void main() {
     },
   );
 
+  test('the order note reaches the inbox; a blank note is none', () async {
+    final inbox = await buildInbox();
+    Map<String, dynamic> row(String name, String? note) => {
+      'id': domain.newId(),
+      'customer_name': name,
+      'lines': [
+        domain.PreorderLine(
+          itemId: 'i1',
+          nameSnapshot: 'Tea',
+          priceSnapshot: const domain.Money(300),
+          qty: 1,
+        ).toJson(),
+      ],
+      'requested_pickup_at': DateTime.utc(2026, 6, 1, 12).toIso8601String(),
+      'submitted_at': DateTime.utc(2026, 6, 1, 11).toIso8601String(),
+      'status': 'submitted',
+      'note': note,
+    };
+    await http.post(
+      Uri.parse('${server.baseUrl}/rest/v1/online_orders'),
+      headers: {'apikey': server.apiKey, 'Content-Type': 'application/json'},
+      body: jsonEncode([
+        row('Mary', '  Please call when it is ready  '),
+        row('Ann', '   '),
+      ]),
+    );
+
+    final notes = {
+      for (final o in await inbox.currentPending()) o.customerName: o.note,
+    };
+    expect(notes['Mary'], 'Please call when it is ready');
+    expect(notes['Ann'], isNull);
+  });
+
   test('a paid online order is accepted as paid (service fee waived) and '
       'can be refunded', () async {
     final inbox = await buildInbox();

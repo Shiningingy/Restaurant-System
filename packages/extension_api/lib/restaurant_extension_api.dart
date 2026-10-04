@@ -1,6 +1,6 @@
-/// The extension slot of the merchant POS.
+/// The extension slots of the merchant POS and the customer app.
 ///
-/// The app ships with no extensions. Which extensions are installed is decided
+/// The apps ship with no extensions. Which extensions are installed is decided
 /// by a package named `restaurant_extensions`: this repo carries an empty one
 /// (`packages/extensions`), and a build can point that name at another
 /// implementation with a root `pubspec_overrides.yaml`.
@@ -88,6 +88,46 @@ class MenuChangeSet {
 
   bool get isEmpty =>
       upsertCategories.isEmpty && upsertItems.isEmpty && deleteItemIds.isEmpty;
+}
+
+/// One add-on to the customer app.
+abstract class CustomerExtension {
+  const CustomerExtension();
+
+  /// Buttons this extension adds to the storefront menu's toolbar.
+  List<StorefrontAction> get storefrontActions => const [];
+}
+
+/// A button on the customer app's storefront menu toolbar.
+class StorefrontAction {
+  const StorefrontAction({
+    required this.id,
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
+  final String id;
+  final IconData icon;
+
+  /// The button text for the app's current language.
+  final String Function(Locale locale) label;
+
+  final void Function(BuildContext context, StorefrontHost host) onPressed;
+}
+
+/// What an extension may do with the restaurant the customer app is
+/// connected to. The customer app implements it.
+abstract class StorefrontHost {
+  /// The restaurant's published menu, or null when it hasn't published one.
+  Future<PublishedMenu?> loadMenu();
+
+  /// Places a pay-at-pickup preorder exactly as checkout does (it reaches
+  /// the restaurant's inbox and this device's order history). Returns its id.
+  Future<String> placePreorder(PreorderSubmission order);
+
+  /// Opens the live status screen for a placed order.
+  void openOrderStatus(BuildContext context, String orderId, Money total);
 }
 
 /// A [MenuChangeSet] that [MenuHost.apply] refused. Nothing was written.

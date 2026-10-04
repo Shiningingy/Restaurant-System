@@ -25,6 +25,10 @@ dependencies:
   qr_flutter: ^4.1.0
   restaurant_domain:
     path: ../../packages/domain
+  restaurant_extension_api:
+    path: ../../packages/extension_api
+  restaurant_extensions:
+    path: ../../packages/extensions
   restaurant_ui:
     path: ../../packages/ui
   shared_preferences: ^2.5.0
