@@ -114,6 +114,10 @@ export async function createCheckoutSession(
     successUrl: string;
     cancelUrl: string;
     idempotencyKey: string;
+    /// What the customer sees as the line item. A raw uuid is meaningless to
+    /// someone who was just texted a link, so pay-by-link passes something
+    /// human ("Yee Sushi — takeout order").
+    label?: string;
   },
 ): Promise<SessionResult> {
   const body = new URLSearchParams({
@@ -125,7 +129,9 @@ export async function createCheckoutSession(
     "line_items[0][quantity]": "1",
     "line_items[0][price_data][currency]": cfg.currency,
     "line_items[0][price_data][unit_amount]": String(args.amountCents),
-    "line_items[0][price_data][product_data][name]": `Order ${args.orderId}`,
+    "line_items[0][price_data][product_data][name]": args.label?.trim().length
+      ? args.label!.trim()
+      : `Order ${args.orderId}`,
     // Carry the order id onto the PaymentIntent too, so a refund or a dashboard
     // lookup can be traced back without going via the session.
     "payment_intent_data[metadata][order_id]": args.orderId,
@@ -151,6 +157,10 @@ export async function createCheckoutSession(
 export interface SessionStatus {
   id: string;
   paymentStatus: string; // "paid" when settled
+  /// The session's own lifecycle: "open" | "complete" | "expired". Needed to
+  /// tell "still waiting" apart from "this link will never be paid" — an
+  /// expired session is unpaid but dead, and staff need to know the difference.
+  sessionStatus: string;
   amountTotalCents: number | null;
   currency: string | null;
   paymentIntentId: string | null; // for refunds
@@ -177,6 +187,7 @@ export async function retrieveCheckoutSession(
   return {
     id: (j.id as string) ?? sessionId,
     paymentStatus: `${j.payment_status ?? ""}`,
+    sessionStatus: `${j.status ?? ""}`,
     amountTotalCents: typeof j.amount_total === "number" ? j.amount_total : null,
     currency: (j.currency as string) ?? null,
     // Expands to an object when requested; a bare string otherwise.

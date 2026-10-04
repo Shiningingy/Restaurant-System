@@ -123,6 +123,31 @@ class OrdersScreen extends ConsumerWidget {
         background: st.successContainer,
       );
     }
+    // A staff-sent payment link that hasn't landed yet. Ranks above the
+    // ordinary open/preparing states because "has the money arrived?" is the
+    // question staff are actually asking about this order — and an expired link
+    // needs acting on (take payment another way, or cancel).
+    switch (order.payLinkStatus) {
+      case domain.PayLinkStatus.pending:
+        return StatusPill(
+          icon: Icons.hourglass_bottom,
+          label: context.l10n.ordStatusAwaitingPayment,
+          foreground: st.onWarningContainer,
+          background: st.warningContainer,
+        );
+      case domain.PayLinkStatus.failed:
+        return StatusPill(
+          icon: Icons.link_off,
+          label: context.l10n.ordStatusLinkExpired,
+          foreground: cs.onErrorContainer,
+          background: cs.errorContainer,
+        );
+      // Paid is handled above (the order itself reads as paid); null is an
+      // order that never used a link.
+      case domain.PayLinkStatus.paid:
+      case null:
+        break;
+    }
     if (code != null) {
       return StatusPill(
         icon: Icons.storefront,

@@ -8,14 +8,14 @@
 // displayed at checkout and then never charged. The golden vectors at the bottom
 // should stay in step with packages/domain/test/order_totals_test.dart.
 
-import { assertEquals } from "jsr:@std/assert";
+import { assertEquals } from "@std/assert";
 import {
   chargeCents,
   chargeWithTipCents,
   subtotalCents,
   taxCents,
   toCents,
-} from "./amount.ts";
+} from "../functions/pay-online/amount.ts";
 
 const line = (
   priceSnapshot: unknown,
