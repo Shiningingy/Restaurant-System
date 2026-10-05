@@ -74,6 +74,19 @@ class FakeStorefrontServer {
         res.headers.contentType = ContentType.json;
         res.write(jsonEncode(rows.where(matches).toList()));
         break;
+      case 'DELETE':
+        final gone = rows.where(matches).toList();
+        rows.removeWhere(gone.contains);
+        if ((req.headers.value('prefer') ?? '').contains(
+          'return=representation',
+        )) {
+          res.statusCode = HttpStatus.ok;
+          res.headers.contentType = ContentType.json;
+          res.write(jsonEncode(gone));
+        } else {
+          res.statusCode = HttpStatus.noContent;
+        }
+        break;
       default:
         res.statusCode = HttpStatus.methodNotAllowed;
     }
@@ -121,6 +134,48 @@ void main() {
 
   test('fetchMenu returns null when nothing is published', () async {
     expect(await storefront.fetchMenu(), isNull);
+  });
+
+  Future<String> placeOne() => storefront.submitPreorder(
+    domain.PreorderSubmission(
+      customerName: 'Sam',
+      customerPhone: '647-555-0142',
+      requestedPickupAt: DateTime.utc(2026, 6, 1, 12, 30),
+      lines: [
+        domain.PreorderLine(
+          itemId: 'i1',
+          nameSnapshot: 'Salmon combo',
+          priceSnapshot: const domain.Money(1699),
+          qty: 2,
+        ),
+      ],
+    ),
+  );
+
+  test('fetchOrder reads back an order\'s lines and status', () async {
+    final id = await placeOne();
+
+    final order = await storefront.fetchOrder(id);
+    expect(order!.lines.single.nameSnapshot, 'Salmon combo');
+    expect(order.lines.single.qty, 2);
+    expect(order.status, domain.OnlineOrderStatus.submitted);
+    expect(order.customerPhone, '647-555-0142');
+    expect(await storefront.fetchOrder('missing'), isNull);
+  });
+
+  test('an unaccepted order can be withdrawn', () async {
+    final id = await placeOne();
+
+    expect(await storefront.withdrawUnaccepted(id), isTrue);
+    expect(server.rowsOf('online_orders'), isEmpty);
+  });
+
+  test('an accepted order cannot be withdrawn', () async {
+    final id = await placeOne();
+    server.rowsOf('online_orders').single['status'] = 'accepted';
+
+    expect(await storefront.withdrawUnaccepted(id), isFalse);
+    expect(server.rowsOf('online_orders'), hasLength(1));
   });
 
   test('submit a preorder, then watch it through to ready '

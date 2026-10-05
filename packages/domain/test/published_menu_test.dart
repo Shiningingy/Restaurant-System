@@ -2,6 +2,26 @@ import 'package:restaurant_domain/restaurant_domain.dart';
 import 'package:test/test.dart';
 
 void main() {
+  group('PublishedItem code', () {
+    test('round-trips the optional item code', () {
+      const item = PublishedItem(
+        id: 'i1',
+        name: 'Salmon combo (10pc)',
+        code: 'C04',
+        price: Money(1699),
+      );
+      expect(PublishedItem.fromJson(item.toJson()).code, 'C04');
+    });
+
+    test('is omitted when absent, and older payloads parse', () {
+      const item =
+          PublishedItem(id: 'i1', name: 'Miso soup', price: Money(299));
+      expect(item.toJson().containsKey('code'), isFalse);
+      final legacy = {'id': 'i1', 'name': 'Miso soup', 'price': 299};
+      expect(PublishedItem.fromJson(legacy).code, isNull);
+    });
+  });
+
   group('PublishedItem second-language name', () {
     test('round-trips the optional nameSecondary', () {
       const item = PublishedItem(

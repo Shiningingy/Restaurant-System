@@ -81,6 +81,10 @@ class PublishedItem {
   final String id;
   final String name;
 
+  /// Optional human item number (e.g. "C4"), so customers can order by it
+  /// (on the phone, say). Null when the item has none.
+  final String? code;
+
   /// Optional second-language name (e.g. 中文) shown to customers who switch
   /// the app language. Null when the merchant's menu has no second name.
   final String? nameSecondary;
@@ -100,6 +104,7 @@ class PublishedItem {
     required this.id,
     required this.name,
     required this.price,
+    this.code,
     this.nameSecondary,
     this.description,
     this.modifierGroups = const [],
@@ -110,6 +115,7 @@ class PublishedItem {
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
+        if (code != null) 'code': code,
         if (nameSecondary != null) 'nameSecondary': nameSecondary,
         if (description != null) 'description': description,
         'price': price.cents,
@@ -121,6 +127,7 @@ class PublishedItem {
   factory PublishedItem.fromJson(Map<String, dynamic> j) => PublishedItem(
         id: j['id'] as String,
         name: j['name'] as String,
+        code: j['code'] as String?,
         nameSecondary: j['nameSecondary'] as String?,
         description: j['description'] as String?,
         price: Money(j['price'] as int),

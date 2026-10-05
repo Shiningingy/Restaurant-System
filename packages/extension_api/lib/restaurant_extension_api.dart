@@ -128,6 +128,29 @@ abstract class StorefrontHost {
 
   /// Opens the live status screen for a placed order.
   void openOrderStatus(BuildContext context, String orderId, Money total);
+
+  /// The most recent orders at this restaurant placed with phone number
+  /// [phone] (like a caller-ID lookup), newest first. In the customer app the
+  /// search covers the orders placed from this device.
+  Future<List<PastOrder>> recentOrders({required String phone, int limit = 3});
+
+  /// Withdraws a placed order if the restaurant hasn't accepted it yet.
+  /// Returns false when it's too late (accepted, paid or gone): then a person
+  /// at the restaurant has to help.
+  Future<bool> withdrawOrder(String orderId);
+}
+
+/// An order this customer placed earlier.
+class PastOrder {
+  const PastOrder({
+    required this.placedAt,
+    required this.lines,
+    required this.status,
+  });
+
+  final DateTime placedAt;
+  final List<PreorderLine> lines;
+  final OnlineOrderStatus status;
 }
 
 /// A [MenuChangeSet] that [MenuHost.apply] refused. Nothing was written.
