@@ -1238,16 +1238,16 @@ abstract class AppLocalizations {
   /// **'{name} — pickup {time}'**
   String inboxCustomerPickup(String name, String time);
 
-  /// No description provided for @inboxTotalPayAtPickup.
+  /// No description provided for @inboxTotalUnpaid.
   ///
   /// In en, this message translates to:
-  /// **'Total {total} — pay at pickup'**
-  String inboxTotalPayAtPickup(String total);
+  /// **'Subtotal {total} before tax — not paid yet'**
+  String inboxTotalUnpaid(String total);
 
   /// No description provided for @inboxTotalPaidOnline.
   ///
   /// In en, this message translates to:
-  /// **'Total {total} — PAID online'**
+  /// **'Subtotal {total} before tax — PAID online'**
   String inboxTotalPaidOnline(String total);
 
   /// No description provided for @inboxCustomerTip.

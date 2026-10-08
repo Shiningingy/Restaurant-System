@@ -205,7 +205,7 @@ class _OrderSummary extends StatelessWidget {
         Text(
           order.isPaidOnline
               ? context.l10n.inboxTotalPaidOnline(total.format())
-              : context.l10n.inboxTotalPayAtPickup(total.format()),
+              : context.l10n.inboxTotalUnpaid(total.format()),
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             fontWeight: order.isPaidOnline ? FontWeight.w700 : null,
           ),

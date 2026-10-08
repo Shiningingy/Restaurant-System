@@ -661,13 +661,13 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String inboxTotalPayAtPickup(String total) {
-    return '合计 $total · 取餐时支付';
+  String inboxTotalUnpaid(String total) {
+    return '小计 $total（未含税）· 未付款';
   }
 
   @override
   String inboxTotalPaidOnline(String total) {
-    return '合计 $total · 已在线支付';
+    return '小计 $total（未含税）· 已在线支付';
   }
 
   @override
