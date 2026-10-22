@@ -1,5 +1,13 @@
 # Online card payment (Moneris) — setup
 
+> ✅ **SUPERSEDED 2026-09-07: Stripe replaced Moneris for online payment.** See `docs/STRIPE_PAYMENT.md`. The text below is kept as the record of what was tried.
+
+```
+STATUS    SUPERSEDED — 2026-09-07
+ARM       n/a — superseded setup guide
+STALE IF  docs/STRIPE_PAYMENT.md
+```
+
 Phase 7 lets a customer **pay by card when they preorder** for pickup. It is
 **off by default** and entirely optional: without it, preorders are pay-at-counter
 exactly as before. You host nothing — payment runs on **your own** Supabase
