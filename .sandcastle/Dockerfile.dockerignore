@@ -1,0 +1,10 @@
+# BuildKit resolves <dockerfile-path>.dockerignore in preference to
+# <context>/.dockerignore, so this file governs the build WITHOUT putting a
+# .dockerignore at the repo root -- nothing else in the repo is affected, and
+# this travels with the Dockerfile it belongs to.
+#
+# WHY IT MATTERS: the build context is the REPO ROOT, which is ~9 GB on the dev
+# machine (apps/*/build, release/, node_modules). The Dockerfile COPYs nothing
+# from the repo -- the toolchain is pinned by version, not by file -- so the
+# whole context is excluded.
+*
