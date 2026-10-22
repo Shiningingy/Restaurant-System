@@ -52,6 +52,7 @@ class MenuPublisher {
           domain.PublishedItem(
             id: item.id,
             name: item.name,
+            code: item.code,
             nameSecondary: item.nameSecondary,
             description: item.description,
             price: item.price,

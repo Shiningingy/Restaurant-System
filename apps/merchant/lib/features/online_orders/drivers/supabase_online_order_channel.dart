@@ -100,6 +100,10 @@ class SupabaseOnlineOrderChannel implements domain.OnlineOrderChannel {
     processorRef: r['processor_ref'] as String?,
     // Optional column (docs/CLOUD_SECURITY.md); absent → no tip.
     tip: domain.Money((r['tip_cents'] as num?)?.toInt() ?? 0),
+    note: switch ((r['note'] as String?)?.trim()) {
+      final n? when n.isNotEmpty => n,
+      _ => null,
+    },
   );
 
   @override

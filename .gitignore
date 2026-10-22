@@ -4,6 +4,9 @@
 build/
 release/
 pubspec.lock.bak
+# Local switch that installs private extensions (see packages/extension_api).
+# Never commit it, and don't commit a pubspec.lock written while it is active.
+pubspec_overrides.yaml
 
 # Node — only present because the Supabase CLI was run via npx; not part of the
 # Flutter workspace. The CLI is invoked on demand (`npx supabase ...`).

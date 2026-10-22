@@ -314,11 +314,11 @@
   "@inboxCustomerPickup": {
     "placeholders": { "name": { "type": "String" }, "time": { "type": "String" } }
   },
-  "inboxTotalPayAtPickup": "Total {total} — pay at pickup",
-  "@inboxTotalPayAtPickup": {
+  "inboxTotalUnpaid": "Subtotal {total} before tax — not paid yet",
+  "@inboxTotalUnpaid": {
     "placeholders": { "total": { "type": "String" } }
   },
-  "inboxTotalPaidOnline": "Total {total} — PAID online",
+  "inboxTotalPaidOnline": "Subtotal {total} before tax — PAID online",
   "@inboxTotalPaidOnline": {
     "placeholders": { "total": { "type": "String" } }
   },

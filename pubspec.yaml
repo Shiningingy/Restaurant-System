@@ -8,6 +8,10 @@ environment:
 workspace:
   - packages/domain
   - packages/ui
+  - packages/extension_api
+  # packages/extensions is deliberately NOT a workspace member: pub refuses to
+  # override workspace packages, and a pubspec_overrides.yaml must be able to
+  # swap it for a private build (see packages/extension_api).
   - apps/merchant
   - apps/customer
 

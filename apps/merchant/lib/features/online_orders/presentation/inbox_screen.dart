@@ -176,6 +176,23 @@ class _OrderSummary extends StatelessWidget {
           style: Theme.of(context).textTheme.titleSmall,
         ),
         if (order.customerPhone != null) Text(order.customerPhone!),
+        if (order.note != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.sticky_note_2_outlined, size: 16),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    order.note!,
+                    style: const TextStyle(fontStyle: FontStyle.italic),
+                  ),
+                ),
+              ],
+            ),
+          ),
         const SizedBox(height: 4),
         for (final l in lines)
           Text(
@@ -188,7 +205,7 @@ class _OrderSummary extends StatelessWidget {
         Text(
           order.isPaidOnline
               ? context.l10n.inboxTotalPaidOnline(total.format())
-              : context.l10n.inboxTotalPayAtPickup(total.format()),
+              : context.l10n.inboxTotalUnpaid(total.format()),
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             fontWeight: order.isPaidOnline ? FontWeight.w700 : null,
           ),

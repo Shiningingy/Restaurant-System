@@ -678,13 +678,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String inboxTotalPayAtPickup(String total) {
-    return 'Total $total — pay at pickup';
+  String inboxTotalUnpaid(String total) {
+    return 'Subtotal $total before tax — not paid yet';
   }
 
   @override
   String inboxTotalPaidOnline(String total) {
-    return 'Total $total — PAID online';
+    return 'Subtotal $total before tax — PAID online';
   }
 
   @override

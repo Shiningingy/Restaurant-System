@@ -218,6 +218,56 @@ class SupabaseStorefront {
     'status': domain.OnlineOrderStatus.pickedUp.name,
   });
 
+  /// One of this customer's own orders — its lines, when it was placed and its
+  /// status — or null when it no longer exists.
+  Future<PastOrderRow?> fetchOrder(String orderId) async {
+    final resp = await _client
+        .get(
+          _rest(domain.OnlineOrderingTables.onlineOrders, {
+            'select': 'lines,submitted_at,status,customer_phone',
+            'id': 'eq.$orderId',
+          }),
+          headers: await _authHeaders(),
+        )
+        .timeout(timeout);
+    if (resp.statusCode >= 300) {
+      throw domain.SyncException('fetch order (${resp.statusCode})');
+    }
+    final rows = (jsonDecode(resp.body) as List).cast<Map<String, dynamic>>();
+    if (rows.isEmpty) return null;
+    final row = rows.first;
+    return (
+      submittedAt: DateTime.parse(row['submitted_at'] as String).toLocal(),
+      lines: [
+        for (final l in (row['lines'] as List).cast<Map<String, dynamic>>())
+          domain.PreorderLine.fromJson(l),
+      ],
+      status: domain.OnlineOrderStatus.values.byName(row['status'] as String),
+      customerPhone: row['customer_phone'] as String?,
+    );
+  }
+
+  /// Withdraws the customer's own order if the restaurant hasn't accepted it
+  /// yet. True when it was removed; false when it's too late (accepted, paid
+  /// or already gone). The database policy `oo_customer_delete_unpaid` only
+  /// lets a still-submitted, unpaid own order go, so racing the restaurant's
+  /// Accept is safe: whichever lands second changes nothing.
+  Future<bool> withdrawUnaccepted(String orderId) async {
+    final resp = await _client
+        .delete(
+          _rest(domain.OnlineOrderingTables.onlineOrders, {
+            'id': 'eq.$orderId',
+            'status': 'eq.${domain.OnlineOrderStatus.submitted.name}',
+          }),
+          headers: {...await _authHeaders(), 'Prefer': 'return=representation'},
+        )
+        .timeout(timeout);
+    if (resp.statusCode >= 300) {
+      throw domain.SyncException('withdraw order (${resp.statusCode})');
+    }
+    return (jsonDecode(resp.body) as List).isNotEmpty;
+  }
+
   /// Deletes the customer's own order while it is still submitted + unpaid — an
   /// abandoned online payment. RLS only permits this for an own, unpaid row
   /// (docs/CLOUD_SECURITY.md `oo_customer_delete_unpaid`), so a paid/accepted
@@ -251,6 +301,14 @@ class SupabaseStorefront {
     }
   }
 }
+
+/// A placed order read back: what was ordered, when, and where it stands.
+typedef PastOrderRow = ({
+  DateTime submittedAt,
+  List<domain.PreorderLine> lines,
+  domain.OnlineOrderStatus status,
+  String? customerPhone,
+});
 
 /// Status of a placed order plus any proposed pickup time.
 typedef OrderState = ({

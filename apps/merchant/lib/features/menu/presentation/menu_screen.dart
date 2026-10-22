@@ -50,6 +50,18 @@ class _MenuScreenState extends ConsumerState<MenuScreen> {
                 label: Text(context.l10n.captureImportFromPhoto),
               ),
             ),
+            for (final extension in ref.watch(merchantExtensionsProvider))
+              for (final action in extension.menuToolbarActions)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: TextButton.icon(
+                    key: ValueKey('menu-action-${action.id}'),
+                    onPressed: () =>
+                        action.onPressed(context, ref.read(menuHostProvider)),
+                    icon: Icon(action.icon),
+                    label: Text(action.label(Localizations.localeOf(context))),
+                  ),
+                ),
             PopupMenuButton<String>(
               onSelected: (v) {
                 if (v == 'sample') _loadSampleMenu(context);

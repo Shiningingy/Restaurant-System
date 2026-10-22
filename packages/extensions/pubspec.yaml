@@ -1,0 +1,14 @@
+name: restaurant_extensions
+description: "Restaurant System — the installed extensions. This copy installs none; a build can override it (see packages/extension_api)."
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.12.0
+
+# Not a workspace member (no `resolution: workspace`): pub cannot override
+# workspace packages, and this one must stay swappable.
+
+dependencies:
+  restaurant_extension_api:
+    path: ../extension_api

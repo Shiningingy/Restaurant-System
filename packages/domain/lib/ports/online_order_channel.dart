@@ -48,6 +48,9 @@ class IncomingOnlineOrder {
   /// when none.
   final Money tip;
 
+  /// The customer's note for the whole order, if any.
+  final String? note;
+
   const IncomingOnlineOrder({
     required this.id,
     required this.customerName,
@@ -60,6 +63,7 @@ class IncomingOnlineOrder {
     this.paymentStatus = 'unpaid',
     this.processorRef,
     this.tip = Money.zero,
+    this.note,
   });
 
   bool get isPaidOnline => paymentStatus == 'paid';
