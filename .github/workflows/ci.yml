@@ -46,3 +46,15 @@ jobs:
       - name: Customer tests
         run: flutter test
         working-directory: apps/customer
+
+      - uses: denoland/setup-deno@v2
+        with:
+          # PINNED for the same reason as Flutter above; 2.9.6 is what the
+          # sandcastle image runs. Bump deliberately, with the tests re-run.
+          deno-version: v2.9.6
+
+      # The only guard on the Dart <-> TypeScript money-math mirror
+      # (supabase/functions/pay-online/amount.ts). Runs from the repo root so
+      # Deno finds deno.json (the @std/assert import) and deno.lock.
+      - name: Edge-function tests
+        run: deno test supabase/tests
