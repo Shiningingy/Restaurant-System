@@ -1,6 +1,13 @@
 /**
  * ONE ISSUE, ONE CONTAINER, ONE REVIEW -- one after another.
  *
+ * 2026-10-22: the review is now also IN the container, not only on GitHub. One `createSandbox` per
+ * issue; an implementer run; then, for a change that touches code, the CI gates run by the HOST through
+ * `sandbox.exec` (deterministic: no prompt is trusted to run them) and a reviewer run on the SAME
+ * branch, with the gates run again if it commits. A docs-only change skips both. Upstream calls this
+ * shape `sequential-reviewer`; its planner and merger stay out, per the user's rule below. Effort is
+ * `high` for both runs (👤 2026-10-22: *"i'd say use high for both"*).
+ *
  *   npx tsx .sandcastle/main.mts               the LOOP: run the queue, one issue at a time, keep watching
  *   npx tsx .sandcastle/main.mts --issue N     run N ONCE and exit (also: a bare N)
  *   add --dry-run to either                    resolve every decision, start no container, exit
@@ -30,7 +37,7 @@
  * What Maple has that this file deliberately leaves out: the rig gate (no live hardware here) and
  * issue-declared file mounts (no gitignored fixtures here).
  */
-import { run, claudeCode, Output } from "@ai-hero/sandcastle";
+import { createSandbox, claudeCode } from "@ai-hero/sandcastle";
 import { docker } from "@ai-hero/sandcastle/sandboxes/docker";
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -41,6 +48,8 @@ import { fileURLToPath } from "node:url";
 // MODEL. Token control comes from one invocation per issue, not from a smaller model.
 // "claude-sonnet-5-5" is the swap if a run turns out not to need it, and the only edit.
 const MODEL = "claude-opus-5-5";
+// 👤 2026-10-22: "use high for both." Set explicitly so the CLI default never matters. Both runs use it.
+const EFFORT = "high" as const;
 const GITHUB_REPO = "Shiningingy/Restaurant-System";   // the canonical name; the old "Restruant" spelling redirects
 const SANDCASTLE_REPO = "G:/restaurant-sandcastle";      // the disposable clone, see the header
 const SANDCASTLE_LABEL = "sandcastle";                    // the opt-in: "fit for an unattended container"
@@ -242,7 +251,8 @@ function describePlan(p: Plan): void {
   console.log(`  labels   ${labelsOf(p.issue).join(", ")}`);
   console.log(`  base     ${p.BASE_REF}  (PR --base ${p.BASE_BRANCH})`);
   console.log(`  branch   ${p.branch}${p.rework ? `  (REWORK of open PR ${p.rework.url})` : ""}`);
-  console.log(`  model    ${MODEL}   image ${IMAGE_NAME}   idle ${IDLE_TIMEOUT_S} s`);
+  console.log(`  model    ${MODEL}   effort ${EFFORT}   image ${IMAGE_NAME}   idle ${IDLE_TIMEOUT_S} s`);
+  console.log(`  review   review.md on the same branch after ${GATES.length} host gates; both skipped for a docs-only change`);
 }
 
 // ---------------------------------------------------------------------------- 3. credentials
@@ -326,34 +336,123 @@ const COMMAND_TOKEN = /^[A-Za-z0-9_./-]+$/;
 // The prompt is read from THIS folder by absolute path, not from the clone: until `.sandcastle/` is
 // merged, the clone has no prompt.md, and even after, one prompt with one home beats two copies.
 const PROMPT_FILE = localEnv("prompt.md");
+// The reviewer's prompt, same home. It gets the issue, the changed files and the host's gate report.
+const REVIEW_PROMPT_FILE = localEnv("review.md");
+const REVIEW_TAG = "review-note";
 
-function checkPrompt(promptArgs: ReturnType<typeof promptArgsOf>): string {
-  const promptText = readFileSync(PROMPT_FILE, "utf8");
+// THE GATES THE HOST RUNS IN THE CONTAINER after the implementer, in CI's order (ci.yml). The prompt
+// still asks the agent to run the ones it touched; these are the ones the PR body can be trusted on,
+// because a process ran them, not a promise. `only` limits a gate to runs that touched its tree.
+// packages/domain uses `flutter test`, not `dart test`: see prompt.md and the memory on the bind mount.
+const GATES: { name: string; cmd: string; only?: RegExp }[] = [
+  { name: "pub get",   cmd: "flutter pub get" },
+  { name: "format",    cmd: "dart format --set-exit-if-changed packages apps" },
+  { name: "analyze",   cmd: "flutter analyze packages apps" },
+  { name: "domain",    cmd: "cd packages/domain && flutter test" },
+  { name: "merchant",  cmd: "cd apps/merchant && flutter test" },
+  { name: "customer",  cmd: "cd apps/customer && flutter test" },
+  { name: "edge-fn",   cmd: "deno test supabase/tests", only: /^supabase\// },
+];
+// A change made only of these needs no gate and no reviewer: the user reads 16 lines faster than a
+// second model call does, and there is nothing a test could prove.
+const DOCS_ONLY = /^docs\/|\.md$/i;
+
+function checkPrompt(file: string, args: Record<string, unknown>, requiredTag: string): string {
+  const name = file.split(/[\\/]/).pop();
+  const promptText = readFileSync(file, "utf8");
   const referenced = [...new Set([...promptText.matchAll(PLACEHOLDER_PATTERN)].map((m) => m[1]))];
-  const missingArgs = referenced.filter((k) => !BUILT_IN_ARGS.includes(k) && !(k in promptArgs));
+  const missingArgs = referenced.filter((k) => !BUILT_IN_ARGS.includes(k) && !(k in args));
   if (missingArgs.length) {
-    console.error(`REFUSING TO START: prompt.md references ${missingArgs.map((k) => `{{${k}}}`).join(", ")} with no value.`);
+    console.error(`REFUSING TO START: ${name} references ${missingArgs.map((k) => `{{${k}}}`).join(", ")} with no value.`);
     console.error("  A placeholder written as an EXAMPLE counts: substitution does not skip HTML comments.");
     process.exit(8);
   }
-  for (const k of Object.keys(promptArgs)) {
-    if (!referenced.includes(k)) console.error(`  warn: promptArgs.${k} is never referenced in prompt.md`);
+  for (const k of Object.keys(args)) {
+    if (!referenced.includes(k)) console.error(`  warn: ${name}: argument ${k} is never referenced`);
   }
   const shellBlocks = [...promptText.matchAll(SHELL_BLOCK_PATTERN)].map((m) => m[1].trim());
   const bogus = shellBlocks.filter((c) => !COMMAND_TOKEN.test(c.split(/\s+/)[0]));
   if (bogus.length) {
-    console.error(`REFUSING TO START: prompt.md has a shell block that cannot be a command: ${bogus.map((c) => `\`${c}\``).join(", ")}`);
+    console.error(`REFUSING TO START: ${name} has a shell block that cannot be a command: ${bogus.map((c) => `\`${c}\``).join(", ")}`);
     console.error("  The engine EXECUTES these in the container and a non-zero exit kills the run before the agent exists.");
     process.exit(8);
   }
-  if (!promptText.includes(`<${PR_BODY_TAG}>`)) {
-    console.error(`REFUSING TO START: prompt.md does not contain the <${PR_BODY_TAG}> tag.`);
+  if (!promptText.includes(`<${requiredTag}>`)) {
+    console.error(`REFUSING TO START: ${name} does not contain the <${requiredTag}> tag.`);
     process.exit(8);
   }
-  console.log(`  prompt   ${referenced.length} placeholders, ${shellBlocks.length} shell block(s), <${PR_BODY_TAG}> present`);
+  console.log(`  prompt   ${name}: ${referenced.length} placeholders, ${shellBlocks.length} shell block(s), <${requiredTag}> present`);
   for (const c of shellBlocks) console.log(`  exec     \`${c}\`  (runs IN the container)`);
   return promptText;
 }
+const substituted = (text: string, args: Record<string, unknown>) =>
+  text.replace(PLACEHOLDER_PATTERN, (m, k) => (k in args ? String(args[k]) : m));
+
+// The reviewer's arguments. BASE_REF is passed by name so the prompt can diff against it without a
+// shell block (a placeholder inside a shell block is one substitution order away from a dead run).
+const reviewArgsOf = (p: Plan, changed: string[], gateReport: string) => ({
+  ISSUE_NUMBER: p.issue.number,
+  ISSUE_TITLE: p.issue.title,
+  ISSUE_URL: p.issue.html_url,
+  ISSUE_BODY: p.issue.body ?? "",
+  BASE_BRANCH: p.BASE_BRANCH,
+  BASE_REF: p.BASE_REF,
+  CHANGED_FILES: changed.join("\n") || "(none)",
+  GATE_REPORT: gateReport,
+});
+
+// The last <tag>...</tag> in an agent's stdout, trimmed; "" when it never emitted one.
+const tagged = (stdout: string, tag: string): string => {
+  const all = [...stdout.matchAll(new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`, "g"))];
+  return all.length ? all[all.length - 1][1].trim() : "";
+};
+
+type RunLike = {
+  commits: unknown[]; completionSignal?: string; logFilePath?: string;
+  iterations: { usage?: { inputTokens: number; outputTokens: number; cacheCreationInputTokens: number; cacheReadInputTokens: number } }[];
+};
+function reportRun(label: string, r: RunLike): void {
+  console.log(`\n--- ${label} finished ---`);
+  console.log(`  commits  ${r.commits.length}`);
+  console.log(`  signal   ${r.completionSignal ?? "(none: it did not say COMPLETE)"}`);
+  for (const [n, it] of r.iterations.entries()) {
+    if (!it.usage) continue;
+    const u = it.usage;
+    console.log(`  tokens   #${n + 1}  in ${u.inputTokens}  out ${u.outputTokens}` +
+                `  cache(write ${u.cacheCreationInputTokens} / read ${u.cacheReadInputTokens})`);
+  }
+  if (r.logFilePath) console.log(`  log      ${r.logFilePath}`);
+}
+
+// Read on the HOST from the clone: the worktree's commits are on the branch, and the clone's git sees
+// them. This is what decides docs-only, and what the reviewer is told.
+const changedFiles = (baseRef: string, branch: string): string[] =>
+  execFileSync("git", ["diff", "--name-only", `${baseRef}...${branch}`], { cwd: SANDCASTLE_REPO, encoding: "utf8" })
+    .split("\n").map((s) => s.trim()).filter(Boolean);
+
+type GateResult = { name: string; cmd: string; exitCode: number; tail: string };
+// Each gate is one `sh -c` in the warm container, in the repo root. A non-zero exit is a result, not an
+// exception. After a failed `pub get` nothing else can run, so the loop stops there.
+async function runGates(sandbox: { exec: (cmd: string) => Promise<{ exitCode: number; stdout: string; stderr: string }> },
+                        changed: string[]): Promise<GateResult[]> {
+  const out: GateResult[] = [];
+  for (const g of GATES) {
+    if (g.only && !changed.some((f) => g.only!.test(f))) continue;
+    console.log(`  gate     ${g.name}: ${g.cmd}`);
+    const r = await sandbox.exec(g.cmd);
+    const lines = `${r.stdout}\n${r.stderr}`.split("\n").map((s) => s.trimEnd()).filter(Boolean);
+    const ok = r.exitCode === 0;
+    console.log(`           ${ok ? "OK" : `FAILED (exit ${r.exitCode})`}  ${lines[lines.length - 1] ?? ""}`);
+    out.push({ name: g.name, cmd: g.cmd, exitCode: r.exitCode, tail: lines.slice(ok ? -1 : -40).join("\n") });
+    if (g.name === "pub get" && !ok) break;
+  }
+  return out;
+}
+const gateLine = (gates: GateResult[]) =>
+  "Host gates, run in the container after the agent: " +
+  gates.map((g) => `${g.name} ${g.exitCode === 0 ? "OK" : `FAILED (exit ${g.exitCode})`}`).join(" · ");
+const gateReportOf = (gates: GateResult[]) =>
+  gates.map((g) => `## ${g.name}  (${g.cmd})  ->  ${g.exitCode === 0 ? "OK" : `FAILED, exit ${g.exitCode}`}\n${g.tail}`).join("\n\n");
 
 // ---------------------------------------------------------------------------- 5. run ONE issue
 async function launch(plan: Plan): Promise<string> {
@@ -361,13 +460,16 @@ async function launch(plan: Plan): Promise<string> {
   const { issue, BASE_BRANCH, BASE_REF, branch } = plan;
   const { REQUIRED_KEYS, secrets } = loadCredentials();
   const promptArgs = promptArgsOf(plan);
-  const promptText = checkPrompt(promptArgs);
+  const promptText = checkPrompt(PROMPT_FILE, promptArgs, PR_BODY_TAG);
+  const reviewArgsPreview = reviewArgsOf(plan, ["<known after the implementer runs>"], "<the host's gate report>");
+  const reviewText = checkPrompt(REVIEW_PROMPT_FILE, reviewArgsPreview, REVIEW_TAG);
 
   if (DRY_RUN) {
     if (process.argv.includes("--show-prompt")) {
       console.log("\n--- prompt.md, substituted (shell blocks still expand in the container) ---");
-      console.log(promptText.replace(PLACEHOLDER_PATTERN, (m, k) =>
-        k in promptArgs ? String(promptArgs[k as keyof typeof promptArgs]) : m));
+      console.log(substituted(promptText, promptArgs));
+      console.log("--- review.md, substituted (the changed files and the gate report come at run time) ---");
+      console.log(substituted(reviewText, reviewArgsPreview));
       console.log("--- end ---\n");
     }
     console.log("--dry-run: docker, clone, issue, base ref, keys, placeholders, shell blocks and the output");
@@ -382,70 +484,93 @@ async function launch(plan: Plan): Promise<string> {
     Object.fromEntries(REQUIRED_KEYS.map((k) => [k, process.env[k]]));
   for (const k of REQUIRED_KEYS) process.env[k] = secrets[k];
 
-  let result;
+  // ONE container, up to three runs on the SAME branch: the implementer; then, for a change that
+  // touches code, the host's gates and a reviewer. The sandbox is closed in `finally`, and the env
+  // bridge is undone there too, so the loop's next pass never selects with the container's token.
+  const sandbox = await createSandbox({
+    branch,
+    baseBranch: BASE_REF,                   // the FETCHED ref; ignored on a rework, where the branch exists
+    cwd: SANDCASTLE_REPO,
+    // No mounts, on purpose: see the header. The repo is public; the memory store and the private
+    // add-ons are not.
+    sandbox: docker({ imageName: IMAGE_NAME, cpus: 4 }),
+  });
+  let prBodyText = "";
+  const host: string[] = [];                // what the HOST measured; appended to the PR body
   try {
-    result = await run({
+    const implement = await sandbox.run({
       name: `issue-${issue.number}`,
-      cwd: SANDCASTLE_REPO,
-      agent: claudeCode(MODEL),
+      agent: claudeCode(MODEL, { effort: EFFORT }),
       promptFile: PROMPT_FILE,
-      maxIterations: 1,                       // ONE. The user's rule, not a default to tune.
+      maxIterations: 1,                     // ONE. The user's rule, not a default to tune.
       idleTimeoutSeconds: IDLE_TIMEOUT_S,
       promptArgs,
-      // The PR body is the agent's to write: it is the only party that knows what it did. `maxRetries: 1`
-      // has the engine ask once more if the tag never came; if it still does not, the host pushes the
-      // branch and does NOT invent a body.
-      output: Output.string({ tag: PR_BODY_TAG, maxRetries: 1 }),
-      // NOT the docker default of {type:"head"}: that bind-mounts the live working tree on whatever
-      // branch is checked out, which would let an unattended agent commit to main.
-      branchStrategy: { type: "branch", branch, baseBranch: BASE_REF },
-      sandbox: docker({
-        imageName: IMAGE_NAME,
-        // No mounts, on purpose: see the header. The repo is public; the memory store and the
-        // private add-ons are not.
-        cpus: 4,
-      }),
-      // No `logging` key: `{ type: "file" }` with no `path` SUPPRESSES the default log instead of
-      // requesting it (measured on maple). Omitted, the engine writes .sandcastle/logs/ under the clone.
     });
+    reportRun(`#${issue.number} implementer`, implement);
+    if (!implement.commits.length) {
+      console.log("\nNo commits. Read the issue comment: it either had nothing to do or it is blocked.");
+      return "no commits";
+    }
+
+    // The PR body is the agent's to write: it is the only party that knows what it did. `sandbox.run`
+    // has no Output definition, so the one retry the old `Output.string({ maxRetries: 1 })` gave is
+    // a resume of the same session. If it still does not come, the host pushes and invents nothing.
+    prBodyText = tagged(implement.stdout, PR_BODY_TAG);
+    if (!prBodyText && implement.resume) {
+      console.log(`  no <${PR_BODY_TAG}>: asking once more on the same session`);
+      const again = await implement.resume(
+        `You committed but emitted no <${PR_BODY_TAG}> tag. Emit it now, exactly as the prompt describes, then the completion signal.`,
+        { idleTimeoutSeconds: IDLE_TIMEOUT_S });
+      prBodyText = tagged(again.stdout, PR_BODY_TAG);
+    }
+
+    let changed = changedFiles(BASE_REF, branch);
+    if (changed.every((f) => DOCS_ONLY.test(f))) {
+      console.log(`  docs-only change (${changed.length} file(s)): gates and reviewer skipped`);
+      host.push(`Host: docs-only change (${changed.length} file(s)); the gates and the reviewer were skipped.`);
+    } else {
+      let gates = await runGates(sandbox, changed);
+      host.push(gateLine(gates));
+      const review = await sandbox.run({
+        name: `issue-${issue.number} review`,
+        agent: claudeCode(MODEL, { effort: EFFORT }),
+        promptFile: REVIEW_PROMPT_FILE,
+        maxIterations: 1,
+        idleTimeoutSeconds: IDLE_TIMEOUT_S,
+        promptArgs: reviewArgsOf(plan, changed, gateReportOf(gates)),
+      });
+      reportRun(`#${issue.number} reviewer`, review);
+      if (review.commits.length) {
+        changed = changedFiles(BASE_REF, branch);
+        gates = await runGates(sandbox, changed);
+        host.push(`After the reviewer's ${review.commits.length} commit(s). ` + gateLine(gates));
+      }
+      const note = tagged(review.stdout, REVIEW_TAG);
+      host.push(note ? `Reviewer (same container, same branch):\n\n\`\`\`\n${note}\n\`\`\`` : "Reviewer: ran, committed nothing it reported, and emitted no <review-note>.");
+    }
   } finally {
+    await sandbox.close();
     for (const [k, v] of Object.entries(HOST_ENV_BEFORE)) {
       if (v === undefined) delete process.env[k]; else process.env[k] = v;
     }
   }
-
-  console.log(`\n--- #${issue.number} finished ---`);
-  console.log(`  branch   ${result.branch}`);
-  console.log(`  commits  ${result.commits.length}`);
-  console.log(`  signal   ${result.completionSignal ?? "(none: it did not say COMPLETE)"}`);
-  for (const [n, it] of result.iterations.entries()) {
-    if (!it.usage) continue;
-    const u = it.usage;
-    console.log(`  tokens   #${n + 1}  in ${u.inputTokens}  out ${u.outputTokens}` +
-                `  cache(write ${u.cacheCreationInputTokens} / read ${u.cacheReadInputTokens})`);
-  }
-  if (result.logFilePath) console.log(`  log      ${result.logFilePath}`);
-
-  if (!result.commits.length) {
-    console.log("\nNo commits. Read the issue comment: it either had nothing to do or it is blocked.");
-    return "no commits";
-  }
+  const hostSection = host.join("\n\n");
 
   // PUSH AND OPEN A DRAFT PR, AND STILL NEVER MERGE. A draft is the honest state for work no human has
   // read yet: the user marks it ready, and the user merges.
   execFileSync("git", ["push", "origin", branch], { cwd: SANDCASTLE_REPO, stdio: "inherit" });
 
-  const emitted = typeof result.output === "string" ? result.output.trim() : "";
+  const emitted = prBodyText;
   const [titleLine, ...bodyLines] = emitted.split("\n");
   const prTitle = titleLine.replace(/^#+\s*/, "").trim() || `${issue.title} (#${issue.number})`;
-  const prBody = `${bodyLines.join("\n").trim()}\n\nCloses #${issue.number}\n\n` +
+  const prBody = `${bodyLines.join("\n").trim()}\n\n---\n\n${hostSection}\n\nCloses #${issue.number}\n\n` +
                  `🤖 Generated with [Claude Code](https://claude.com/claude-code)`;
 
   if (plan.rework) {
     // The PR already exists: the push updated it. Record the rework as a PR comment, hand the issue
     // back to the user. ⚠️ UNTESTED as of 2026-10-21: no rework has run yet.
     gh(["pr", "comment", String(plan.rework.number), "--repo", GITHUB_REPO, "--body",
-        emitted ? `Rework pushed.\n\n${emitted}` : "Rework pushed; the agent emitted no <pr-body>."]);
+        (emitted ? `Rework pushed.\n\n${emitted}` : "Rework pushed; the agent emitted no <pr-body>.") + `\n\n---\n\n${hostSection}`]);
     gh(["issue", "edit", String(issue.number), "--repo", GITHUB_REPO,
         "--remove-label", LABEL_REWORK, "--add-label", LABEL_REVIEW]);
     console.log(`\n  updated draft PR  ${plan.rework.url}\n  It is a DRAFT. You mark it ready. You merge.`);
@@ -454,6 +579,7 @@ async function launch(plan: Plan): Promise<string> {
 
   if (!emitted) {
     console.log(`\nPushed ${branch}, but the agent emitted no <pr-body>, even after a retry.`);
+    if (hostSection) console.log(`\n${hostSection}\n`);
     console.log("  A PR body is a claim about what was done, so it is not mine to invent. Open it yourself:");
     console.log(`    gh pr create --repo ${GITHUB_REPO} --draft --head ${branch} --base ${BASE_BRANCH} --title "<why, in one line>"`);
     return "pushed, no PR body";
