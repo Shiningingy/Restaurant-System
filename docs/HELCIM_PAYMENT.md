@@ -1,5 +1,13 @@
 # Helcim online payment (HelcimPay.js)
 
+> ✅ **SUPERSEDED 2026-09-07: Helcim declined the account on 2026-09-01; Stripe was chosen instead for online payment.** See `docs/STRIPE_PAYMENT.md`. The text below is kept as the record of what was tried.
+
+```
+STATUS    SUPERSEDED — 2026-09-07
+ARM       n/a — superseded setup guide
+STALE IF  docs/STRIPE_PAYMENT.md
+```
+
 The `pay-online` Supabase Edge Function supports **two** processors, selected at
 runtime. Helcim is the newer path (self-serve account, no NDA/partner gate);
 Moneris stays intact as a fallback. See also `docs/MONERIS_PAYMENT.md`.
